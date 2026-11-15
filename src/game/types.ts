@@ -172,6 +172,8 @@ export interface NpcPlacement {
   anim?: 'idle' | 'sit' | 'sweep' | 'carrom' | 'cricket' | 'read' | 'chai' | 'swing';
   /** position driven by the simulation (patrols, schedules), not by the scene */
   agent?: boolean;
+  /** a daily loop: walk to each stop in turn and stay a while doing something */
+  routine?: Array<{ x: number; z: number; face: number; stay: number; anim?: NpcPlacement['anim'] }>;
 }
 
 export interface SceneDef {

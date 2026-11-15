@@ -74,6 +74,7 @@ export const chaos: Director = {
       if (h >= 60) t += 25;
       if (h < 35) t -= 20;
       setM('timerEnd', now + t);
+      setM('timerLen', t);
       inspectAt = now + 35;
       toast(`Sunset in ${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}${h >= 60 ? ' (a united gang buys extra time)' : h < 35 ? ' (all the bickering cost you time)' : ''}`, 'alert', 'The clock is running');
     }

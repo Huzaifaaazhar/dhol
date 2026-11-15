@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import type { Look, MoveStyle } from '../game/data/characters';
-import { ent } from '../game/runtime';
+import { ent, runtime } from '../game/runtime';
 import { GEO, mat, texMat } from './materials';
 import { shirtTexture } from './textures';
 
@@ -49,6 +49,10 @@ export function Person({ id, look, move = DEFAULT_MOVE, personality = 'npc', rin
   const legL = useRef<THREE.Group>(null!);
   const legR = useRef<THREE.Group>(null!);
   const ringRef = useRef<THREE.Mesh>(null!);
+  const eyes = useRef<Array<THREE.Group | null>>([]);
+  const brows = useRef<Array<THREE.Mesh | null>>([]);
+  const mouth = useRef<THREE.Mesh>(null!);
+  const blinkAt = useRef(2 + Math.random() * 3);
   const prop = useRef<THREE.Group>(null!);
 
   const H = look.height;
@@ -340,6 +344,55 @@ export function Person({ id, look, move = DEFAULT_MOVE, personality = 'npc', rin
     legR.current.rotation.x += (legRx - legR.current.rotation.x) * L;
     if (prop.current) prop.current.visible = propVis;
 
+    /* ── face: blink, talk, and a mood from emotes or what the body is doing ── */
+    const ex = runtime.expr.get(id);
+    let mood: string = ex && ex.until > performance.now() ? ex.mood : 'neutral';
+    if (mood === 'neutral') {
+      if (one === 'panic' || one === 'trip' || (personality === 'maru' && one === 'signature')) mood = 'shock';
+      else if (one === 'celebrate' || (personality === 'goti' && one === 'signature')) mood = 'happy';
+      else if (personality === 'maru') mood = 'sad';
+    }
+    blinkAt.current -= dt;
+    let lid = 1;
+    if (blinkAt.current < 0) {
+      lid = 0.12;
+      if (blinkAt.current < -0.12) blinkAt.current = 2.5 + Math.random() * 3.5;
+    }
+    const eyeScale = mood === 'shock' ? 1.35 : mood === 'angry' ? 0.8 : mood === 'happy' ? 0.85 : 1;
+    eyes.current.forEach((g) => g && g.scale.set(eyeScale, eyeScale * lid, 1));
+    const talking = e.anim === 'talk' || one === 'talk';
+    brows.current.forEach((b, i) => {
+      if (!b) return;
+      const sgn = i === 0 ? -1 : 1;
+      let rot = sgn * browTilt;
+      let y = headR * 0.3;
+      if (mood === 'shock') y = headR * 0.42;
+      if (mood === 'angry') rot = -sgn * 0.5;
+      if (mood === 'sad') rot = sgn * 0.45;
+      if (mood === 'confused') y = i === 0 ? headR * 0.44 : headR * 0.28;
+      if (mood === 'happy') y = headR * 0.36;
+      b.rotation.z += (rot - b.rotation.z) * 0.3;
+      b.position.y += (y - b.position.y) * 0.3;
+    });
+    if (mouth.current) {
+      const base = personality === 'pakya' ? 0.55 : 0.4;
+      let mw = base;
+      let mh = 0.07;
+      if (mood === 'shock') {
+        mw = 0.26;
+        mh = 0.26;
+      } else if (mood === 'happy') {
+        mw = 0.62;
+        mh = 0.12;
+      } else if (mood === 'angry') {
+        mw = 0.34;
+        mh = 0.05;
+      } else if (mood === 'sad') mw = 0.3;
+      if (talking) mh = 0.06 + Math.abs(Math.sin(t * 14)) * 0.16;
+      mouth.current.scale.x += (headR * mw - mouth.current.scale.x) * 0.35;
+      mouth.current.scale.y += (headR * mh - mouth.current.scale.y) * 0.5;
+    }
+
     if (ringRef.current) {
       ringRef.current.visible = !!ring;
       const s = 1 + Math.sin(t * 4) * 0.06;
@@ -523,11 +576,14 @@ export function Person({ id, look, move = DEFAULT_MOVE, personality = 'npc', rin
             <mesh castShadow geometry={GEO.sphere} material={m.skin} scale={[headR * 1.95, headR * 2.05, headR * 1.95]} />
             {hair}
             {/* eyes */}
-            {[-1, 1].map((s) => (
+            {[-1, 1].map((s, i) => (
               <group key={s} position={[s * headR * 0.36, eyeY, eyeZ]}>
-                <mesh geometry={GEO.sphereLo} material={m.white} scale={[headR * 0.34, headR * 0.38, headR * 0.2]} />
-                <mesh geometry={GEO.sphereLo} material={m.black} position={[0, 0, headR * 0.08]} scale={[headR * 0.18, headR * 0.2, headR * 0.12]} />
+                <group ref={(el) => (eyes.current[i] = el)}>
+                  <mesh geometry={GEO.sphereLo} material={m.white} scale={[headR * 0.34, headR * 0.38, headR * 0.2]} />
+                  <mesh geometry={GEO.sphereLo} material={m.black} position={[0, 0, headR * 0.08]} scale={[headR * 0.18, headR * 0.2, headR * 0.12]} />
+                </group>
                 <mesh
+                  ref={(el) => (brows.current[i] = el)}
                   geometry={GEO.box}
                   material={m.hair}
                   position={[0, headR * 0.3, headR * 0.02]}
@@ -538,7 +594,7 @@ export function Person({ id, look, move = DEFAULT_MOVE, personality = 'npc', rin
             ))}
             <mesh geometry={GEO.sphereLo} material={m.skinDark} position={[0, -headR * 0.05, headR * 0.98]} scale={[headR * 0.25, headR * 0.3, headR * 0.25]} />
             {/* mouth */}
-            <mesh geometry={GEO.box} material={mat('#7a2e2e')} position={[0, -headR * 0.42, headR * 0.86]} scale={[headR * (personality === 'pakya' ? 0.55 : 0.4), headR * 0.07, headR * 0.06]} rotation={[0, 0, personality === 'pakya' ? 0.18 : 0]} />
+            <mesh ref={mouth} geometry={GEO.box} material={mat('#7a2e2e')} position={[0, -headR * 0.42, headR * 0.86]} scale={[headR * (personality === 'pakya' ? 0.55 : 0.4), headR * 0.07, headR * 0.06]} rotation={[0, 0, personality === 'pakya' ? 0.18 : 0]} />
             {extras.includes('moustache') && (
               <mesh geometry={GEO.box} material={m.hair} position={[0, -headR * 0.26, headR * 0.93]} scale={[headR * 0.75, headR * 0.12, headR * 0.1]} />
             )}

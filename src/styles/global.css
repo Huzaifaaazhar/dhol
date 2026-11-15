@@ -700,6 +700,24 @@ kbd {
   border: 3px solid var(--ink);
   transform: rotate(-2deg);
 }
+.portrait {
+  position: absolute;
+  top: -46px;
+  left: -14px;
+  width: 78px;
+  height: 78px;
+  border-radius: 50%;
+  border: 3px solid var(--ink);
+  box-shadow: 3px 3px 0 var(--marigold);
+  animation: portrait-in 0.28s cubic-bezier(0.3, 1.6, 0.5, 1) both;
+  z-index: 1;
+}
+@keyframes portrait-in {
+  from { transform: scale(0.4) rotate(-14deg); opacity: 0; }
+}
+.dialogue-name.has-portrait {
+  left: 62px;
+}
 .dialogue-text {
   margin: 0;
   min-height: 2.6em;
@@ -967,15 +985,32 @@ kbd {
 .fader {
   position: absolute;
   inset: 0;
-  background: var(--ink);
-  opacity: 0;
+  overflow: hidden;
   pointer-events: none;
-  transition: opacity 0.36s ease;
   z-index: 20;
 }
-.fader.is-on {
-  opacity: 1;
+/* iris wipe: a hole in the dark that closes on the walking friend and opens on the new place */
+.fader::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 54%;
+  width: 260vmax;
+  height: 260vmax;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 0 260vmax var(--ink), inset 0 0 0 0 var(--marigold);
+  transition: width 0.36s cubic-bezier(0.6, 0, 0.8, 0.4), height 0.36s cubic-bezier(0.6, 0, 0.8, 0.4), box-shadow 0.36s;
 }
+.fader.is-on::before {
+  width: 0;
+  height: 0;
+  box-shadow: 0 0 0 260vmax var(--ink), inset 0 0 0 10px var(--marigold);
+}
+@media (prefers-reduced-motion: reduce) {
+  .fader::before { transition: none; }
+}
+
 
 /* ───────────── small screens ───────────── */
 @media (max-width: 640px) {
@@ -1719,6 +1754,10 @@ kbd {
 }
 .touch-ui .dialogue {
   bottom: 12px;
+}
+@media (max-width: 640px) {
+  .portrait { width: 58px; height: 58px; top: -38px; left: -6px; }
+  .dialogue-name.has-portrait { left: 50px; }
 }
 .touch-ui .choice {
   padding: 10px 10px;

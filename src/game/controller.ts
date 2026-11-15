@@ -27,7 +27,7 @@ export function installController() {
       toast(m ? 'Sound off' : 'Sound on', 'info');
       return;
     }
-    if (s.mode !== 'play' || s.transition || s.partEnded) return;
+    if (s.mode !== 'play' || s.transition || s.partEnded || s.endingShown) return;
     if (s.failure) return;
     if (s.dialogue) {
       if (a === 'cycle') cycle();
@@ -133,6 +133,26 @@ function interact(special: boolean) {
     }
   }
   if (special) signature();
+  else nothingHere();
+}
+
+let shrugAt = 0;
+/** E with nothing in reach still answers: a shrug and a muttered line, never silence. */
+function nothingHere() {
+  const now = performance.now();
+  if (now - shrugAt < 1400) return;
+  shrugAt = now;
+  const id = get().active;
+  const lines: Record<string, string[]> = {
+    sam: ['Nothing useful here. Noted.', 'Not part of the plan.'],
+    pakya: ['Nothing here worth charming.', 'Empty. Like my wallet.'],
+    goti: ['I poked it. Nothing happened.', 'Hello? …No.'],
+    maru: ['Is something supposed to happen? Please say no.', 'Nothing. Good. Nothing is safe.'],
+  };
+  const l = lines[id];
+  emote(id, '?', 1.2);
+  bark(id, l[Math.floor(Math.random() * l.length)], 1.6);
+  sfx('pop');
 }
 
 /** The free ability with nothing nearby: each friend does their thing, and the street reacts. */

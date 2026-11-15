@@ -4,6 +4,7 @@ import type { CharId, EmoteKind, SceneId, StateView, TaskSpec } from './types';
 import { CHAR_IDS } from './types';
 import { MISSIONS, MISSION_MAP } from './data/missions';
 import { emptyLies, type LieState } from './lies';
+import { runtime } from './runtime';
 
 export type Mode = 'boot' | 'intro' | 'title' | 'play';
 
@@ -297,8 +298,19 @@ export function bark(target: string, text: string, seconds = 2.6) {
   window.setTimeout(() => set((s) => ({ bubbles: s.bubbles.filter((x) => x.id !== b.id) })), seconds * 1000);
 }
 
+const MOOD: Record<EmoteKind, 'shock' | 'angry' | 'happy' | 'confused' | 'sad'> = {
+  '!': 'shock',
+  '💢': 'angry',
+  '♥': 'happy',
+  '♪': 'happy',
+  $: 'happy',
+  '?': 'confused',
+  '…': 'sad',
+};
+
 export function emote(target: string, kind: EmoteKind, seconds = 1.8) {
   const until = performance.now() + seconds * 1000;
+  runtime.expr.set(target, { mood: MOOD[kind], until: until + 600 });
   set((s) => ({ emotes: { ...s.emotes, [target]: { kind, until } } }));
   window.setTimeout(() => {
     const cur = get().emotes[target];

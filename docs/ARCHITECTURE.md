@@ -136,3 +136,53 @@ mission, teleport and read state; everything else is driven with real key presse
 - Easier: new missions are a data file of dialogue plus a small director.
 - Harder: timers and patrols make missions non-deterministic, so tests wait on conditions rather than fixed times.
 - Revisit in Part 3: NPCs crossing scenes on their own, richer line of sight, saving mid-mission director state instead of restarting live missions.
+
+---
+
+# ADR-003: Part 3: the reveal, the finale, endings, polish and touch
+
+**Status:** Accepted
+**Date:** 2026-11-15
+
+## Context
+
+Part 3 had to tie every thread (the dhol, Zikomo's money, Rahul and Jai, the lies) into one reveal,
+then a large final mission whose outcome reflects what the player did across the whole game, with
+more than one ending. It also had to run well on phones, not just shrink the desktop layout.
+
+## Decision
+
+1. **The reveal is ordinary missions content.** `reveal` is a chain of discoveries (packet → key →
+   cinema locker → projector booth → Goti knocks the drum → Daadi on drum skins → the false bottom)
+   built from the same dialogue, interactables and director pieces as Part 2. No cutscene engine.
+2. **The finale is a director with memory.** `missions/finale.ts` reads earlier state at start:
+   gang harmony changes the clock, Jai's suspicion decides whether he draws one goon away, Ritu's
+   trust brings witnesses, the biscuit-tin fake and the deal raise Zikomo's starting suspicion.
+   During play it counts per-friend trouble, chaos events, contradictions told in the finale,
+   bluffed witnesses and whether the drum arrived.
+3. **Endings are a pure function.** `endings.ts` maps that state to one of four endings
+   (triumph, collapse, blame, fortune) in a fixed priority order, and builds epilogue lines from
+   the same facts. Unit tested; no randomness, so the same play always gets the same ending.
+4. **Presentation is driven by state, not scripts.** Sky mood (`render/Sky.ts`) is derived from which
+   mission is active and how much of its clock is left, then eased. Faces read a mood map set by
+   emotes. Music tension is computed every half second from live mission, chases and time left.
+   Nobody is caught while they are in a conversation; time still runs for everyone else.
+5. **Touch is a separate layout.** `ui/Touch.tsx` adds a pointer-event drag pad feeding the same
+   movement axis as the keyboard and buttons that fire the same input actions, so game logic has
+   no touch branches. A `touch-ui` class switches the HUD to a phone layout.
+6. **Saves.** Autosave stays in `localStorage` (`dhol-save-v1`, migrated across versions); three
+   manual slots copy the same persisted shape. Live missions resume from their checkpoint.
+
+## Testing strategy
+
+| Layer | What |
+|---|---|
+| Unit | ending selection and priorities, epilogue lines, story chain through Part 3, save migration |
+| Browser E2E | the full reveal chain; each of the four endings and the timeout reached through play; a 390×844 touch run (pad, buttons, dialogue taps); save to slot, reload, load, restart mission |
+
+## Consequences
+
+- Easier: a new ending is one rule in `evaluateEnding` and one climax node.
+- Harder: the finale has many interacting systems; tests pin seeds and wait on conditions.
+- Known limits: NPCs do not cross scenes on their own; mid-mission director state is not saved
+  (live missions restart from their checkpoint).

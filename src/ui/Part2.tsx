@@ -146,14 +146,15 @@ export function Situations() {
 
 /* ───────────── the sunset clock ───────────── */
 export function MissionTimer() {
-  const end = useGame((s) => (s.missions.chaos?.status === 'active' ? (s.mstate.timerEnd as number) : 0));
+  const which = useGame((s) => (s.missions.finale?.status === 'active' && !s.mstate.climax ? 'finale' : s.missions.chaos?.status === 'active' ? 'chaos' : null));
+  const end = useGame((s) => (which ? (s.mstate.timerEnd as number) : 0));
   const now = useGame((s) => s.worldTime);
-  if (!end) return null;
+  if (!end || !which) return null;
   const left = Math.max(0, Math.ceil(end - now));
   const urgent = left < 30;
   return (
-    <div className={`timer ${urgent ? 'is-urgent' : ''}`} role="timer" aria-label="Time until Zikomo arrives">
-      <span className="timer-label">Sunset in</span>
+    <div className={`timer ${urgent ? 'is-urgent' : ''}`} role="timer" aria-label={which === 'finale' ? 'Time until nightfall' : 'Time until Zikomo arrives'}>
+      <span className="timer-label">{which === 'finale' ? 'Nightfall in' : 'Sunset in'}</span>
       <span className="timer-time">
         {Math.floor(left / 60)}:{String(left % 60).padStart(2, '0')}
       </span>

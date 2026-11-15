@@ -113,9 +113,23 @@ export const street: SceneDef = {
     { id: 'bablu', x: 12, z: 9.3, face: 0, anim: 'chai' },
     { id: 'pappu', x: 25, z: -6.9, face: -0.4, anim: 'idle' },
     { id: 'sharma', x: 17.1, z: 15.4, face: Math.PI / 2, anim: 'carrom' },
-    { id: 'verma', x: 19.3, z: 15.4, face: -Math.PI / 2, anim: 'carrom' },
-    { id: 'chintu', x: 0, z: 13.5, face: 0, anim: 'cricket' },
-    { id: 'pinky', x: 0, z: 19.6, face: Math.PI, anim: 'cricket' },
+    {
+      id: 'verma',
+      x: 19.3,
+      z: 15.4,
+      face: -Math.PI / 2,
+      anim: 'carrom',
+      // loses at carrom, sulks off for a chai, comes back for revenge
+      routine: [
+        { x: 19.3, z: 15.4, face: -Math.PI / 2, stay: 28, anim: 'carrom' },
+        { x: 20.2, z: 13.4, face: 0, stay: 0 },
+        { x: 13.4, z: 10.6, face: -2.4, stay: 14, anim: 'chai' },
+        { x: 20.2, z: 13.4, face: 0, stay: 0 },
+      ],
+    },
+    // the cricket kids are called home at dusk
+    { id: 'chintu', x: 0, z: 13.5, face: 0, anim: 'cricket', showIf: (s) => !['finale', 'epilogue'].some((m) => s.missionStatus(m) === 'active') },
+    { id: 'pinky', x: 0, z: 19.6, face: Math.PI, anim: 'cricket', showIf: (s) => !['finale', 'epilogue'].some((m) => s.missionStatus(m) === 'active') },
     { id: 'sabziwali', x: -7.2, z: 13, face: Math.PI / 2, anim: 'idle' },
     { id: 'gauri', x: -6.2, z: 6.3, face: 0.6, anim: 'sit' },
     { id: 'moti', x: 8.6, z: 12, face: 1, wander: 3 },

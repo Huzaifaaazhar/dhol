@@ -158,7 +158,7 @@ export function sfx(name: Sfx) {
       [784, 988, 1175, 1568].forEach((f, i) => tone(t + i * 0.07, f, f, 0.3, 0.08, 'sine', m));
       break;
     case 'step':
-      noise(t, 0.03, 1200, 1, 0.04, m);
+      noise(t, 0.035, 900 + Math.random() * 500, 1.2, 0.025, m);
       break;
     case 'moo':
       tone(t, 140, 110, 0.9, 0.15, 'sawtooth', m);
@@ -199,6 +199,28 @@ export function sfx(name: Sfx) {
       tone(t, 500, 900, 0.07, 0.08, 'triangle', m);
       break;
   }
+}
+
+/* ── tension: a low, quiet pulse under the live missions (original pattern) ── */
+let tensionTimer: number | null = null;
+let tensionLevel = 0;
+export function setTension(level: 0 | 1 | 2) {
+  if (level === tensionLevel) return;
+  tensionLevel = level;
+  if (tensionTimer !== null) window.clearInterval(tensionTimer);
+  tensionTimer = null;
+  if (!level || !ctx) return;
+  const bpm = level === 2 ? 132 : 108;
+  const step = 60 / bpm / 2;
+  // B . . T B . T . : a heartbeat that leans forward
+  const pat = level === 2 ? 'B.TTB.TT' : 'B..TB.T.';
+  let i = 0;
+  tensionTimer = window.setInterval(() => {
+    const c = pat[i++ % pat.length];
+    if (c === 'B') dhol('bass', 0, 0.22);
+    else if (c === 'T') dhol('treble', 0, 0.12);
+    if (level === 2 && i % 16 === 0 && ctx && musicBus) tone(ctx.currentTime, 220, 208, 0.5, 0.03, 'sawtooth', musicBus);
+  }, step * 1000);
 }
 
 let ambienceNodes: AudioNode[] = [];

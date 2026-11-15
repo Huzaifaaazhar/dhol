@@ -20,6 +20,7 @@ export function NPCs({ scene }: { scene: SceneDef }) {
   const npcs = useMemo(() => resolveNpcs(scene).filter((n) => !agents.has(n.id)), [scene, flags, agentsV]);
   const placed = useRef(new Set<string>());
   const wander = useRef(new Map<string, { x: number; z: number; t: number }>());
+  const routine = useRef(new Map<string, { i: number; t: number }>());
 
   useLayoutEffect(() => {
     placed.current = new Set();
@@ -51,6 +52,24 @@ export function NPCs({ scene }: { scene: SceneDef }) {
       const seated = SEATED.has(n.anim ?? '');
       let tx = n.baseX;
       let tz = n.baseZ;
+      let rAnim: string | undefined;
+      let rFace: number | undefined;
+      if (n.routine?.length) {
+        let r = routine.current.get(n.id);
+        if (!r) routine.current.set(n.id, (r = { i: 0, t: n.routine[0].stay }));
+        const stop = n.routine[r.i];
+        tx = stop.x;
+        tz = stop.z;
+        if (Math.hypot(stop.x - e.x, stop.z - e.z) < 0.2 && !(st.talkingTo === n.id && st.dialogue)) {
+          rAnim = stop.anim;
+          rFace = stop.face;
+          r.t -= dt;
+          if (r.t <= 0) {
+            r.i = (r.i + 1) % n.routine.length;
+            r.t = n.routine[r.i].stay;
+          }
+        }
+      }
       if (n.wander) {
         let w = wander.current.get(n.id);
         if (!w || w.t < 0) {
@@ -89,11 +108,13 @@ export function NPCs({ scene }: { scene: SceneDef }) {
         const dp = Math.hypot(p.x - e.x, p.z - e.z);
         if (talking || (dp < 3.4 && def?.kind !== 'cow' && !seated)) e.face = Math.atan2(p.x - e.x, p.z - e.z);
         else if (att && Math.hypot(att.x - e.x, att.z - e.z) < 9 && !seated) e.face = Math.atan2(att.x - e.x, att.z - e.z);
+        else if (rFace !== undefined) e.face = rFace;
         else if (!n.wander) e.face = n.baseFace;
       }
       if (e.oneShot <= 0) {
         const speaking = node?.speaker === n.id;
-        e.anim = speaking && !seated ? 'talk' : ((n.anim ?? 'idle') as typeof e.anim);
+        const base = n.routine ? (d > 0.15 ? 'idle' : rAnim ?? 'idle') : n.anim ?? 'idle';
+        e.anim = speaking && !seated ? 'talk' : (base as typeof e.anim);
       }
     }
   });

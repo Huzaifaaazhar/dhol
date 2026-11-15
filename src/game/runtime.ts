@@ -33,6 +33,8 @@ export const runtime = {
   camGoal: { x: 0, z: 0, zoom: 44, k: 5, height: 1 },
   /** scene in which Maru's lookout reveals the goons' sightlines */
   reveal: null as null | string,
+  /** facial expressions set by emotes: id -> mood until a time (performance.now ms) */
+  expr: new Map<string, { mood: 'shock' | 'angry' | 'happy' | 'confused' | 'sad'; until: number }>(),
   /** the live camera, for projecting in-world labels onto the screen */
   camera: null as null | import('three').Camera,
 };

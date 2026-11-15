@@ -3,6 +3,15 @@ import { useFrame, useThree } from '@react-three/fiber';
 import { OrthographicCamera } from '@react-three/drei';
 import * as THREE from 'three';
 import { runtime } from '../game/runtime';
+import { sky, updateBulbs } from './Sky';
+
+/** a few warm pools of lamplight where the evening action happens */
+const LAMP_GLOW: Array<[number, number]> = [
+  [11.6, 12.8],
+  [-19, 9.5],
+  [-4, -9],
+  [26, 20],
+];
 
 const OFFSET = new THREE.Vector3(1, 1.15, 1).normalize().multiplyScalar(60);
 
@@ -45,12 +54,31 @@ export function CameraRig() {
 /** Warm late-morning sun that follows the camera so shadows stay crisp. */
 export function Sun({ interior }: { interior: boolean }) {
   const light = useRef<THREE.DirectionalLight>(null!);
+  const hemi = useRef<THREE.HemisphereLight>(null!);
+  const lamps = useRef<Array<THREE.PointLight | null>>([]);
   const target = useRef<THREE.Object3D>(new THREE.Object3D());
-  useFrame(() => {
+  const { scene } = useThree();
+  const first = useRef(true);
+  useFrame((_, dt) => {
     const g = runtime.camGoal;
-    light.current.position.set(g.x - 16, 26, g.z + 12);
+    // a low evening sun throws longer shadows
+    const m = interior ? null : first.current ? sky.snap() : sky.step(dt);
+    first.current = false;
+    const low = m ? m.night : 0;
+    light.current.position.set(g.x - 16 - low * 10, 26 - low * 12, g.z + 12 + low * 4);
     target.current.position.set(g.x, 0, g.z);
     target.current.updateMatrixWorld();
+    if (!m) return;
+    light.current.color.set(m.sun);
+    light.current.intensity = m.sunI;
+    hemi.current.color.set(m.hemiSky);
+    hemi.current.groundColor.set(m.hemiGround);
+    hemi.current.intensity = m.hemiI;
+    if (scene.background instanceof THREE.Color) scene.background.set(m.bg);
+    else scene.background = new THREE.Color(m.bg);
+    if (scene.fog) scene.fog.color.set(m.fog);
+    updateBulbs(m.night);
+    lamps.current.forEach((l) => l && (l.intensity = m.night * 16));
   });
   return (
     <>
@@ -72,8 +100,12 @@ export function Sun({ interior }: { interior: boolean }) {
         shadow-bias={-0.0006}
         shadow-normalBias={0.04}
       />
-      <hemisphereLight args={[interior ? '#fff1d6' : '#ffe9c4', interior ? '#5a3d4a' : '#9a6b4f', interior ? 1.5 : 1.25]} />
+      <hemisphereLight ref={hemi} args={[interior ? '#fff1d6' : '#ffe9c4', interior ? '#5a3d4a' : '#9a6b4f', interior ? 1.5 : 1.25]} />
       <ambientLight intensity={interior ? 0.35 : 0.2} color="#ffd6e0" />
+      {!interior &&
+        LAMP_GLOW.map(([x, z], i) => (
+          <pointLight key={i} ref={(el) => (lamps.current[i] = el)} position={[x, 4.6, z]} intensity={0} distance={11} decay={1.4} color="#ffc66e" />
+        ))}
     </>
   );
 }

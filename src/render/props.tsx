@@ -5,6 +5,7 @@ import { GEO, mat, texMat } from './materials';
 import { posterTexture, textTexture } from './textures';
 import { useGame } from '../game/store';
 import { runtime } from '../game/runtime';
+import { bulbMat } from './Sky';
 
 type V3 = [number, number, number];
 
@@ -27,6 +28,10 @@ export function Pole({ x, z }: { x: number; z: number }) {
       {[-0.7, -0.25, 0.25, 0.7].map((o) => (
         <mesh key={o} geometry={GEO.cylLo} material={mat('#e9e2d0')} position={[o, 6.12, 0]} scale={[0.06, 0.12, 0.06]} />
       ))}
+      {/* street lamp: an arm, a tin shade and a bulb that lights up at dusk */}
+      <Box p={[0.55, 5.0, 0.55]} s={[0.08, 0.08, 1.4]} c="#5a5650" r={[0, Math.PI / 4, 0]} />
+      <mesh geometry={GEO.cylLo} material={mat('#3f4a3f')} position={[1.0, 4.95, 1.0]} scale={[0.32, 0.12, 0.32]} />
+      <mesh geometry={GEO.sphereLo} material={bulbMat} position={[1.0, 4.82, 1.0]} scale={[0.16, 0.16, 0.16]} />
     </group>
   );
 }

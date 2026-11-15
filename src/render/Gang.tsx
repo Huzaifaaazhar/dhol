@@ -111,6 +111,8 @@ export function Gang({ scene }: { scene: SceneDef }) {
         });
       resolve(p, R, scene, [...npcCircles, ...friendsBlock]);
       const moved = Math.hypot(p.x - lead.x, p.z - lead.z);
+      // footsteps: one soft scuff per stride
+      if (Math.floor((lead.stride + moved) / 1.15) !== Math.floor(lead.stride / 1.15)) sfx('step');
       lead.stride += moved;
       lead.x = p.x;
       lead.z = p.z;

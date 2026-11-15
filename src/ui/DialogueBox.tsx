@@ -6,15 +6,17 @@ import { FRIENDS } from '../game/data/characters';
 import { NPCS } from '../game/data/npcs';
 import type { CharId } from '../game/types';
 import { blip } from '../game/audio';
+import { Portrait } from './Portrait';
+import type { Look } from '../game/data/characters';
 
 function speakerInfo(speaker: string, active: CharId) {
   const id = speaker === 'me' ? active : speaker;
   if (id in FRIENDS) {
     const f = FRIENDS[id as CharId];
-    return { name: f.name, color: f.color, voice: f.voice, narrator: false };
+    return { id, name: f.name, color: f.color, voice: f.voice, narrator: false, look: f.look as Look | null };
   }
-  if (NPCS[id]) return { name: NPCS[id].name, color: NPCS[id].color, voice: NPCS[id].voice, narrator: false };
-  return { name: '', color: '#ffb400', voice: 0, narrator: true };
+  if (NPCS[id]) return { id, name: NPCS[id].name, color: NPCS[id].color, voice: NPCS[id].voice, narrator: false, look: NPCS[id].kind && NPCS[id].kind !== 'person' ? null : NPCS[id].look };
+  return { id, name: '', color: '#ffb400', voice: 0, narrator: true, look: null as Look | null };
 }
 
 /** Renders *stage directions* in italics. */
@@ -93,7 +95,8 @@ export function DialogueBox() {
   if (!node || !info) return null;
   return (
     <div className={`dialogue ${info.narrator ? 'is-narrator' : ''}`} style={{ ['--c' as string]: info.color }} role="dialog" aria-live="polite">
-      {!info.narrator && <div className="dialogue-name">{info.name}</div>}
+      {info.look && <Portrait key={info.id} id={info.id} look={info.look} color={info.color} talking={!done} />}
+      {!info.narrator && <div className={`dialogue-name ${info.look ? 'has-portrait' : ''}`}>{info.name}</div>}
       <p className="dialogue-text" onClick={() => (done ? !choices.length && advanceDialogue() : setShown(text.length))}>
         <Rich text={text.slice(0, shown)} />
         {!done && <span className="caret" />}

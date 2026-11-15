@@ -1,3 +1,4 @@
+import type { CharId } from '../types';
 /**
  * The world clock. Everything that should keep happening while you switch friends lives here:
  * NPC patrols, friend tasks, gossip, suspicion fading, lookout alarms and mission directors.
@@ -174,7 +175,10 @@ function lookout(dt: number, now: number) {
 /* ───────── Zikomo’s men: spotting, chasing, catching ───────── */
 function stealth(now: number) {
   const s = get();
+  // nobody gets grabbed mid-sentence: whoever is in a conversation (and anyone tagging along) is left alone
+  const talking = (c: CharId) => !!s.dialogue && s.where[c] === s.scene && (c === s.active || !s.posted[c]);
   for (const { agent, who } of spotted()) {
+    if (talking(who)) continue;
     const key = `${agent.id}:${who}`;
     const last = chased.get(key) ?? -99;
     if (agent.mode !== 'chase' && now - last > 4) {
@@ -207,6 +211,7 @@ function stealth(now: number) {
       }
       continue;
     }
+    if (talking(a.chase)) continue;
     if (Math.hypot(e.x - f.x, e.z - f.z) < 0.95) {
       const who = a.chase;
       a.mode = a.route.length ? 'route' : 'idle';

@@ -95,6 +95,7 @@ export const finale: Director = {
     });
     const T = 270 + (harmony >= 60 ? 30 : 0) - (harmony < 35 ? 30 : 0);
     setM('timerEnd', get().worldTime + T);
+    setM('timerLen', T);
     setM('chaos', 0);
     setM('finaleContra', 0);
     setM('climax', false);
