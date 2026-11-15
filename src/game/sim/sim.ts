@@ -6,7 +6,7 @@
 import { CHAR_IDS } from '../types';
 import { FRIENDS } from '../data/characters';
 import { NPCS } from '../data/npcs';
-import { useGame, bark, emote, toast, onMissionStart, activeMission } from '../store';
+import { useGame, bark, emote, toast, onMissionStart, activeMission, activateMission } from '../store';
 import { ent, runtime } from '../runtime';
 import { decay, gossip, GOSSIP_NET, ZIKOMO_NET } from '../lies';
 import { sfx } from '../audio';
@@ -61,6 +61,18 @@ export function installSim() {
       // Sam can only smooth things over with each person once per mission
       set((st) => ({ mstate: { ...st.mstate, [`smooth.${name.slice(7)}`]: true } }));
       bark(name.slice(7), 'Hmm. Fine. I will believe you. Once.', 2.2);
+    }
+    if (name === 'showEnding') {
+      // the finale always ends here, whichever objectives were met: the ending reflects them
+      const st = get();
+      const missions: typeof st.missions = { ...st.missions, finale: { status: 'done', done: [...(st.missions.finale?.done ?? []), 'finale.deliver'] } };
+      set({ missions, endingShown: true });
+      if (missions.epilogue?.status !== 'active') activateMission('epilogue');
+      return;
+    }
+    if (name === 'tiwariReturns') {
+      set({ dhol: `carried:${get().active}` });
+      toast('You have the real dhol again', 'objective');
     }
     director()?.event?.(name, data);
   });

@@ -8,7 +8,7 @@ import { StreetScene } from './scenes/StreetScene';
 import { InteriorScene } from './scenes/InteriorScene';
 import { Gang } from './Gang';
 import { NPCs, Agents } from './NPCs';
-import { DholInWorld, JaiBag, JunkPile, PawPrints, VisionCones, ZikomoCar } from './part2props';
+import { CinemaBackDoor, DeliveryMarker, DholInWorld, JaiBag, JunkPile, PawPrints, VisionCones, ZikomoCar } from './part2props';
 import { simTick } from '../game/sim/sim';
 
 /** Runs the world clock every frame, independent of which scene is drawn. */
@@ -63,6 +63,8 @@ export function GameWorld() {
           <JunkPile />
           <JaiBag />
           <ZikomoCar />
+          <DeliveryMarker />
+          <CinemaBackDoor />
         </>
       )}
     </group>

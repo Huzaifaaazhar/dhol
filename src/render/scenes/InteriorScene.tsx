@@ -387,9 +387,100 @@ function Piece({ f }: { f: Furniture }) {
           <Box p={[0.22, 0.5, 0]} s={[0.02, 0.5, 0.02]} r={[0, 0, -0.4]} c="#999" shadow={false} />
         </group>
       );
+    case 'lockers':
+      return <Lockers f={f} />;
+    case 'seats':
+      return (
+        <group position={[f.x, 0, f.z]}>
+          {[0, 1].map((row) => (
+            <group key={row} position={[0, row * 0.25, (row - 0.5) * 1.4]}>
+              {[...Array(Math.floor(w / 0.75))].map((_, i) => (
+                <group key={i} position={[-w / 2 + 0.4 + i * 0.75, 0, 0]} rotation={[0, 0, 0]}>
+                  <Box p={[0, 0.35, 0]} s={[0.62, 0.18, 0.6]} c={(i + row) % 5 === 2 ? '#5a1a26' : '#9d0208'} />
+                  <Box p={[0, 0.8, -0.28]} s={[0.62, 0.8, 0.12]} c="#9d0208" />
+                  <Box p={[0.34, 0.5, 0]} s={[0.06, 0.4, 0.6]} c="#3d1f1f" />
+                </group>
+              ))}
+            </group>
+          ))}
+        </group>
+      );
+    case 'booth':
+      return <Booth f={f} />;
+    case 'cobweb':
+      return (
+        <group position={[f.x, 3.6, f.z]} rotation={[0, (f.rot ?? 0) + Math.PI / 4, 0]}>
+          {[0, 1, 2, 3].map((i) => (
+            <mesh key={i} geometry={GEO.box} material={mat('#e8e2d6', { opacity: 0.55 })} rotation={[0, 0, (i - 1.5) * 0.4]} scale={[1.4, 0.015, 0.015]} />
+          ))}
+          <mesh geometry={GEO.torus} material={mat('#e8e2d6', { opacity: 0.45 })} rotation={[Math.PI / 2, 0, 0]} scale={[0.5, 0.5, 0.2]} />
+        </group>
+      );
+    case 'reels':
+      return (
+        <group position={[f.x, 0, f.z]}>
+          {[0, 1, 2].map((i) => (
+            <Cyl key={i} p={[0, 0.08 + i * 0.16, 0]} s={[0.8 - i * 0.1, 0.12, 0.8 - i * 0.1]} c={i % 2 ? '#6c757d' : '#adb5bd'} />
+          ))}
+          <mesh geometry={GEO.box} material={mat('#3a2a1c')} position={[0, 0.5, 0.42]} scale={[0.4, 0.02, 0.3]} rotation={[0.4, 0, 0]} />
+        </group>
+      );
     default:
       return null;
   }
+}
+
+function Lockers({ f }: { f: Furniture }) {
+  const open = useGame((s) => !!s.flags['locker.open']);
+  const w = f.w ?? 6;
+  const n = Math.floor(w / 0.8);
+  return (
+    <group position={[f.x, 0, f.z]}>
+      {[...Array(n)].map((_, i) => {
+        const x = -w / 2 + 0.4 + i * 0.8;
+        const is47 = i === n - 3;
+        return (
+          <group key={i} position={[x, 0, 0]}>
+            <Box p={[0, 1.25, 0]} s={[0.76, 2.5, 0.7]} c={i % 2 ? '#5c677d' : '#4f5d75'} />
+            <Box p={[0, 2.2, 0.36]} s={[0.4, 0.05, 0.02]} c="#2b2d42" shadow={false} />
+            <Box p={[0, 2.05, 0.36]} s={[0.4, 0.05, 0.02]} c="#2b2d42" shadow={false} />
+            {is47 && (
+              <>
+                <mesh geometry={GEO.plane} material={mat('#ffd166')} position={[0, 1.65, 0.37]} scale={[0.3, 0.16, 1]} />
+                <group position={[0.36, 0, 0.36]} rotation={[0, open ? -1.9 : 0, 0]}>
+                  <Box p={[-0.36, 1.25, 0.02]} s={[0.72, 2.4, 0.04]} c="#8d99ae" />
+                </group>
+              </>
+            )}
+          </group>
+        );
+      })}
+    </group>
+  );
+}
+
+/** The projection booth: a few steps up to a door with light leaking from under it. */
+function Booth({ f }: { f: Furniture }) {
+  const out = useGame((s) => !!s.flags['rahul.out']);
+  const glow = useRef<THREE.MeshBasicMaterial>(null!);
+  useFrame((s) => {
+    const t = s.clock.elapsedTime;
+    const k = 0.55 + Math.sin(t * 9) * 0.15 + (Math.sin(t * 2.7) > 0.85 ? 0.3 : 0);
+    glow.current.color.setRGB(1 * k, 0.8 * k, 0.45 * k);
+  });
+  return (
+    <group position={[f.x, 0, f.z]} rotation={[0, f.rot ?? 0, 0]}>
+      {[0, 1, 2].map((i) => (
+        <Box key={i} p={[0, 0.12 + i * 0.24, 0.9 - i * 0.35]} s={[1.6, 0.24 + i * 0.48, 0.35]} c="#3d2b1f" />
+      ))}
+      <Box p={[0, 2.0, -0.1]} s={[1.4, 2.6, 0.12]} c={out ? '#1b1b1b' : '#6b4226'} />
+      <mesh position={[0, 0.78, 0.0]} scale={[1.2, 0.06, 1]} geometry={GEO.plane}>
+        <meshBasicMaterial ref={glow} color="#ffcc77" />
+      </mesh>
+      <mesh geometry={GEO.plane} material={mat('#f1e3c8')} position={[0, 3.1, -0.03]} scale={[1.1, 0.3, 1]} />
+      <pointLight position={[0, 1.6, 0.8]} intensity={out ? 6 : 3} distance={5} color="#ffb347" />
+    </group>
+  );
 }
 
 function PlanBoard({ f }: { f: Furniture }) {

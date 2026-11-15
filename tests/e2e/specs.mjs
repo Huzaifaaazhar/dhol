@@ -742,3 +742,273 @@ export async function interval(t) {
   s = await st();
   check(!s.partEnded && s.missions.rich.startsWith('active'), 'closing the interval starts The Rich Girl Plan');
 }
+
+/* ═════════ PART 3: THE MISSING DRUM MYSTERY ═════════ */
+async function goThroughDoor(t, x, z, ms = 2500) {
+  await t.api('tp', x, z);
+  await t.wait(900);
+  await t.key('KeyE', ms);
+}
+
+export async function reveal(t) {
+  const { st, api, key, advance, choose, page } = t;
+  await api('jumpTo', 'reveal', { 'end.fake': true, 'jai.met': true }, { dhol: 'house', items: ['packet'] });
+  await t.wait(1500);
+  let s = await st();
+  check(s.missions.reveal.startsWith('active'), 'The Missing Drum Mystery is active');
+
+  // 1. the packet, at the hideout
+  await goThroughDoor(t, -20.3, 18.6);
+  await api('tp', 1.4, 2.5);
+  await t.wait(900);
+  await key('KeyE', 500);
+  await advance();
+  s = await st();
+  check(s.items.includes('lockerkey') && s.items.includes('halfnote') && s.missions.reveal.includes('reveal.packet'), 'discovery 1: a locker key, half a ₹500 note and Rahul’s letter');
+  await goThroughDoor(t, 3.5, 3.9);
+
+  // 2. Pappu lends the cinema key (Sam, honestly)
+  await api('tp', 25, -5.6);
+  await t.wait(900);
+  await key('KeyE', 500);
+  await advance();
+  await choose('Ask for the key honestly');
+  await advance();
+  s = await st();
+  check(s.flags['cinema.open'], 'discovery 2: Pappu hands over his uncle’s cinema key (and mentions a light in the booth)');
+  await goThroughDoor(t, 27.8, 22.4);
+  s = await st();
+  check(s.scene === 'cinema' && s.missions.reveal.includes('reveal.cinema'), 'inside Shree Talkies');
+  await t.shot('reveal-cinema');
+
+  // 3. locker 47
+  await api('tp', -1.6, -2.9);
+  await t.wait(900);
+  await key('KeyE', 500);
+  await advance();
+  s = await st();
+  check(s.items.includes('register') && s.missions.reveal.includes('reveal.locker'), 'discovery 3: Zikomo’s lottery book, and the winning ticket was #4444');
+  // the booth hums but stays shut
+  await api('tp', -4.6, -1.4);
+  await t.wait(900);
+  await key('KeyE', 500);
+  await advance();
+  s = await st();
+  check(!s.flags['rahul.out'], 'someone is humming in the bolted projection booth');
+  await goThroughDoor(t, 4.5, 4.3);
+
+  // 4. Goti knocks along the real dhol under Maru's charpai
+  await goThroughDoor(t, -14, -7.3);
+  await api('switchFriend', 'goti');
+  await t.wait(500);
+  await api('tp', -3.9, 1.6);
+  await t.wait(900);
+  await key('KeyF', 600);
+  await advance();
+  await choose('left skin');
+  await advance();
+  s = await st();
+  check(!s.flags['drum.open'], 'a wrong knock just sounds like a drum');
+  await choose('beside the strap');
+  await advance();
+  s = await st();
+  check(s.flags['drum.open'] && s.missions.reveal.includes('reveal.drum'), 'discovery 4: the hollow side, and ₹4,44,444 in a false wall');
+  await t.shot('reveal-cash');
+
+  // 5. the booth opens to the code
+  await goThroughDoor(t, 3.5, 3.9);
+  await goThroughDoor(t, 27.8, 22.4);
+  await api('tp', -4.6, -1.4);
+  await t.wait(900);
+  await key('KeyE', 500);
+  await advance();
+  await choose('The music is in the drum');
+  await advance();
+  s = await t.until((x) => x.missions.reveal.startsWith('done'), 10000, 'the reveal to finish');
+  check(s.flags['rahul.out'], 'discovery 5: Rahul has been living in the projection booth');
+  await t.until((x) => x.missions.finale.startsWith('active'), 10000, 'the final mission to start');
+  check(true, 'Four Friends, One Disaster started');
+  await t.wait(1200);
+  await t.shot('finale-start');
+}
+
+/* ═════════ PART 3: FOUR FRIENDS, ONE DISASTER ═════════ */
+const FINALE_FLAGS = { 'end.fake': true, 'locker.open': true, 'drum.open': true, 'rahul.out': true, 'packet.open': true };
+
+async function answerAs(t, wantClash) {
+  const opts = t.page.locator('.question-opts li');
+  const n = await opts.count();
+  if (!n) return false;
+  let pick = 0;
+  for (let i = 0; i < n; i++) {
+    const txt = await opts.nth(i).innerText();
+    const clash = txt.includes('clashes');
+    if (clash === wantClash) {
+      pick = i;
+      break;
+    }
+  }
+  await t.key(`Digit${pick + 1}`, 600);
+  return true;
+}
+
+async function waitFor(t, label, fn, timeout = 40000) {
+  const t0 = Date.now();
+  while (Date.now() - t0 < timeout) {
+    if (await fn()) return true;
+    await t.wait(400);
+  }
+  throw new Error('timed out: ' + label);
+}
+
+/** Goti finds Shambhu on the safe side of the road and searches his cart. */
+async function gotiGetsDrum(t) {
+  await t.api('switchFriend', 'goti');
+  await t.wait(500);
+  await waitFor(t, 'Shambhu on the south side', async () => (await t.api('agent', 'shambhu')).z > 4, 90000);
+  await t.near('shambhu', 1.0, 1.0);
+  await t.key('KeyF', 600);
+  let s = await t.st();
+  check(s.tasks.some((x) => x.who === 'goti' && x.source.includes('cart')), 'Goti is searching Shambhu’s cart (Shambhu stops to haggle)');
+  s = await t.until((x) => x.dhol === 'carried:goti', 40000, 'Goti to find the drum');
+  check(s.missions.finale.includes('finale.drum'), 'Goti found the dhol in Shambhu’s cart');
+}
+
+async function pakyaStallsZikomo(t, clashes) {
+  await t.api('switchFriend', 'pakya');
+  await t.wait(500);
+  await waitFor(t, 'Zikomo at the plaza', async () => {
+    const z = await t.api('agent', 'zikomo');
+    return Math.hypot(z.x - 14.6, z.z - 9.4) < 1.5;
+  });
+  await t.api('tp', 13.4, 9.0);
+  await t.wait(900);
+  await t.key('KeyF', 600);
+  const s = await t.st();
+  check(s.tasks.some((x) => x.who === 'pakya' && x.kind === 'stall'), 'Pakya is keeping Zikomo talking');
+  let answered = 0;
+  const t0 = Date.now();
+  while (answered < (clashes ? 2 : 1) && Date.now() - t0 < 60000) {
+    if (await answerAs(t, clashes)) answered++;
+    await t.wait(400);
+  }
+  return answered;
+}
+
+async function samBrings(t, npc, x, z, label = 'Ask him to come') {
+  await t.api('switchFriend', 'sam');
+  await t.wait(400);
+  await t.api('tp', x, z);
+  await t.wait(900);
+  await t.key('KeyE', 500);
+  await t.advance();
+  await t.choose(label);
+  await t.advance();
+  const s = await t.st();
+  return !!s.flags[`witness.${npc}`];
+}
+
+async function deliver(t, who = 'goti') {
+  await t.api('switchFriend', who);
+  await t.wait(500);
+  await t.api('tp', 11.6, 15.2);
+  await t.until((x) => x.dialogue?.script === 'climax', 15000, 'the climax at the chai stall');
+  await t.advance(80);
+  return t.until((x) => x.endingShown, 10000, 'the ending card');
+}
+
+export async function finaleTriumph(t) {
+  const { api } = t;
+  await api('jumpTo', 'finale', { ...FINALE_FLAGS, 'jai.met': true }, { items: ['register', 'ticket'], stats: { 'ritu.trust': 50, 'gang.harmony': 65 } });
+  await t.wait(2000);
+  let s = await t.st();
+  check(s.flags['jai.helps'] && !(await api('agentIds')).includes('bhaloo'), 'because you confronted Jai, he draws Bhaloo away');
+  check(s.flags['witness.ritu'], 'because Ritu trusts you, she and Daadi come as witnesses');
+  check(s.mstate.timerEnd - (await api('now')) > 290, 'a united gang (harmony 65) gets extra time');
+  await gotiGetsDrum(t);
+  // leave Goti hidden while the others work
+  await api('tp', -4.1, 13.4, 'goti');
+  await t.key('KeyE', 400);
+  await pakyaStallsZikomo(t, false);
+  check(await samBrings(t, 'tiwari', -10.6, -5.9), 'Sam convinced Tiwari-ji to come');
+  check(await samBrings(t, 'pappu', 25, -5.6), 'Sam convinced Pappu to come');
+  s = await t.st();
+  check(s.missions.finale.includes('finale.witness'), 'two witnesses or more: objective done');
+  s = await deliver(t);
+  check(s.mstate.ending === 'triumph', `ending: The Rightful Owners (finale lies ${s.mstate.finaleContra}, chaos ${s.mstate.chaos})`);
+  check((await t.page.locator('.ending-triumph').count()) === 1, 'the triumph ending screen is shown');
+  await t.shot('ending-triumph');
+  await t.key('Enter', 1200);
+  s = await t.st();
+  check(!s.endingShown && s.missions.epilogue.startsWith('active'), 'after the ending, the colony is free to roam (epilogue)');
+}
+
+export async function finaleCollapse(t) {
+  const { api } = t;
+  // Pakya told Zikomo he was a bank officer in Part 2, and Lalaji suspects everyone
+  await api('jumpTo', 'finale', FINALE_FLAGS, {
+    items: ['register'],
+    lies: {
+      claims: [{ topic: 'pakya.job', value: 'bank officer', by: 'pakya', to: 'zikomo', t: 0 }],
+      suspicion: {},
+      contradictions: [],
+      stories: {},
+      beliefs: { zikomo: { 'pakya.job': { value: 'bank officer', by: 'pakya', t: 0 }, 'gang.dhol': { value: 'Never heard of a dhol', by: 'pakya', t: 0 }, 'gang.who': { value: 'nobody, ji. Nobody.', by: 'sam', t: 0 }, 'gang.money': { value: 'What money?', by: 'pakya', t: 0 }, 'dhol.fake': { value: 'Must have been Shambhu', by: 'goti', t: 0 } } },
+    },
+  });
+  await t.wait(2000);
+  await gotiGetsDrum(t);
+  await api('tp', -4.1, 13.4, 'goti');
+  await t.key('KeyE', 400);
+  const n = await pakyaStallsZikomo(t, true);
+  const s0 = await t.st();
+  check(n >= 2 && s0.mstate.finaleContra >= 2, `Pakya contradicted his old story to Zikomo ${s0.mstate.finaleContra} times`);
+  check(await samBrings(t, 'tiwari', -10.6, -5.9), 'Tiwari-ji still comes');
+  const s = await deliver(t);
+  check(s.mstate.ending === 'collapse' && s.mstate.endingCause === 'lies', 'ending: House of Cards (the lies collapsed in front of everyone)');
+  await t.shot('ending-collapse');
+}
+
+export async function finaleBlame(t) {
+  const { api } = t;
+  // Maru panicked his way through the whole week
+  const contradictions = [0, 1, 2, 3, 4].map((i) => ({ npc: 'tiwari', topic: 'maru.health', believed: 'Sick in bed', heard: 'running around screaming', by: 'maru', earlierBy: 'pakya', t: i }));
+  await api('jumpTo', 'finale', FINALE_FLAGS, { items: ['register'], stats: { 'ritu.trust': 50, 'gang.harmony': 60 }, lies: { claims: [], suspicion: {}, beliefs: {}, stories: {}, contradictions } });
+  await t.wait(2000);
+  await gotiGetsDrum(t);
+  await api('tp', -4.1, 13.4, 'goti');
+  await t.key('KeyE', 400);
+  check(await samBrings(t, 'tiwari', -10.6, -5.9), 'Tiwari-ji comes');
+  const s = await deliver(t);
+  check(s.mstate.ending === 'blame' && s.mstate.culprit === 'maru', 'ending: One Idiot Too Many, and it is Maru (caught out five times this week)');
+  check((await t.page.locator('.ending-culprit').innerText()).includes('Maru'), 'the ending screen names the culprit');
+  await t.shot('ending-blame');
+}
+
+export async function finaleFortune(t) {
+  const { api } = t;
+  await api('jumpTo', 'finale', FINALE_FLAGS, { items: ['register'], stats: { 'ritu.trust': 20, 'gang.harmony': 60 } });
+  await t.wait(2000);
+  await gotiGetsDrum(t);
+  await api('tp', -4.1, 13.4, 'goti');
+  await t.key('KeyE', 400);
+  check(await samBrings(t, 'pappu', 25, -5.6), 'only Pappu comes (Ritu does not trust you enough to bring Daadi)');
+  const s = await deliver(t);
+  check(s.mstate.ending === 'fortune', `ending: Raining Rupees (${s.mstate.endingCause})`);
+  check((await t.page.locator('.rain span').count()) > 10, 'rupees rain across the ending screen');
+  await t.shot('ending-fortune');
+}
+
+export async function finaleTimeout(t) {
+  const { api, page } = t;
+  await api('jumpTo', 'finale', FINALE_FLAGS, { items: ['register'] });
+  await t.wait(1500);
+  await page.evaluate(() => {
+    const g = window.__dhol.useGame;
+    g.setState({ mstate: { ...g.getState().mstate, timerEnd: window.__dhol.api.now() + 2 } });
+  });
+  await t.until((x) => x.dialogue?.script === 'climax', 20000, 'night to fall');
+  await t.advance(80);
+  const s = await t.until((x) => x.endingShown, 10000, 'ending');
+  check(s.mstate.ending === 'collapse' && s.mstate.endingCause === 'time', 'nightfall without the drum: Zikomo takes it (House of Cards)');
+}

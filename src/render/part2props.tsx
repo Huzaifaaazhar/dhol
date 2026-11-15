@@ -67,6 +67,7 @@ export function DholModel({ fake = false }: { fake?: boolean }) {
 }
 
 const PLACES: Record<string, { scene: SceneId; x: number; z: number; y?: number; rot?: number }> = {
+  stall: { scene: 'street', x: 11.0, z: 10.7, y: 1.55, rot: 0.2 },
   lane: { scene: 'street', x: JUNK.x, z: JUNK.z, y: 0.45, rot: 0.6 },
   hideout: { scene: 'hideout', x: 0.2, z: 2.2, y: 0.45, rot: 0.3 },
   house: { scene: 'house', x: -4.9, z: 1.6, y: 0.25, rot: 0 },
@@ -172,7 +173,7 @@ export function JaiBag() {
 }
 
 export function ZikomoCar() {
-  const show = useGame((s) => !!s.mstate.zcar && s.missions.zikomo?.status === 'active');
+  const show = useGame((s) => !!s.mstate.zcar && (s.missions.zikomo?.status === 'active' || s.missions.finale?.status === 'active'));
   if (!show) return null;
   return <Car x={ZIKOMO_CAR.x} z={ZIKOMO_CAR.z} rot={0.2} color="#f8f9fa" />;
 }
@@ -180,6 +181,7 @@ export function ZikomoCar() {
 /** Shambhu’s handcart, trundling along behind him. */
 export function CartProp({ follow }: { follow: string }) {
   const g = useRef<THREE.Group>(null!);
+  const hasDrum = useGame((s) => s.dhol === 'cart');
   useFrame(() => {
     const e = ent(follow);
     g.current.position.set(e.x - Math.sin(e.face) * 1.3, 0, e.z - Math.cos(e.face) * 1.3);
@@ -193,6 +195,56 @@ export function CartProp({ follow }: { follow: string }) {
       <Box p={[0.1, 1.0, 0.2]} s={[0.9, 0.4, 0.8]} c="#e9d8a6" />
       <Cyl p={[-0.3, 1.0, -0.5]} s={[0.25, 0.5, 0.25]} c="#2a9d8f" lo />
       <Box p={[0, 1.3, 0.2]} s={[0.7, 0.15, 0.5]} c="#bfa98d" />
+      {hasDrum && (
+        <group position={[0, 1.55, -0.45]} scale={0.7}>
+          <DholModel />
+        </group>
+      )}
+    </group>
+  );
+}
+
+/** Marigold ring at Bablu’s stall: where the drum has to end up tonight. */
+export function DeliveryMarker() {
+  const show = useGame((s) => s.missions.finale?.status === 'active' && s.dhol.startsWith('carried:') && !s.mstate.climax);
+  const g = useRef<THREE.Group>(null!);
+  useFrame((st) => {
+    if (!g.current) return;
+    const k = 1 + Math.sin(st.clock.elapsedTime * 3) * 0.06;
+    g.current.scale.set(k, 1, k);
+    g.current.rotation.y += 0.01;
+  });
+  if (!show) return null;
+  return (
+    <group ref={g} position={[11.6, 0.06, 12.8]}>
+      {[...Array(18)].map((_, i) => {
+        const a = (i / 18) * Math.PI * 2;
+        return <mesh key={i} geometry={GEO.sphereLo} material={mat(i % 2 ? '#ff9f1c' : '#ffd166', { emissive: '#7a4300' })} position={[Math.cos(a) * 2.6, 0.15, Math.sin(a) * 2.6]} scale={0.32} />;
+      })}
+    </group>
+  );
+}
+
+/** The cinema’s back door, chained until Pappu’s key or Goti’s vent opens it. */
+export function CinemaBackDoor() {
+  const open = useGame((s) => !!s.flags['cinema.open']);
+  const vent = useGame((s) => !!s.flags['cinema.vent']);
+  return (
+    <group position={[27.8, 0, 21.03]}>
+      <Box p={[0, 1.3, 0]} s={[1.5, 2.6, 0.08]} c={open ? '#1b1b1b' : '#5c3d2e'} />
+      <Box p={[0, 2.75, 0.02]} s={[1.8, 0.2, 0.12]} c="#3d405b" />
+      {!open && (
+        <>
+          <mesh geometry={GEO.torus} material={mat('#8d8d8d')} position={[0.15, 1.3, 0.08]} rotation={[0, 0, 0.5]} scale={[0.5, 0.25, 1]} />
+          <mesh geometry={GEO.torus} material={mat('#8d8d8d')} position={[-0.15, 1.25, 0.08]} rotation={[0, 0, -0.5]} scale={[0.5, 0.25, 1]} />
+          <Box p={[0, 1.05, 0.12]} s={[0.22, 0.28, 0.1]} c="#b08d57" />
+        </>
+      )}
+      {/* the broken vent Goti can fit through */}
+      <Box p={[1.6, 0.45, 0.03]} s={[0.8, 0.6, 0.06]} c={vent ? '#141414' : '#6c757d'} r={[0, 0, vent ? 0.4 : 0]} />
+      {[0, 1, 2].map((i) => (
+        <Box key={i} p={[1.6, 0.3 + i * 0.15, 0.07]} s={[0.7, 0.04, 0.02]} c="#2b2d42" shadow={false} />
+      ))}
     </group>
   );
 }

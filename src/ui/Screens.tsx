@@ -369,7 +369,7 @@ export function PartEnd() {
             </p>
             <p className="partend-next">
               {flags['end.tiwari'] ? 'The real dhol is sitting next to Tiwari-ji’s chair, held hostage for rent. ' : 'The real dhol is safe under Maru’s charpai. Maru has not slept. '}
-              The story continues in Part 3.
+              Tomorrow the colony finds out what was really inside that drum.
             </p>
           </>
         ) : (
@@ -382,7 +382,7 @@ export function PartEnd() {
           </>
         )}
         <button className="btn" onClick={closePartEnd}>
-          {part2 ? 'Keep exploring' : 'Start Part 2'} <kbd>Enter</kbd>
+          {part2 ? 'Start Part 3' : 'Start Part 2'} <kbd>Enter</kbd>
         </button>
       </div>
     </div>
@@ -394,7 +394,13 @@ function closePartEnd() {
   const s = useGame.getState();
   set({ partEnded: false });
   // the interval always leads into Part 2, even if Part 1 ended with something left undone
-  const part2Started = ['rich', 'jai', 'zikomo', 'dhol', 'chaos', 'after'].some((m) => s.missions[m]?.status !== 'locked');
+  // the end of Part 2 leads straight into Part 3
+  if (s.partEnded === 'part2' && s.missions.reveal?.status === 'locked') {
+    activateMission('reveal');
+    toast(MISSION_MAP.reveal.title, 'mission', 'Part 3');
+    return;
+  }
+  const part2Started = ['rich', 'jai', 'zikomo', 'dhol', 'chaos'].some((m) => s.missions[m]?.status !== 'locked');
   if (s.partEnded === 'part1' && (s.mstate['pending.rich'] || !part2Started)) {
     if (s.missions.ritu?.status === 'active') set({ missions: { ...s.missions, ritu: { status: 'done', done: s.missions.ritu.done } } });
     set({ mstate: { ...s.mstate, 'pending.rich': false } });

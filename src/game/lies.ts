@@ -218,4 +218,6 @@ export const TOPICS: Record<string, string> = {
   'room.state': 'What is happening in the rented room',
   'rent.when': 'When the rent will be paid',
   'maru.health': 'How Maru is feeling',
+  'gang.money': 'What the gang knows about Zikomo’s money',
+  'dhol.fake': 'Who gave Zikomo the fake dhol',
 };

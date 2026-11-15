@@ -35,7 +35,7 @@ export const not = (k: string) => (s: StateView) => !s.flags[k];
 
 /* ───────── Part 2 helpers ───────── */
 
-const PART2_LIVE = ['zikomo', 'dhol', 'chaos'];
+const PART2_LIVE = ['zikomo', 'dhol', 'chaos', 'finale'];
 export const live = (s: StateView) => PART2_LIVE.some((m) => s.missionStatus(m) === 'active');
 export const part2 = (s: StateView) => ['rich', 'jai', ...PART2_LIVE, 'after'].some((m) => s.missionStatus(m) === 'active');
 

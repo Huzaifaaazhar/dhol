@@ -1414,3 +1414,153 @@ kbd {
 .anchor > * {
   translate: -50% -100%;
 }
+
+/* ═══════════════════════ PART 3: endings ═══════════════════════ */
+.ending {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  z-index: 14;
+  overflow: hidden;
+  animation: fadein 1s ease both;
+  background:
+    radial-gradient(circle at 50% 42%, rgba(255, 210, 63, 0.92), rgba(228, 0, 124, 0.88) 58%, rgba(42, 18, 56, 0.97)),
+    repeating-conic-gradient(from 0deg at 50% 42%, rgba(255, 255, 255, 0.14) 0 5deg, transparent 5deg 10deg);
+  background-blend-mode: overlay;
+}
+.ending-collapse {
+  background:
+    radial-gradient(circle at 50% 42%, rgba(120, 110, 130, 0.9), rgba(42, 18, 56, 0.98) 70%),
+    repeating-linear-gradient(115deg, rgba(255, 255, 255, 0.05) 0 2px, transparent 2px 14px);
+}
+.ending-blame {
+  background:
+    radial-gradient(circle at 50% 42%, var(--c), rgba(42, 18, 56, 0.96) 75%),
+    repeating-conic-gradient(from 0deg at 50% 42%, rgba(255, 255, 255, 0.12) 0 4deg, transparent 4deg 12deg);
+  background-blend-mode: overlay;
+}
+.ending-fortune {
+  background:
+    radial-gradient(circle at 50% 42%, rgba(186, 230, 120, 0.92), rgba(42, 157, 143, 0.9) 58%, rgba(42, 18, 56, 0.97)),
+    repeating-conic-gradient(from 0deg at 50% 42%, rgba(255, 255, 255, 0.14) 0 5deg, transparent 5deg 10deg);
+  background-blend-mode: overlay;
+}
+.ending-card {
+  position: relative;
+  width: min(680px, calc(100vw - 32px));
+  max-height: calc(100vh - 40px);
+  overflow: auto;
+  padding: 26px 30px 24px;
+  background: var(--ink);
+  border: 3px solid var(--marigold);
+  box-shadow: 10px 10px 0 var(--rani);
+  text-align: center;
+}
+.ending-collapse .ending-card {
+  border-color: var(--paper-dim);
+  box-shadow: 10px 10px 0 var(--ink-3);
+  transform: rotate(-1.2deg);
+}
+.ending-kicker {
+  font: 800 14px var(--body);
+  color: var(--marigold);
+}
+.ending-title {
+  margin: 4px 0 10px;
+  font: 400 clamp(38px, 7vw, 64px) / 1 var(--display);
+  color: var(--marigold);
+  text-shadow: 0.04em 0.04em 0 var(--rani), 0.08em 0.08em 0 #120818;
+  animation: slam 0.6s cubic-bezier(0.2, 1.6, 0.4, 1) both;
+}
+.ending-collapse .ending-title {
+  color: var(--paper-dim);
+  text-shadow: 0.05em 0.05em 0 #120818;
+  letter-spacing: 0.02em;
+}
+.ending-culprit {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  font: 800 18px var(--body);
+  color: var(--c);
+}
+.ending-badge {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--c);
+  color: var(--ink);
+  font: 400 20px var(--display);
+  animation: boing 0.6s cubic-bezier(0.2, 1.8, 0.4, 1) 0.6s both;
+}
+.ending-lines {
+  list-style: none;
+  margin: 6px 0 12px;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+  text-align: left;
+}
+.ending-lines li {
+  padding-left: 22px;
+  position: relative;
+  font: 600 16px/1.45 var(--body);
+  animation: rise 0.5s ease-out both;
+}
+.ending-lines li::before {
+  content: '';
+  position: absolute;
+  left: 4px;
+  top: 0.6em;
+  width: 8px;
+  height: 8px;
+  background: var(--marigold);
+  transform: rotate(45deg);
+}
+.ending-stats {
+  margin: 0 0 14px;
+  font: 800 13px var(--body);
+  color: var(--peacock);
+}
+.ending-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+}
+.credits {
+  display: grid;
+  gap: 10px;
+  justify-items: center;
+  font: 500 15px/1.5 var(--body);
+}
+.credits p {
+  margin: 0;
+  max-width: 52ch;
+}
+.rain {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.rain span {
+  position: absolute;
+  top: -10%;
+  font: 400 34px var(--display);
+  color: #e9f5db;
+  text-shadow: 2px 2px 0 #2d6a4f;
+  animation: rainFall linear infinite;
+}
+@keyframes rainFall {
+  to {
+    transform: translateY(120vh) rotate(540deg);
+  }
+}
+.app.ending-open .hud > *:not(.ending),
+.app.ending-open .toasts {
+  visibility: hidden;
+}

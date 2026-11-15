@@ -17,7 +17,7 @@ export interface MissionDef {
   /** runs on live timers and patrols: reloading restarts it from its checkpoint */
   live?: boolean;
   /** part of the story this belongs to */
-  part: 1 | 2;
+  part: 1 | 2 | 3;
 }
 
 export const MISSIONS: MissionDef[] = [
@@ -137,14 +137,47 @@ export const MISSIONS: MissionDef[] = [
       { id: 'chaos.hide', text: 'Hide the real dhol at home, under Maru’s charpai', optional: true, hint: 'Tiwari-ji is watching the door. Pakya can keep him busy.' },
       { id: 'chaos.survive', text: 'Survive Zikomo’s visit at sunset' },
     ],
-    next: 'after',
+    next: 'reveal',
+    holdNext: true,
+  },
+  /* ───────────────────────── PART 3 ───────────────────────── */
+  {
+    id: 'reveal',
+    title: 'The Missing Drum Mystery',
+    intro: 'Zikomo opened his “dhol” this morning and found a biscuit tin. Meanwhile, Rahul’s sealed packet is still in your pocket.',
+    part: 3,
+    objectives: [
+      { id: 'reveal.packet', text: 'Open Rahul’s packet at the hideout' },
+      { id: 'reveal.cinema', text: 'Get inside the old Shree Talkies cinema', hint: 'Its back door is behind the cinema, past the junk pile. Pappu’s family once ran the projector.' },
+      { id: 'reveal.locker', text: 'Open locker 47 in the cinema lobby' },
+      { id: 'reveal.drum', text: 'Find what is hidden inside the real dhol', hint: 'Knock along it. Only Goti can hear the difference. If Tiwari-ji has it, get it back first.' },
+      { id: 'reveal.rahul', text: 'Find out who has been living in the projection booth' },
+      { id: 'reveal.daadi', text: 'Ask Daadi how Rahul looked after his dhol', optional: true },
+    ],
+    next: 'finale',
   },
   {
-    id: 'after',
-    title: 'To Be Continued',
-    intro: 'Zikomo has a dhol. It is not the right one. He will find out.',
-    part: 2,
-    objectives: [{ id: 'after.wait', text: 'Part 3 is coming. Explore, find secrets, mend your lies.' }],
+    id: 'finale',
+    title: 'Four Friends, One Disaster',
+    intro: 'Tonight, at Bablu’s chai stall, the colony gets its money back in front of Zikomo. That is the plan. Plans and this gang do not mix.',
+    part: 3,
+    live: true,
+    objectives: [
+      { id: 'finale.drum', text: 'Goti: find the dhol (Shambhu’s cart has it now)', hint: 'Shambhu walks the main road. Search his cart.' },
+      { id: 'finale.stall', text: 'Pakya: keep Zikomo talking at the plaza', hint: 'His questions test every lie the gang ever told him.' },
+      { id: 'finale.witness', text: 'Sam: bring at least two witnesses to the chai stall', hint: 'People who were lied to will not come. Come clean, or smooth things over.' },
+      { id: 'finale.watch', text: 'Maru: keep Zikomo’s men away from the dhol', optional: true },
+      { id: 'finale.chicken', text: 'Get the rubber chicken back from Zikomo’s car', optional: true, hint: 'The winning lottery ticket is inside it.' },
+      { id: 'finale.deliver', text: 'Bring the dhol to the chai stall before nightfall' },
+    ],
+    next: 'epilogue',
+  },
+  {
+    id: 'epilogue',
+    title: 'Shanti Nagar, After',
+    intro: 'Whatever happened, happened. The colony is still here, and so are the four of them.',
+    part: 3,
+    objectives: [{ id: 'epilogue.roam', text: 'Wander the colony. Everyone has something to say about what you did.' }],
   },
 ];
 
@@ -161,4 +194,5 @@ export const SECRETS: Record<string, string> = {
   barber: 'Pakya got the “Hero Cut”. It cost nothing. Somehow.',
   pigeons: 'Maru vs. forty pigeons. The pigeons won.',
   tank: 'Somebody’s secret stash in the water drum: a love letter. Not yours.',
+  reels: 'The last film Shree Talkies ever showed was called “Four Idiots and a Drum”. Huh.',
 };

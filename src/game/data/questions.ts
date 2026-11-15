@@ -17,6 +17,8 @@ export const QUESTIONS: Record<string, QuestionDef[]> = {
     { topic: 'gang.dhol', prompt: 'Rahul’s dhol. Where is it?', options: ['Never heard of a dhol', 'Sold to someone in Dubai', 'Goti might have it'] },
     { topic: 'pakya.job', prompt: 'And what do you do, talkative one?', options: ['bank officer', 'income tax officer', 'film producer'] },
     { topic: 'gang.who', prompt: 'Who are you people, really?', options: ['the Lane Four Welcome Committee', 'very dangerous people', 'nobody, ji. Nobody.'] },
+    { topic: 'gang.money', prompt: 'Somebody took my money. Four lakhs. You wouldn’t know anything about that, would you?', options: ['What money?', 'Money? In this economy?', 'Ask the drum'] },
+    { topic: 'dhol.fake', prompt: 'Who sold me a biscuit tin with strings on it?', options: ['Must have been Shambhu', 'That was a real dhol, ji', 'Goti, probably'] },
   ],
   lalaji: [
     { topic: 'pakya.job', prompt: 'Bablu says you work somewhere now. Where?', options: ['bank officer', 'income tax officer', 'film producer'] },

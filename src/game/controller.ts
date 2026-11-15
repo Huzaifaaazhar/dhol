@@ -8,7 +8,7 @@ import type { CharId } from './types';
 import { SCENES } from './data/scenes';
 import { FRIENDS } from './data/characters';
 import { CHAR_IDS } from './types';
-import { actionsFor, runAction } from './effects';
+import { actionsFor, runAction, startDialogue } from './effects';
 import { ent, playOneShot, runtime } from './runtime';
 import { currentFocus, nearbyInteractables, resolveNpcs } from './world';
 import { setMuted, sfx } from './audio';
@@ -145,6 +145,11 @@ function signature() {
   playOneShot(id, 'signature', id === 'goti' ? 1.0 : 1.3);
   if (id === 'sam' && rallyGang()) return;
   if (id === 'goti' && throwCracker()) return;
+  // Goti can knock along a drum he is carrying
+  if (id === 'goti' && s.dhol === 'carried:goti' && s.missions.reveal?.status === 'active' && !s.flags['drum.open']) {
+    startDialogue('knock');
+    return;
+  }
   bark(id, def.signature[Math.floor(Math.random() * def.signature.length)]);
   if (id === 'maru') distractAround(e.x, e.z);
   if (id === 'maru') {

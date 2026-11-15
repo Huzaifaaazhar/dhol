@@ -207,7 +207,15 @@ function FriendMarkers() {
   const scene = useGame((s) => s.scene);
   return (
     <>
-      {CHAR_IDS.filter((c) => where[c] === scene && c !== active && (tasks.some((t) => t.who === c) || hidden[c] || posted[c])).map((c) => {
+      {CHAR_IDS.filter((c) => {
+        if (where[c] !== scene || c === active) return false;
+        if (tasks.some((t) => t.who === c) || hidden[c]) return true;
+        // a friend simply waiting only needs a label when he is somewhere else
+        if (!posted[c]) return false;
+        const a = ent(active);
+        const e = ent(c);
+        return Math.hypot(a.x - e.x, a.z - e.z) > 4;
+      }).map((c) => {
         const task = tasks.find((t) => t.who === c);
         const label = task ? task.label : hidden[c] ? 'Hiding' : 'Waiting here';
         const slow = task?.kind === 'search' && taskRate(c, task.spec) < 1;

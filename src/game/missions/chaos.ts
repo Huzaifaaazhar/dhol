@@ -107,11 +107,6 @@ export const chaos: Director = {
       completeObjective('chaos.hide');
       toast('The real dhol is under Maru’s charpai. Maru will never sleep again.', 'objective');
     }
-    if (name === 'tiwariReturns') {
-      const c = get().active;
-      set({ dhol: `carried:${c}` });
-      toast('You have the real dhol again', 'objective');
-    }
     if (name === 'arrive:tiwariDoor') {
       if (s.dhol === 'house') {
         set({ dhol: 'tiwari' });

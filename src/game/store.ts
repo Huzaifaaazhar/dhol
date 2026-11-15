@@ -136,6 +136,7 @@ interface Volatile {
   lieBook: boolean;
   /** bumped whenever simulated agents spawn or leave, so renderers refresh */
   agentsV: number;
+  endingShown: boolean;
 }
 
 export type GameState = Persisted & Volatile;
@@ -198,6 +199,7 @@ const volatileDefaults = (): Volatile => ({
   crowd: [],
   lieBook: false,
   agentsV: 0,
+  endingShown: false,
 });
 
 const PERSIST_KEYS = Object.keys(freshProgress()) as Array<keyof Persisted>;
@@ -211,7 +213,7 @@ export const useGame = create<GameState>()(
     (): GameState => ({ ...freshProgress(), ...volatileDefaults() }),
     {
       name: 'dhol-save-v1',
-      version: 2,
+      version: 3,
       storage: createJSONStorage(() => localStorage),
       partialize: (s) => persistedOf(s),
       migrate: (old, version) => migrateSave(old as Partial<Persisted>, version),
@@ -244,6 +246,14 @@ export function migrateSave(old: Partial<Persisted>, version: number): Persisted
     p.where = allIn(where);
     // Part 1 bluffs that the old save can still prove
     if (p.flags['ritu.cable']) p.lies.beliefs = { ...p.lies.beliefs, daadi: { 'pakya.job': { value: 'cable TV inspector', by: 'pakya', t: 0 } } };
+  }
+  if (version < 3) {
+    // Part 2 ended on a placeholder; Part 3 picks up from it
+    const missions = { ...p.missions } as Record<string, MissionState>;
+    const placeholder = missions['after'];
+    delete missions['after'];
+    if (placeholder?.status === 'active') missions['reveal'] = { status: 'active', done: [] };
+    p.missions = missions;
   }
   return p;
 }

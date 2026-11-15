@@ -179,6 +179,15 @@ export const NPCS: Record<string, NpcDef> = {
     look: p({ shirt: '#a98467', shirtPattern: 'kurta', pants: '#6c584c', hairStyle: 'bald', skin: '#8d5a3b', extras: ['towel', 'beard'] }),
     barks: ['Raddi! Purana saman! Old things, new money!', 'Old newspapers, old bottles, old drums!', 'Kabadiwalaaa!'],
   },
+  rahul: {
+    id: 'rahul',
+    name: 'Rahul',
+    voice: 300,
+    color: '#ffd166',
+    dialogue: 'rahul',
+    look: p({ shirt: '#f4a261', shirtPattern: 'kurta', pants: '#3d405b', hairStyle: 'curly', skin: '#c99268', extras: ['beard'] }),
+    barks: ['Shh.', 'Is it dark yet?', 'Bablu’s samosas are excellent when stolen.'],
+  },
   moti: {
     id: 'moti',
     name: 'Moti',

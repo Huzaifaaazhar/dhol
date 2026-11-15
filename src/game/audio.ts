@@ -111,7 +111,9 @@ export function blip(pitch: number) {
   tone(t, f, f * 0.92, 0.05, 0.05, 'square', master);
 }
 
-export type Sfx = 'coin' | 'fail' | 'success' | 'thud' | 'scream' | 'honk' | 'door' | 'switch' | 'select' | 'secret' | 'step' | 'moo' | 'bark' | 'whoosh';
+export type Sfx =
+  | 'coin' | 'fail' | 'success' | 'thud' | 'scream' | 'honk' | 'door' | 'switch' | 'select' | 'secret' | 'step' | 'moo' | 'bark' | 'whoosh'
+  | 'knockDull' | 'knockWood' | 'knockHollow' | 'cash' | 'crowd' | 'alarm' | 'tick' | 'pop';
 
 export function sfx(name: Sfx) {
   if (!ctx || !master) return;
@@ -167,6 +169,34 @@ export function sfx(name: Sfx) {
       break;
     case 'whoosh':
       noise(t, 0.4, 800, 0.6, 0.25, m);
+      break;
+    case 'knockDull':
+      [0, 0.22].forEach((d) => tone(t + d, 110, 60, 0.25, 0.5, 'sine', m));
+      break;
+    case 'knockWood':
+      [0, 0.18].forEach((d) => {
+        tone(t + d, 380, 300, 0.06, 0.25, 'triangle', m);
+        noise(t + d, 0.04, 1800, 3, 0.25, m);
+      });
+      break;
+    case 'knockHollow':
+      [0, 0.2, 0.4].forEach((d, i) => tone(t + d, 760 + i * 40, 520, 0.18, 0.22, 'square', m));
+      break;
+    case 'cash':
+      for (let i = 0; i < 9; i++) noise(t + i * 0.05, 0.06, 4000 + Math.random() * 2000, 4, 0.18, m);
+      [1046, 1318, 1568].forEach((f, i) => tone(t + 0.5 + i * 0.08, f, f, 0.25, 0.1, 'triangle', m));
+      break;
+    case 'crowd':
+      for (let i = 0; i < 6; i++) noise(t + i * 0.12, 0.5, 500 + Math.random() * 600, 0.8, 0.12, m);
+      break;
+    case 'alarm':
+      [0, 0.25].forEach((d) => tone(t + d, 880, 660, 0.2, 0.08, 'square', m));
+      break;
+    case 'tick':
+      tone(t, 1600, 1500, 0.03, 0.05, 'square', m);
+      break;
+    case 'pop':
+      tone(t, 500, 900, 0.07, 0.08, 'triangle', m);
       break;
   }
 }

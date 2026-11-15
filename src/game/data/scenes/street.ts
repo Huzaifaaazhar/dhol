@@ -99,6 +99,7 @@ export const street: SceneDef = {
     shopDoor: { x: 13.5, z: -6.6, face: 0 },
     rituGate: { x: -28, z: -10.9, face: 0 },
     hideoutDoor: { x: -20, z: 17.6, face: Math.PI },
+    cinemaDoor: { x: 27.8, z: 22.2, face: 0 },
   },
   npcs: [
     {
@@ -141,13 +142,59 @@ export const street: SceneDef = {
     talk('tiwari', 'Tiwari-ji', 'tiwari', [stall('tiwari'), smooth('tiwari')]),
     talk('bablu', 'Bablu’s chai', 'bablu', [smooth('bablu')], 3.2),
     talk('pappu', 'Pappu the barber', 'pappu', [{ id: 'herocut', verb: 'Talk him into a free haircut', who: 'pakya', dialogue: 'pappu_pakya', once: true }, smooth('pappu')]),
+    {
+      id: 'cinemaDoor',
+      label: 'Cinema back door',
+      x: 27.8,
+      z: 21.6,
+      y: 2.6,
+      radius: 1.7,
+      actions: [
+        { id: 'enter', verb: 'Go in', showIf: has('cinema.open'), effects: [{ goto: 'cinema', spawn: 'door' }, { sfx: 'door' }] },
+        { id: 'try', verb: 'Try the door', showIf: not('cinema.open'), say: 'Chained shut. The chain has rusted into a kind of sculpture.' },
+        {
+          id: 'vent',
+          verb: 'Squeeze through the broken vent',
+          who: 'goti',
+          showIf: (s) => !s.flags['cinema.open'] && s.missionStatus('reveal') === 'active',
+          say: 'Breathe in… breathe in more… I’M IN. Opening the door from inside!',
+          effects: [{ flag: 'cinema.open' }, { flag: 'cinema.vent' }, { complete: 'reveal.cinema' }, { goto: 'cinema', spawn: 'door' }, { sfx: 'whoosh' }],
+        },
+      ],
+    },
     /* ── Part 2 people ── */
     talk('ritu', 'Ritu', 'ritu2', [smooth('ritu')], 2.4),
     talk('jai', 'Jai', 'jai', [], 2.4),
     talk('zikomo', 'Zikomo', 'zikomo', [stall('zikomo')], 2.6),
     talk('spanner', 'Spanner', 'goon', [], 1.8),
     talk('bhaloo', 'Bhaloo', 'goon', [], 1.8),
-    talk('shambhu', 'Shambhu the kabadiwala', 'shambhu', [], 2.4),
+    talk('shambhu', 'Shambhu the kabadiwala', 'shambhu', [
+      {
+        id: 'cart',
+        verb: 'Search his cart for the dhol',
+        who: 'goti',
+        showIf: (s) => s.dhol === 'cart',
+        task: { kind: 'search', duration: 6, hidden: true, noise: 0.3, target: 'shambhu', label: 'Searching Shambhu’s cart', empty: 'Bottles, newspapers, a tyre. Goti would find it: he can smell heavy things.' },
+      },
+    ], 2.6),
+    {
+      id: 'zcar',
+      label: 'Zikomo’s white car',
+      x: 17.2,
+      z: 6.2,
+      y: 2.2,
+      radius: 2.2,
+      showIf: (s) => s.missionStatus('finale') === 'active' && !!s.flags['chicken.zikomo'] && !s.has('ticket'),
+      actions: [
+        { id: 'look', verb: 'Look inside', say: 'White seats. A white steering wheel. And on the back seat: a rubber chicken, wearing a seatbelt.' },
+        {
+          id: 'grab',
+          verb: 'Rescue the rubber chicken',
+          who: 'goti',
+          task: { kind: 'search', duration: 5, noise: 0.4, target: 'zikomo', label: 'Rescuing the chicken', onDone: [{ give: 'ticket' }, { toast: 'Chicken rescued. Ticket 4444 is safe in its beak.' }, { complete: 'finale.chicken' }, { sfx: 'pop' }] },
+        },
+      ],
+    },
     /* ── Part 2 searching ── */
     searchSpot('srch_swing', 'Under the swing', -32.7, -10.6, {
       duration: 6,

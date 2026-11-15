@@ -8,12 +8,12 @@ beforeEach(() => {
 });
 
 describe('mission data', () => {
-  it('chains every Part 2 mission to the next', () => {
-    const ids = ['rich', 'jai', 'zikomo', 'dhol', 'chaos', 'after'];
+  it('chains every mission of the story to the next, start to finish', () => {
+    const ids = ['rent', 'chai', 'job', 'plan', 'ritu', 'rich', 'jai', 'zikomo', 'dhol', 'chaos', 'reveal', 'finale', 'epilogue'];
     for (let i = 0; i < ids.length - 1; i++) expect(MISSION_MAP[ids[i]].next).toBe(ids[i + 1]);
   });
-  it('gives every Part 2 mission at least one required objective', () => {
-    for (const m of MISSIONS.filter((x) => x.part === 2)) expect(m.objectives.some((o) => !o.optional)).toBe(true);
+  it('gives every mission at least one required objective', () => {
+    for (const m of MISSIONS) expect(m.objectives.some((o) => !o.optional)).toBe(true);
   });
 });
 
@@ -50,6 +50,15 @@ describe('save migration', () => {
   it('carries Pakya’s Part 1 cable-TV bluff into Daadi’s memory', () => {
     const old = { ...freshProgress(), flags: { 'ritu.cable': true } } as never;
     expect(migrateSave(old, 1).lies.beliefs.daadi['pakya.job'].value).toBe('cable TV inspector');
+  });
+});
+
+describe('Part 2 saves', () => {
+  it('continue into Part 3 instead of the old placeholder', () => {
+    const old = { ...freshProgress(), missions: { chaos: { status: 'done', done: [] }, after: { status: 'active', done: [] } } } as never;
+    const p = migrateSave(old, 2);
+    expect(p.missions.reveal.status).toBe('active');
+    expect((p.missions as Record<string, unknown>).after).toBeUndefined();
   });
 });
 

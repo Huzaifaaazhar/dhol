@@ -1,7 +1,7 @@
 export type CharId = 'sam' | 'pakya' | 'goti' | 'maru';
 export const CHAR_IDS: CharId[] = ['sam', 'pakya', 'goti', 'maru'];
 
-export type SceneId = 'street' | 'house' | 'shop' | 'ritu' | 'hideout';
+export type SceneId = 'street' | 'house' | 'shop' | 'ritu' | 'hideout' | 'cinema';
 
 export type EmoteKind = '!' | '?' | '♥' | '💢' | '…' | '♪' | '$';
 
@@ -41,7 +41,7 @@ export type Effect =
   | { bark: string; text: string } // speech bubble above an entity
   | { toast: string }
   | { dialogue: string } // chain into another dialogue after this one closes
-  | { sfx: 'coin' | 'fail' | 'success' | 'thud' | 'scream' | 'honk' | 'door' | 'moo' | 'bark' }
+  | { sfx: import('./audio').Sfx }
   | { endPart: true | 'part2' }
   /** a friend tells an NPC something; checked against everything already told */
   | { claim: string; value: string; to?: string; by?: CharId; truth?: boolean }

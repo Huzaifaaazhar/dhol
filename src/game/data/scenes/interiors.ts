@@ -40,7 +40,12 @@ export type FurnitureType =
   | 'plant'
   | 'tubelight'
   | 'table'
-  | 'window';
+  | 'window'
+  | 'lockers'
+  | 'seats'
+  | 'booth'
+  | 'cobweb'
+  | 'reels';
 
 export interface Furniture {
   type: FurnitureType;
@@ -212,6 +217,20 @@ export const house = interior(
             showIf: (st) => act('chaos')(st) && st.dhol === `carried:${st.active}`,
             effects: [{ dholTo: 'house' }, { event: 'hideReal' }],
           },
+          {
+            id: 'knock',
+            verb: 'Knock along the dhol',
+            who: 'goti',
+            showIf: (st) => st.dhol === 'house' && act('reveal')(st) && !st.flags['drum.open'],
+            dialogue: 'knock',
+          },
+          {
+            id: 'knockany',
+            verb: 'Knock on the dhol',
+            showIf: (st) => st.dhol === 'house' && act('reveal')(st) && !st.flags['drum.open'] && st.active !== 'goti',
+            dialogue: 'knock',
+          },
+          { id: 'pull', verb: 'Pull the dhol out', showIf: (st) => st.dhol === 'house' && !act('chaos')(st), effects: [{ dholTo: 'carry' }] },
           { id: 'search', verb: 'Look underneath', once: true, say: 'A ₹50 note! Maru was hiding it “for emergencies”. This is an emergency.', effects: [{ money: 50 }, { secret: 'charpai' }] },
           { id: 'hide', verb: 'Hide under it', who: 'maru', say: 'If I don’t move, the rent can’t see me.' },
         ],
@@ -504,8 +523,19 @@ export const hideout = interior(
             task: { kind: 'search', duration: 5, hidden: true, label: 'Examining the dhol', onDone: [{ event: 'opened' }], empty: 'It’s a drum. It’s very drum-like. Goti would find a hidden seam.' },
           },
           { id: 'gexamine', verb: 'Feel along the seams', who: 'goti', showIf: act('dhol'), task: { kind: 'search', duration: 5, hidden: true, label: 'Examining the dhol', onDone: [{ event: 'opened' }] } },
-          { id: 'take', verb: 'Pick up the real dhol', showIf: (st) => act('chaos')(st) && st.objectiveDone('chaos.plan'), effects: [{ dholTo: 'carry' }] },
+          { id: 'take', verb: 'Pick up the real dhol', showIf: (st) => (act('chaos')(st) && st.objectiveDone('chaos.plan')) || act('reveal')(st), effects: [{ dholTo: 'carry' }] },
+          { id: 'knock', verb: 'Knock along the dhol', who: 'goti', showIf: (st) => act('reveal')(st) && !st.flags['drum.open'], dialogue: 'knock' },
         ],
+      },
+      {
+        id: 'k_packet',
+        label: 'Rahul’s sealed packet',
+        x: 1.4,
+        z: 1.6,
+        y: 1.9,
+        radius: 1.6,
+        showIf: (st) => act('reveal')(st) && st.has('packet'),
+        actions: [{ id: 'open', verb: 'Open Rahul’s packet', dialogue: 'packet' }],
       },
       {
         id: 'k_build',
@@ -559,6 +589,13 @@ export const hideout = interior(
         y: 1.8,
         actions: [
           { id: 'open', verb: 'Open', say: 'Goti’s important things: a cricket ball, three keys to nothing, and one rubber chicken.' },
+          {
+            id: 'chicken',
+            verb: 'Squeeze the rubber chicken',
+            showIf: (st) => !!st.flags['locker.open'] && !st.flags['chicken.zikomo'] && !st.has('ticket'),
+            say: '*squeak* …*squeak* …a folded lottery ticket pops out of its beak. Number 4444.',
+            effects: [{ give: 'ticket' }, { sfx: 'pop' }],
+          },
           { id: 'radio', verb: 'Play the radio', who: 'goti', say: '♪ The radio only plays one thing: a dhol beat. Everyone nods. ♪', effects: [{ emote: 'sam', kind: '♪' }, { emote: 'pakya', kind: '♪' }, { emote: 'maru', kind: '♪' }] },
         ],
       },
@@ -581,3 +618,106 @@ house.interactables[0].actions = [
     showIf: (s) => !s.objectiveDone('rent.meet') && s.missionStatus('rent') === 'active',
   },
 ];
+
+/* ───────────────── Shree Talkies, closed since 1999 ───────────────── */
+export const cinema = interior(
+  'cinema',
+  'Shree Talkies (closed)',
+  {
+    w: 14,
+    d: 10,
+    wall: '#6b2d3f',
+    wallLow: '#2d1b2e',
+    floor: 'tiles',
+    floorA: '#7a2e3a',
+    floorB: '#3a1c24',
+    doorX: 4.5,
+    light: '#ffc87a',
+    furniture: [
+      { type: 'lockers', x: -3.2, z: -4.55, w: 6.4, d: 0.8, collide: true },
+      { type: 'counter', x: 3.4, z: -3.2, w: 3.2, d: 0.9, collide: true },
+      { type: 'seats', x: -2.4, z: 2.0, w: 6.4, d: 2.8, collide: true },
+      { type: 'booth', x: -6.6, z: -1.4, rot: Math.PI / 2 },
+      { type: 'reels', x: 6.0, z: -4.0, w: 0.9, d: 0.9, collide: true },
+      { type: 'cobweb', x: -6.9, z: -4.9 },
+      { type: 'cobweb', x: 6.9, z: -4.9, rot: Math.PI / 2 },
+      { type: 'poster', x: 1.0, z: -4.94, text: 'HERO', color: '#e63946' },
+      { type: 'poster', x: -6.94, z: 2.6, rot: Math.PI / 2, text: 'GYM', color: '#ffb400' },
+      { type: 'tubelight', x: 3, z: -4.94 },
+      { type: 'fan', x: 0, z: 0.5, y: 3.6 },
+    ],
+  },
+  {
+    exitTo: 'cinemaDoor',
+    triggers: [],
+    npcs: [{ id: 'rahul', x: -4.6, z: -1.6, face: 1.2, anim: 'idle', showIf: (st) => !!st.flags['rahul.out'] && st.missionStatus('finale') !== 'active' }],
+    interactables: [
+      talk('rahul', 'Rahul', 'rahul', [], 2.4),
+      {
+        id: 'c_locker47',
+        label: 'Locker 47',
+        x: -1.6,
+        z: -3.7,
+        y: 2.6,
+        radius: 1.5,
+        actions: [
+          { id: 'open', verb: 'Open locker 47', showIf: (st) => st.has('lockerkey') && !st.flags['locker.open'], dialogue: 'locker' },
+          { id: 'locked', verb: 'Try it', showIf: (st) => !st.has('lockerkey') && !st.flags['locker.open'], say: 'Locker 47. Locked. Rusty, but determined.' },
+          { id: 'empty', verb: 'Look inside', showIf: (st) => !!st.flags['locker.open'], say: 'Empty now. Just dust and a smell of old popcorn.' },
+        ],
+      },
+      {
+        id: 'c_lockers',
+        label: 'Staff lockers',
+        x: -5.0,
+        z: -3.7,
+        y: 2.6,
+        radius: 1.3,
+        actions: [
+          { id: 'look', verb: 'Rattle the others', say: 'Locker 12: one sock. Locker 30: a love letter to a film star. Locker 46: more dust.' },
+          { id: 'pick', verb: 'Pick a lock with a hairpin', who: 'goti', say: 'Locker 33 has… another hairpin. The cycle continues.' },
+        ],
+      },
+      {
+        id: 'c_booth',
+        label: 'Projection booth',
+        x: -5.6,
+        z: -1.4,
+        y: 2.8,
+        radius: 1.8,
+        actions: [{ id: 'knock', verb: 'Knock', dialogue: 'booth' }],
+      },
+      {
+        id: 'c_reels',
+        label: 'Film reels',
+        x: 5.4,
+        z: -3.3,
+        y: 2.0,
+        actions: [{ id: 'read', verb: 'Read the labels', say: 'The last film ever shown here: “Four Idiots and a Drum”. Probably a coincidence.', effects: [{ secret: 'reels' }] }],
+      },
+      {
+        id: 'c_seats',
+        label: 'Torn velvet seats',
+        x: -2.4,
+        z: 3.8,
+        y: 1.6,
+        radius: 1.8,
+        actions: [
+          { id: 'sit', verb: 'Sit for a moment', say: 'Row C, seat 7. Someone carved “R + J = friends” into the armrest.' },
+          { id: 'hide', verb: 'Hide between the rows', who: 'maru', say: 'Nobody looks between cinema seats. Except for dropped coins. Please don’t drop coins.' },
+        ],
+      },
+      {
+        id: 'c_counter',
+        label: 'Ticket counter',
+        x: 3.4,
+        z: -2.3,
+        y: 2.2,
+        actions: [
+          { id: 'look', verb: 'Inspect', say: 'A ticket from the last show: balcony, ₹3. Pakya says that was the golden age.' },
+          { id: 'sell', verb: 'Pretend to sell tickets', who: 'pakya', say: 'Balcony? Front stall? Sir, for you, special VIP rate. Only ₹500.' },
+        ],
+      },
+    ],
+  },
+);

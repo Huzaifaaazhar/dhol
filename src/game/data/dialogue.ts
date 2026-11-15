@@ -1,5 +1,6 @@
 import type { DialogueScript, StateView } from '../types';
 import { DIALOGUES_2, EXTENSIONS } from './dialogue2';
+import { DIALOGUES_3, EXTENSIONS_3 } from './dialogue3';
 
 const f = (s: StateView, k: string) => !!s.flags[k];
 const pick = <T,>(arr: T[]) => arr[Math.floor(Math.random() * arr.length)];
@@ -479,8 +480,8 @@ function check(s: StateView) {
 }
 
 /* Part 2: new scripts, and extra branches on Part 1 characters */
-Object.assign(DIALOGUES, DIALOGUES_2);
-for (const ext of EXTENSIONS) {
+Object.assign(DIALOGUES, DIALOGUES_2, DIALOGUES_3);
+for (const ext of [...EXTENSIONS, ...EXTENSIONS_3]) {
   const base = DIALOGUES[ext.id];
   const old = base.start;
   Object.assign(base.nodes, ext.nodes);

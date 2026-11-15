@@ -47,6 +47,7 @@ function makeHelpers(page, shots) {
         question: s.question,
         failure: s.failure,
         partEnded: s.partEnded,
+        endingShown: s.endingShown,
         transition: !!s.transition,
         mstate: s.mstate,
         lies: s.lies,
