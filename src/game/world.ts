@@ -42,6 +42,8 @@ export function interactablePos(it: Interactable) {
 }
 
 /** Find the closest usable interactable to (x,z). */
+const PERSON_BONUS = 0.7;
+
 export function findFocus(scene: SceneDef, x: number, z: number, present: Set<string>): Interactable | null {
   const v = view();
   let best: Interactable | null = null;
@@ -52,10 +54,13 @@ export function findFocus(scene: SceneDef, x: number, z: number, present: Set<st
     const p = interactablePos(it);
     const d = Math.hypot(p.x - x, p.z - z);
     const r = it.radius ?? 1.5;
-    if (d > r || d >= bestD) continue;
+    if (d > r) continue;
+    // a person standing next to a sign is who you meant to talk to
+    const score = d - (it.npc ? PERSON_BONUS : 0);
+    if (score >= bestD) continue;
     if (!actionsFor(it).length) continue;
     best = it;
-    bestD = d;
+    bestD = score;
   }
   return best;
 }
@@ -90,6 +95,6 @@ export function nearbyInteractables(): Interactable[] {
     .filter((it) => (!it.npc || present.has(it.npc)) && (!it.showIf || it.showIf(v)))
     .map((it) => ({ it, d: Math.hypot(interactablePos(it).x - e.x, interactablePos(it).z - e.z) }))
     .filter(({ it, d }) => d <= (it.radius ?? 1.5) && actionsFor(it).length)
-    .sort((a, b) => a.d - b.d)
+    .sort((a, b) => a.d - (a.it.npc ? PERSON_BONUS : 0) - (b.d - (b.it.npc ? PERSON_BONUS : 0)))
     .map(({ it }) => it);
 }

@@ -482,7 +482,8 @@ export async function dhol(t) {
   // Sam can’t find the seam; Goti can
   await api('tp', 0.2, 3.2);
   await t.wait(800);
-  const prompt = await page.locator('.prompt').innerText();
+  await page.waitForFunction(() => [...document.querySelectorAll('.prompt')].some((p) => p.innerText.includes('Examine the dhol')), null, { timeout: 8000 }).catch(() => {});
+  const prompt = (await page.locator('.prompt').allInnerTexts()).join(' ');
   check(prompt.includes('Examine the dhol') && prompt.includes('Goti could try'), 'prompt offers Sam a slow search and hints that Goti is better');
   await api('switchFriend', 'goti');
   await t.wait(2600);
@@ -623,6 +624,12 @@ export async function chaos(t) {
   await key('KeyE', 600);
   s = await st();
   check(s.dhol === 'carried:sam', 'Sam picked up the real dhol');
+  // like a player would: wait until Spanner's patrol is away from both doors
+  for (let i = 0; i < 120; i++) {
+    const a = await api('agent', 'spanner');
+    if (Math.hypot(a.x + 20, a.z - 18) > 11 && Math.hypot(a.x + 14, a.z + 6.9) > 11) break;
+    await t.wait(400);
+  }
   await exitHideout(t);
   await api('tp', -14, -6.9);
   await t.wait(900);

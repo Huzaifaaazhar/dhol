@@ -171,6 +171,15 @@ export function tickAgents(dt: number, now: number): AgentEvent[] {
       continue;
     }
     if (a.mode === 'route' && a.route.length) {
+      // friendly walkers stop when you come up to them, so you can actually talk
+      if (!a.hostile && a.scene === st.scene) {
+        const me = ent(st.active);
+        if (Math.hypot(me.x - e.x, me.z - e.z) < 1.9) {
+          e.speed = 0;
+          e.face = Math.atan2(me.x - e.x, me.z - e.z);
+          continue;
+        }
+      }
       if (a.wait > 0) {
         a.wait -= dt;
         e.speed = 0;
