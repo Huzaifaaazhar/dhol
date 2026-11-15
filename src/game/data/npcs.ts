@@ -1,0 +1,147 @@
+import type { Look } from './characters';
+
+export interface NpcDef {
+  id: string;
+  name: string;
+  look: Look;
+  voice: number;
+  color: string;
+  /** dialogue script id used when talked to */
+  dialogue: string;
+  barks: string[];
+  kind?: 'person' | 'cow' | 'dog' | 'goat';
+}
+
+const p = (look: Partial<Look> & Pick<Look, 'shirt'>): Look => ({
+  skin: '#b57b52',
+  hair: '#1a120e',
+  hairStyle: 'flat',
+  pants: '#6d5a48',
+  shoes: '#3a2a20',
+  height: 1,
+  girth: 1,
+  shirtPattern: 'plain',
+  ...look,
+});
+
+export const NPCS: Record<string, NpcDef> = {
+  tiwari: {
+    id: 'tiwari',
+    name: 'Tiwari-ji',
+    voice: 160,
+    color: '#d8d0bf',
+    dialogue: 'tiwari',
+    look: p({ shirt: '#f1ece0', shirtPattern: 'vest', pants: '#e7dfcd', hairStyle: 'bald', girth: 1.35, height: 1.02, skin: '#b07650', extras: ['moustache', 'belly'] }),
+    barks: ['Rent! Rent! RENT!', 'First of the month, boys!', 'I can smell excuses.'],
+  },
+  bablu: {
+    id: 'bablu',
+    name: 'Bablu',
+    voice: 280,
+    color: '#c96b2c',
+    dialogue: 'bablu',
+    look: p({ shirt: '#d7743a', pants: '#3d3a52', hairStyle: 'side', extras: ['towel', 'moustache'] }),
+    barks: ['Garam chai! Garam chai!', 'Cash only. CASH only.', 'Adrak, elaichi, masala!'],
+  },
+  lalaji: {
+    id: 'lalaji',
+    name: 'Lalaji',
+    voice: 200,
+    color: '#e9d36a',
+    dialogue: 'lalaji',
+    look: p({ shirt: '#efe7c9', shirtPattern: 'kurta', pants: '#efe7c9', hairStyle: 'topi', girth: 1.2, skin: '#c08a60', extras: ['glasses', 'belly'] }),
+    barks: ['Ram Ram! Fresh stock!', 'Touch only what you buy.', 'Credit is a four-letter word.'],
+  },
+  ritu: {
+    id: 'ritu',
+    name: 'Ritu',
+    voice: 420,
+    color: '#ff8a3d',
+    dialogue: 'ritu',
+    look: p({ shirt: '#ff9e3d', shirtPattern: 'kurta', pants: '#7b2e8f', hairStyle: 'braid', skin: '#c99268', girth: 0.85, height: 0.96, extras: ['dupatta'] }),
+    barks: ['Hmm?', 'You four again?', 'Interesting…'],
+  },
+  daadi: {
+    id: 'daadi',
+    name: 'Daadi',
+    voice: 230,
+    color: '#f3f0ea',
+    dialogue: 'daadi',
+    look: p({ shirt: '#f3efe6', shirtPattern: 'saree', pants: '#f3efe6', hairStyle: 'bun', hair: '#d9d4cc', skin: '#b98a66', height: 0.88, girth: 0.95, extras: ['glasses', 'stick'] }),
+    barks: ['Who is it?', 'Hmph.', 'Young men these days…'],
+  },
+  pappu: {
+    id: 'pappu',
+    name: 'Pappu the barber',
+    voice: 330,
+    color: '#5bc0eb',
+    dialogue: 'pappu',
+    look: p({ shirt: '#ffffff', pants: '#2c3e50', hairStyle: 'puff', extras: ['moustache'] }),
+    barks: ['Haircut, shave, gossip. Fifty rupees.', 'Sit, sit!'],
+  },
+  sharma: {
+    id: 'sharma',
+    name: 'Sharma uncle',
+    voice: 190,
+    color: '#a0c4ff',
+    dialogue: 'carrom',
+    look: p({ shirt: '#9fb7d9', hairStyle: 'bald', extras: ['glasses', 'moustache'], girth: 1.1 }),
+    barks: ['Queen! Cover the queen!', 'In my day, carrom was a sport.'],
+  },
+  verma: {
+    id: 'verma',
+    name: 'Verma uncle',
+    voice: 210,
+    color: '#ffd6a5',
+    dialogue: 'carrom',
+    look: p({ shirt: '#e9c46a', shirtPattern: 'kurta', hairStyle: 'side', hair: '#cfc8bd', extras: ['beard'] }),
+    barks: ['Foul! That is a foul!', 'Hmm.'],
+  },
+  chintu: {
+    id: 'chintu',
+    name: 'Chintu',
+    voice: 520,
+    color: '#ffadad',
+    dialogue: 'kids',
+    look: p({ shirt: '#e63946', pants: '#1d3557', hairStyle: 'side', height: 0.62, girth: 0.8 }),
+    barks: ['Howzat!', 'Six! That was a six!'],
+  },
+  pinky: {
+    id: 'pinky',
+    name: 'Pinky',
+    voice: 560,
+    color: '#ffc6ff',
+    dialogue: 'kids',
+    look: p({ shirt: '#f15bb5', pants: '#3a0ca3', hairStyle: 'braid', height: 0.6, girth: 0.8 }),
+    barks: ['Bowl properly!', 'Out! Totally out!'],
+  },
+  sabziwali: {
+    id: 'sabziwali',
+    name: 'Kamla the sabziwali',
+    voice: 300,
+    color: '#80ed99',
+    dialogue: 'sabzi',
+    look: p({ shirt: '#2a9d8f', shirtPattern: 'saree', pants: '#2a9d8f', hairStyle: 'bun', girth: 1.1 }),
+    barks: ['Tamatar! Bhindi! Fresh fresh!', 'Onions, cheapest in the colony!'],
+  },
+  gauri: {
+    id: 'gauri',
+    name: 'Gauri the cow',
+    kind: 'cow',
+    voice: 120,
+    color: '#f5f5f5',
+    dialogue: 'cow',
+    look: p({ shirt: '#f2efe9' }),
+    barks: ['Mooo.', '…'],
+  },
+  moti: {
+    id: 'moti',
+    name: 'Moti',
+    kind: 'dog',
+    voice: 600,
+    color: '#d4a373',
+    dialogue: 'dog',
+    look: p({ shirt: '#c98e55' }),
+    barks: ['Woof!', '*tail wag*'],
+  },
+};
