@@ -7,10 +7,12 @@ import { FRIENDS } from '../game/data/characters';
 import { SECRETS } from '../game/data/missions';
 import { SCENES } from '../game/data/scenes';
 import { MissionLog } from './Hud';
+import { SlotList } from './Saves';
+import { listSlots } from '../game/saves';
 import { CHAR_IDS } from '../game/types';
 import { NPCS } from '../game/data/npcs';
 import { MISSION_MAP } from '../game/data/missions';
-import { activateMission, toast } from '../game/store';
+import { activateMission, toast, retryMission, activeMission } from '../game/store';
 
 const set = useGame.setState;
 
@@ -57,7 +59,7 @@ export function Boot() {
       <Logo />
       <p className="boot-tag">Four idiots. One big mess.</p>
       <p className="boot-cta">
-        <span className="pulse">Press any key or click to begin</span>
+        <span className="pulse">{navigator.maxTouchPoints > 0 ? 'Tap anywhere to begin' : 'Press any key or click to begin'}</span>
         <span className="boot-sub">Sound on, if your neighbours allow it</span>
       </p>
     </div>
@@ -145,13 +147,15 @@ export function TitleScreen() {
   const items = [
     ...(hasSave ? [{ id: 'continue', label: 'Continue', sub: save ? SCENES[save.scene].name : '' }] : []),
     { id: 'new', label: hasSave ? 'Start over' : 'Start the story', sub: hasSave ? 'Your saved progress will be replaced' : '' },
+    ...(listSlots().some((x) => x.slot) ? [{ id: 'load', label: 'Load a saved game', sub: '' }] : []),
     { id: 'intro', label: 'Watch the opening', sub: '' },
     { id: 'sound', label: muted ? 'Sound: off' : 'Sound: on', sub: '' },
   ];
+  const [loading, setLoading] = useState(false);
   const [sel, setSel] = useState(0);
   const [confirmNew, setConfirmNew] = useState(false);
-  const ref = useRef({ sel, items, confirmNew });
-  ref.current = { sel, items, confirmNew };
+  const ref = useRef({ sel, items, confirmNew, loading });
+  ref.current = { sel, items, confirmNew, loading };
 
   useEffect(() => {
     startRhythm(92, 0.32);
@@ -170,6 +174,8 @@ export function TitleScreen() {
       }
       stopRhythm();
       startNewGame();
+    } else if (id === 'load') {
+      setLoading(true);
     } else if (id === 'intro') {
       introClock.start = performance.now();
       set({ mode: 'intro' });
@@ -184,10 +190,17 @@ export function TitleScreen() {
     () =>
       onInput((a) => {
         const { sel, items } = ref.current;
+        if (ref.current.loading) {
+          if (a === 'pause') setLoading(false);
+          return;
+        }
         if (a === 'up') setSel((sel - 1 + items.length) % items.length);
         else if (a === 'down') setSel((sel + 1) % items.length);
         else if (a === 'confirm' || a === 'interact') pick(items[sel].id);
-        else if (a === 'pause') setConfirmNew(false);
+        else if (a === 'pause') {
+          setConfirmNew(false);
+          setLoading(false);
+        }
       }),
     [], // eslint-disable-line react-hooks/exhaustive-deps
   );
@@ -198,6 +211,14 @@ export function TitleScreen() {
         <Logo />
         <p className="title-tag">Four idiots. One big mess.</p>
       </div>
+      {loading ? (
+        <div className="title-load">
+          <SlotList canSave={false} />
+          <button className="btn ghost" onClick={() => setLoading(false)}>
+            Back <kbd>Esc</kbd>
+          </button>
+        </div>
+      ) : (
       <nav className="menu" aria-label="Main menu">
         {items.map((it, i) => (
           <button key={it.id} className={`menu-item ${i === sel ? 'is-sel' : ''}`} onMouseEnter={() => setSel(i)} onClick={() => pick(it.id)}>
@@ -206,6 +227,7 @@ export function TitleScreen() {
           </button>
         ))}
       </nav>
+      )}
       <p className="title-foot">
         <kbd>↑</kbd>
         <kbd>↓</kbd> choose · <kbd>Enter</kbd> select · <kbd>M</kbd> mute
@@ -219,7 +241,9 @@ export function PauseMenu() {
   const paused = useGame((s) => s.paused);
   const secrets = useGame((s) => s.secrets);
   const muted = useGame((s) => s.muted);
-  const [tab, setTab] = useState<'missions' | 'controls' | 'secrets'>('missions');
+  const [tab, setTab] = useState<'missions' | 'saves' | 'controls' | 'secrets'>('missions');
+  const [confirmRetry, setConfirmRetry] = useState(false);
+  const hasCheckpoint = useGame((s) => !!s.checkpoint);
   const [confirm, setConfirm] = useState(false);
   if (!paused) return null;
   return (
@@ -232,14 +256,20 @@ export function PauseMenu() {
           </button>
         </div>
         <div className="tabs" role="tablist">
-          {(['missions', 'controls', 'secrets'] as const).map((t) => (
+          {(['missions', 'saves', 'controls', 'secrets'] as const).map((t) => (
             <button key={t} role="tab" aria-selected={tab === t} className={`tab ${tab === t ? 'is-on' : ''}`} onClick={() => setTab(t)}>
-              {t === 'missions' ? 'Missions' : t === 'controls' ? 'Controls' : `Secrets ${secrets.length}/${Object.keys(SECRETS).length}`}
+              {t === 'missions' ? 'Missions' : t === 'saves' ? 'Save / Load' : t === 'controls' ? 'Controls' : `Secrets ${secrets.length}/${Object.keys(SECRETS).length}`}
             </button>
           ))}
         </div>
         <div className="pause-body">
           {tab === 'missions' && <MissionLog />}
+          {tab === 'saves' && (
+            <>
+              <p className="saves-note">Progress also saves automatically. Missions that run on a clock restart from their beginning when loaded.</p>
+              <SlotList canSave />
+            </>
+          )}
           {tab === 'controls' && (
             <dl className="controls">
               <dt>
@@ -274,6 +304,8 @@ export function PauseMenu() {
                 <kbd>M</kbd>
               </dt>
               <dd>Mute or unmute.</dd>
+              <dt>Touch</dt>
+              <dd>Left pad walks (push hard to run). E and F buttons show what they will do. Tap a friend’s circle to switch. Tap the dialogue to continue.</dd>
             </dl>
           )}
           {tab === 'secrets' && (
@@ -309,6 +341,19 @@ export function PauseMenu() {
           >
             Save and quit to title
           </button>
+          {hasCheckpoint && activeMission() && (
+            <button
+              className="btn ghost"
+              onClick={() => {
+                if (!confirmRetry) return setConfirmRetry(true);
+                setConfirmRetry(false);
+                set({ paused: false });
+                retryMission();
+              }}
+            >
+              {confirmRetry ? 'Click again to restart this mission' : 'Restart this mission'}
+            </button>
+          )}
           <button
             className="btn ghost danger"
             onClick={() => {

@@ -101,7 +101,9 @@ export function Hints() {
   const scene = useGame((s) => s.scene);
   if (dialogue) return null;
   let content: React.ReactNode = null;
-  if (!hints.moved)
+  const touch = document.documentElement.classList.contains('touch-ui');
+  if (!hints.moved && touch) content = <>Drag the pad on the left to walk. Tap a friend’s circle to switch.</>;
+  else if (!hints.moved)
     content = (
       <>
         <kbd>W</kbd>

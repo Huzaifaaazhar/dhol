@@ -13,7 +13,7 @@ const wanted = process.argv.slice(2);
 const names = Object.keys(specs).filter((n) => !wanted.length || wanted.includes(n));
 let failed = 0;
 for (const name of names) {
-  const t = await launch({ shots });
+  const t = await launch({ shots, ...(specs[name].options ?? {}) });
   console.log(`\n▶ ${name}`);
   const t0 = Date.now();
   try {

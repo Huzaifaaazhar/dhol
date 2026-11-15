@@ -8,9 +8,9 @@ const { chromium } = require('playwright');
 
 export const URL = process.env.DHOL_URL ?? 'http://localhost:5173/';
 
-export async function launch({ width = 1280, height = 720, shots = null } = {}) {
+export async function launch({ width = 1280, height = 720, shots = null, mobile = false } = {}) {
   const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
-  const page = await browser.newPage({ viewport: { width, height } });
+  const page = await browser.newPage(mobile ? { viewport: { width, height }, isMobile: true, hasTouch: true, deviceScaleFactor: 1 } : { viewport: { width, height } });
   const errors = [];
   page.on('console', (m) => {
     if (m.type() === 'error') errors.push(m.text());

@@ -198,7 +198,10 @@ export function QuestionCard() {
         </ol>
       ) : (
         <p className="question-switch">
-          Press <kbd>2</kbd> to switch to Pakya and answer, or he will improvise.
+          <button className="btn" onClick={() => switchFriend('pakya')}>
+            Switch to Pakya <kbd>2</kbd>
+          </button>{' '}
+          to answer, or he will improvise.
         </p>
       )}
     </div>

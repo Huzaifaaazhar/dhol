@@ -10,6 +10,7 @@ import { Boot, Fader, IntroOverlay, PartEnd, PauseMenu, TitleScreen } from './ui
 import { FailCard, LieBook, MissionTimer, QuestionCard, Situations } from './ui/Part2';
 import { WorldOverlay } from './ui/WorldOverlay';
 import { EndingCard } from './ui/Ending';
+import { TouchControls } from './ui/Touch';
 
 export default function App() {
   const mode = useGame((s) => s.mode);
@@ -33,6 +34,7 @@ export default function App() {
       {mode === 'play' && (
         <div className="hud">
           <WorldOverlay />
+          <TouchControls />
           <ObjectiveSign />
           <Roster />
           <Hints />

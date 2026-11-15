@@ -42,6 +42,10 @@ button:focus-visible {
 .app {
   position: fixed;
   inset: 0;
+  touch-action: none;
+  overscroll-behavior: none;
+  -webkit-user-select: none;
+  user-select: none;
 }
 .stage {
   position: absolute !important;
@@ -1563,4 +1567,236 @@ kbd {
 .app.ending-open .hud > *:not(.ending),
 .app.ending-open .toasts {
   visibility: hidden;
+}
+
+/* ═══════════════════════ touch controls ═══════════════════════ */
+.touch {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.stick {
+  position: absolute;
+  left: max(16px, env(safe-area-inset-left));
+  bottom: max(20px, env(safe-area-inset-bottom));
+  width: 132px;
+  height: 132px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(42, 18, 56, 0.35), rgba(42, 18, 56, 0.7));
+  border: 3px solid rgba(255, 241, 214, 0.55);
+  pointer-events: auto;
+  touch-action: none;
+  display: grid;
+  place-items: center;
+}
+.stick-knob {
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  background: var(--marigold);
+  border: 3px solid var(--ink);
+  box-shadow: 3px 3px 0 var(--rani);
+  pointer-events: none;
+}
+.stick-hint {
+  position: absolute;
+  bottom: -18px;
+  font: 600 11px var(--body);
+  color: var(--paper-dim);
+  white-space: nowrap;
+}
+.tbuttons {
+  position: absolute;
+  right: max(14px, env(safe-area-inset-right));
+  bottom: max(18px, env(safe-area-inset-bottom));
+  display: grid;
+  grid-template-columns: auto auto;
+  grid-template-areas: 'small e' 'small2 f';
+  gap: 10px;
+  align-items: end;
+  justify-items: end;
+}
+.tbtn {
+  pointer-events: auto;
+  touch-action: none;
+  border: 3px solid var(--ink);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.tbtn:active {
+  transform: scale(0.94);
+}
+.tbtn-e,
+.tbtn-f {
+  width: 92px;
+  height: 92px;
+  border-radius: 50%;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 1px;
+  padding: 6px;
+  box-shadow: 4px 4px 0 var(--ink);
+}
+.tbtn-e {
+  grid-area: e;
+  background: var(--paper);
+  color: var(--ink);
+}
+.tbtn-f {
+  grid-area: f;
+  background: var(--c);
+  color: var(--ink);
+}
+.tbtn-key {
+  font: 400 26px/1 var(--display);
+}
+.tbtn-label {
+  font: 800 11px/1.15 var(--body);
+  text-align: center;
+  max-width: 78px;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+.tbtn-small {
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: rgba(42, 18, 56, 0.9);
+  color: var(--paper);
+  border-color: var(--ink-3);
+}
+.tbtn-small:nth-of-type(3) {
+  grid-area: small;
+}
+.tbtn-small:nth-of-type(4) {
+  grid-area: small2;
+}
+
+/* rearranged HUD for touch screens */
+.touch-ui .roster {
+  left: 50%;
+  bottom: auto;
+  top: max(10px, env(safe-area-inset-top));
+  transform: translateX(-50%);
+}
+.touch-ui .roster-card,
+.touch-ui .situations,
+.touch-ui .menu-btn kbd {
+  display: none;
+}
+.touch-ui .token {
+  width: 48px;
+  height: 48px;
+}
+.touch-ui .objective {
+  top: 70px;
+  max-width: min(300px, calc(100vw - 32px));
+  padding: 6px 12px 8px 14px;
+}
+.touch-ui .objective-hint {
+  display: none;
+}
+.touch-ui .timer {
+  top: 70px;
+  left: auto;
+  right: 14px;
+  transform: rotate(-1deg);
+  padding: 2px 12px 6px;
+}
+.touch-ui .timer-time {
+  font-size: 24px;
+}
+.touch-ui .hint {
+  bottom: 168px;
+}
+.touch-ui .question {
+  bottom: 170px;
+  left: 12px;
+  right: 12px;
+  width: auto;
+}
+.touch-ui .dialogue {
+  bottom: 12px;
+}
+.touch-ui .choice {
+  padding: 10px 10px;
+  font-size: 15px;
+}
+.touch-ui .toasts {
+  top: 132px;
+}
+.touch-ui .scenecard {
+  display: none;
+}
+
+/* save slots */
+.saves-note {
+  margin: 0 0 10px;
+  font: 500 14px/1.4 var(--body);
+  color: var(--paper-dim);
+}
+.slots {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+.slot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 12px;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border-left: 5px solid var(--marigold);
+}
+.slot.is-empty {
+  border-left-color: var(--ink-3);
+}
+.slot-info {
+  display: grid;
+  gap: 1px;
+}
+.slot-n {
+  font: 800 12px var(--body);
+  color: var(--marigold);
+}
+.slot-mission {
+  font: 400 18px/1.2 var(--display);
+}
+.slot-meta {
+  font: 600 13px var(--body);
+  color: var(--paper-dim);
+}
+.slot-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.title-load {
+  display: grid;
+  gap: 10px;
+  justify-items: start;
+  width: min(520px, 100%);
+}
+@media (max-width: 520px) {
+  .tabs {
+    overflow-x: auto;
+    padding: 0 12px;
+  }
+  .tab {
+    white-space: nowrap;
+    font-size: 13px;
+    padding: 8px 8px;
+  }
+  .pause-head,
+  .pause-body,
+  .pause-foot {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
 }

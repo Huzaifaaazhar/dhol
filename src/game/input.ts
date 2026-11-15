@@ -72,8 +72,26 @@ export function isHeld(code: string) {
   return held.has(code);
 }
 
+/* ───────── touch ───────── */
+const touchAxis = { x: 0, y: 0, run: false };
+export function setTouchAxis(x: number, y: number, run: boolean) {
+  touchAxis.x = x;
+  touchAxis.y = y;
+  touchAxis.run = run;
+}
+
+/** On-screen buttons fire the same actions as their keys. */
+export function fireAction(a: InputAction) {
+  const e = new KeyboardEvent('keydown');
+  listeners.forEach((l) => l(a, e));
+}
+
 /** Screen-relative movement axis (x = right, y = up), normalised. */
 export function moveAxis() {
+  if (touchAxis.x || touchAxis.y) {
+    const l = Math.hypot(touchAxis.x, touchAxis.y);
+    return { x: touchAxis.x / Math.max(1, l), y: touchAxis.y / Math.max(1, l), running: touchAxis.run };
+  }
   let x = 0;
   let y = 0;
   if (held.has('KeyW') || held.has('ArrowUp')) y += 1;

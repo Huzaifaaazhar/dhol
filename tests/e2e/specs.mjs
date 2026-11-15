@@ -1012,3 +1012,144 @@ export async function finaleTimeout(t) {
   const s = await t.until((x) => x.endingShown, 10000, 'ending');
   check(s.mstate.ending === 'collapse' && s.mstate.endingCause === 'time', 'nightfall without the drum: Zikomo takes it (House of Cards)');
 }
+
+/* ═════════ MOBILE: touch controls ═════════ */
+export async function mobile(t) {
+  const { page, st, api } = t;
+  await page.mouse.click(195, 420); // tap to begin
+  await t.wait(1500);
+  await t.key('Escape', 2000); // skip the opening
+  await page.getByText('Start the story').click();
+  await t.wait(3000);
+  let s = await st();
+  check(s.mode === 'play', 'tapping through the title starts the game');
+  check((await page.locator('.stick').count()) === 1 && (await page.locator('.tbtn-e').count()) === 1, 'joystick and action buttons are on screen');
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
+  check(!overflow, 'no horizontal overflow at phone width');
+  // drag the joystick up
+  const p0 = await api('pos');
+  const box = await page.locator('.stick').boundingBox();
+  const cx = box.x + box.width / 2;
+  const cy = box.y + box.height / 2;
+  await page.mouse.move(cx, cy);
+  await page.mouse.down();
+  await page.mouse.move(cx + 10, cy - 50, { steps: 4 });
+  await t.wait(1500);
+  await page.mouse.up();
+  const p1 = await api('pos');
+  check(Math.hypot(p1[0] - p0[0], p1[1] - p0[1]) > 0.5, `dragging the joystick walks Sam (${p0} → ${p1})`);
+  // switch by tapping a token
+  await page.locator('.token').nth(1).click();
+  await t.wait(600);
+  s = await st();
+  check(s.active === 'pakya', 'tapping Pakya’s circle switches to him');
+  for (const i of [2, 3, 0]) {
+    await page.locator('.token').nth(i).click();
+    await t.wait(400);
+  }
+  // the E button shows what it will do, then does it
+  await api('tp', 2.7, -3.4);
+  await t.wait(1000);
+  const label = await page.locator('.tbtn-e .tbtn-label').innerText();
+  check(label.length > 0 && label !== 'Interact', `the E button is labelled with the action: “${label}”`);
+  await page.locator('.tbtn-e').dispatchEvent('pointerdown');
+  await t.wait(800);
+  check((await page.locator('.bubble').count()) > 0, `tapping E did it: “${(await page.locator('.bubble').first().innerText()).slice(0, 50)}…”`);
+  await t.shot('mobile-play');
+  // dialogue: tap the box to advance, tap a choice
+  await api('jumpTo', 'chai');
+  await t.wait(1500);
+  await api('tp', 12, 7.9);
+  await t.wait(900);
+  await page.locator('.tbtn-e').dispatchEvent('pointerdown');
+  await t.wait(700);
+  check((await page.locator('.dialogue').count()) === 1 && (await page.locator('.stick').count()) === 0, 'a conversation replaces the touch controls');
+  for (let i = 0; i < 6 && !(await page.locator('.choice').count()); i++) {
+    await page.locator('.dialogue-text').click();
+    await t.wait(500);
+  }
+  check((await page.locator('.choice').count()) > 0, 'tapping the dialogue advances it');
+  await t.shot('mobile-dialogue');
+  await page.locator('.choice').first().click();
+  await t.wait(700);
+  if (await page.locator('.choice').count()) await page.locator('.choice').first().click();
+  await t.wait(500);
+  for (let i = 0; i < 8 && (await st()).dialogue; i++) {
+    await page.locator('.dialogue-text').click();
+    await t.wait(450);
+  }
+  s = await st();
+  check(s.missions.chai.startsWith('done'), 'a whole mission can be completed with taps (Chai on Credit)');
+  // pause menu by tapping
+  await page.locator('.menu-btn').click();
+  await t.wait(500);
+  check((await page.locator('.pause').count()) === 1, 'the menu opens with a tap');
+  await page.getByText('Save / Load').click();
+  await t.wait(300);
+  await t.shot('mobile-pause');
+}
+mobile.options = { width: 390, height: 844, mobile: true };
+
+/* ═════════ SAVE, LOAD, RELOAD, RESTART ═════════ */
+export async function saves(t) {
+  const { page, st, api, key } = t;
+  await api('jumpTo', 'jai');
+  await t.wait(1200);
+  await api('tp', 12, 7.9);
+  await t.wait(800);
+  await key('KeyE', 500);
+  await t.advance();
+  let s = await st();
+  check(!!s.lies.stories.jai?.bablu, 'progress made: Bablu told us Jai’s story');
+  // save to slot 2 through the pause menu
+  await key('Escape', 600);
+  await page.getByRole('tab', { name: 'Save / Load' }).click();
+  await t.wait(300);
+  await page.locator('.slot').nth(1).getByRole('button', { name: 'Save here' }).click();
+  await t.wait(500);
+  check((await page.locator('.slot').nth(1).innerText()).includes('Who Exactly Is Jai?'), 'slot 2 shows the mission it was saved in');
+  await t.shot('saves-pause');
+  await key('Escape', 400);
+  // make more progress, then load the slot: the extra progress is gone
+  await page.evaluate(() => window.__dhol.useGame.setState({ money: 9999 }));
+  await key('Escape', 600);
+  await page.getByRole('tab', { name: 'Save / Load' }).click();
+  await page.locator('.slot').nth(1).getByRole('button', { name: 'Load' }).click();
+  await t.wait(2500);
+  s = await st();
+  check(s.money === 250 && !!s.lies.stories.jai?.bablu && s.missions.jai.startsWith('active'), 'loading slot 2 restores exactly what was saved');
+  // reload the page: continue from the automatic save
+  await page.reload();
+  await page.waitForFunction(() => window.__dhol?.api, null, { timeout: 20000 });
+  await t.wait(1500);
+  await key('KeyX', 2000);
+  const menu = await page.locator('.menu-item').allInnerTexts();
+  check(menu[0].startsWith('Continue') && menu.some((m) => m.startsWith('Load a saved game')), 'after a reload the title offers Continue and Load');
+  await key('Enter', 3000);
+  s = await st();
+  check(s.mode === 'play' && s.missions.jai.startsWith('active') && !!s.lies.stories.jai?.bablu, 'Continue resumes the mission with its progress');
+  // load from the title screen
+  await key('Escape', 600);
+  await page.getByText('Save and quit to title').click();
+  await t.wait(2000);
+  await page.getByText('Load a saved game').click();
+  await t.wait(500);
+  await page.locator('.slot').nth(1).getByRole('button', { name: 'Load' }).click();
+  await t.wait(2500);
+  s = await st();
+  check(s.mode === 'play' && s.missions.jai.startsWith('active'), 'loading a slot from the title screen works');
+  // restart this mission
+  await key('Escape', 600);
+  await page.getByText('Restart this mission').click();
+  await page.getByText('Click again to restart this mission').click();
+  await t.wait(2000);
+  s = await st();
+  check(s.missions.jai === 'active:' && !s.lies.stories.jai?.bablu, 'Restart this mission rolls back to the mission’s start');
+  // restart the whole game
+  await key('Escape', 600);
+  await page.getByText('Restart from the beginning').click();
+  await page.getByText('Click again to erase progress').click();
+  await t.wait(2500);
+  s = await st();
+  check(s.scene === 'house' && s.missions.rent === 'active:' && s.missions.jai.startsWith('locked'), 'Restart from the beginning starts a new game');
+}
