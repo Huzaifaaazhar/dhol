@@ -784,8 +784,8 @@ export async function reveal(t) {
   s = await st();
   check(s.flags['cinema.open'], 'discovery 2: Pappu hands over his uncle’s cinema key (and mentions a light in the booth)');
   await goThroughDoor(t, 27.8, 22.4);
-  s = await st();
-  check(s.scene === 'cinema' && s.missions.reveal.includes('reveal.cinema'), 'inside Shree Talkies');
+  s = await t.until((x) => x.scene === 'cinema' && x.missions.reveal.includes('reveal.cinema'), 8000, 'the cinema');
+  check(true, 'inside Shree Talkies');
   await t.shot('reveal-cinema');
 
   // 3. locker 47

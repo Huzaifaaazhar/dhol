@@ -26,6 +26,13 @@ let secondAcc = 0;
 let gossipAcc = 0;
 const alerted = new Map<string, number>();
 const chased = new Map<string, number>();
+/** sim time until which a friend who was just caught and let go is ignored by goons */
+const grace = new Map<string, number>();
+/** caught friends are safe until their conversation with the boss ends, then a few seconds more */
+const pendingGrace = new Map<CharId, number>();
+export function grantGrace(who: CharId, seconds = 8) {
+  grace.set(who, simClock.t + seconds);
+}
 const spottedToast = new Map<string, number>();
 
 export function worldNow() {
@@ -38,6 +45,8 @@ export function resetSim() {
   gossipAcc = 0;
   alerted.clear();
   chased.clear();
+  grace.clear();
+  pendingGrace.clear();
   spottedToast.clear();
 }
 
@@ -175,8 +184,16 @@ function lookout(dt: number, now: number) {
 /* ───────── Zikomo’s men: spotting, chasing, catching ───────── */
 function stealth(now: number) {
   const s = get();
+  if (!s.dialogue && !s.transition) {
+    for (const [c, at] of pendingGrace) {
+      if (now - at < 3) continue;
+      grantGrace(c);
+      pendingGrace.delete(c);
+    }
+  }
   // nobody gets grabbed mid-sentence: whoever is in a conversation (and anyone tagging along) is left alone
-  const talking = (c: CharId) => !!s.dialogue && s.where[c] === s.scene && (c === s.active || !s.posted[c]);
+  const talking = (c: CharId) =>
+    pendingGrace.has(c) || (grace.get(c) ?? -1) > now || (!!s.dialogue && s.where[c] === s.scene && (c === s.active || !s.posted[c]));
   for (const { agent, who } of spotted()) {
     if (talking(who)) continue;
     const key = `${agent.id}:${who}`;
@@ -217,6 +234,7 @@ function stealth(now: number) {
       a.mode = a.route.length ? 'route' : 'idle';
       a.chase = null;
       a.until = 0;
+      pendingGrace.set(who, now);
       director()?.caught?.(who, a.id);
     }
   }
