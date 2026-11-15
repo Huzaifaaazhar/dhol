@@ -6,7 +6,7 @@
 import type { CharId, SceneId } from './types';
 import { CHAR_IDS } from './types';
 import { FRIENDS } from './data/characters';
-import { useGame, bark, beginTransition, switchTo, toast } from './store';
+import { useGame, bark, beginTransition, switchTo, toast, activeMission } from './store';
 import { ent, runtime } from './runtime';
 import { taskOf, cancelTask } from './sim/tasks';
 import { sfx } from './audio';
@@ -36,7 +36,9 @@ export function switchFriend(c: CharId) {
   const b = ent(c);
   const far = !sameScene || Math.hypot(a.x - b.x, a.z - b.z) > 10;
   const posted = { ...s.posted };
-  posted[old] = posted[old] || far || !!taskOf(old) || !!s.hidden[old];
+  // in split-up missions everyone stays where you left them; otherwise the gang sticks together
+  const splitUp = !!activeMission()?.live;
+  posted[old] = posted[old] || splitUp || far || !!taskOf(old) || !!s.hidden[old];
   posted[c] = false;
   if (!sameScene) {
     // everyone who was tagging along with the old leader stays put with him
@@ -77,6 +79,8 @@ export function focusFriend(c: CharId) {
 export function moveActive(scene: SceneId, x: number, z: number, face = 0) {
   const s = get();
   placeFriend(s.active, scene, x, z, face, false);
+  // if the scene (re)mounts after this, the leader must appear here, not at an old spawn
+  set({ entry: { x, z, face } });
   if (s.scene === scene) {
     runtime.cam.x = x;
     runtime.cam.z = z;

@@ -1389,8 +1389,11 @@ kbd {
 }
 
 @media (max-width: 760px) {
-  .situations { width: 150px; top: 56px; }
+  .situations { width: 138px; top: auto; bottom: 140px; right: 12px; gap: 4px; }
+  .sit { padding: 4px 8px 5px 6px; }
   .sit-where { display: none; }
+  .sit-what { font-size: 11px; }
+  .question { bottom: 12px; right: 12px; left: 12px; width: auto; }
   .book { grid-template-columns: 1fr; overflow: auto; }
   .page + .page { border-left: 0; border-top: 2px solid #c9b48f; }
 }

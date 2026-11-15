@@ -188,7 +188,7 @@ export const street: SceneDef = {
     },
     searchSpot('srch_tin', 'Bablu’s biscuit tins', 14.0, 11.2, { duration: 5, noise: 0.5, target: 'bablu', onDone: [{ give: 'tin' }] }, (s) => act('chaos')(s) && !s.has('tin') && s.m('fake') !== 'hideout'),
     searchSpot('srch_rope', 'Laundry line', -20.1, 13.4, { duration: 4, noise: 0.2, target: 'sabziwali', onDone: [{ give: 'rope' }] }, (s) => act('chaos')(s) && !s.has('rope') && s.m('fake') !== 'hideout'),
-    searchSpot('srch_skin', 'Pappu’s junk box', 25.6, -8.2, { duration: 5, noise: 0.35, target: 'pappu', onDone: [{ give: 'skin' }] }, (s) => act('chaos')(s) && !s.has('skin') && s.m('fake') !== 'hideout'),
+    searchSpot('srch_skin', 'Pappu’s junk box', 28.2, -7.5, { duration: 5, noise: 0.35, target: 'pappu', onDone: [{ give: 'skin' }] }, (s) => act('chaos')(s) && !s.has('skin') && s.m('fake') !== 'hideout'),
     /* ── Part 2 hiding and watching ── */
     hideSpot('hide_cart', 'Behind the vegetable cart', -4.1, 13.4),
     hideSpot('hide_auto', 'Inside the parked auto', -30, 7.9),

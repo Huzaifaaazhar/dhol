@@ -10,7 +10,7 @@ import { FRIENDS } from './data/characters';
 import { CHAR_IDS } from './types';
 import { actionsFor, runAction } from './effects';
 import { ent, playOneShot, runtime } from './runtime';
-import { currentFocus, resolveNpcs } from './world';
+import { currentFocus, nearbyInteractables, resolveNpcs } from './world';
 import { setMuted, sfx } from './audio';
 
 const get = useGame.getState;
@@ -97,7 +97,13 @@ function cycle() {
 function interact(special: boolean) {
   const s = get();
   const scene = SCENES[s.scene];
-  const it = currentFocus() ?? (s.focus ? scene.interactables.find((i) => i.id === s.focus) : null);
+  // prefer whatever in reach this friend can actually do something with
+  const reach = nearbyInteractables();
+  const usable = reach.find((x) => {
+    const acts = actionsFor(x);
+    return special ? acts.some((a) => a.who === s.active) : acts.some((a) => !a.who) || !!x.hide;
+  });
+  const it = usable ?? currentFocus() ?? (s.focus ? scene.interactables.find((i) => i.id === s.focus) : null);
   if (it && it.id !== s.focus) set({ focus: it.id });
   if (it?.hide && !special) {
     hideAt(it.id, it.x, it.z);

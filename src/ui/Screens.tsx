@@ -393,7 +393,10 @@ export function PartEnd() {
 function closePartEnd() {
   const s = useGame.getState();
   set({ partEnded: false });
-  if (s.mstate['pending.rich']) {
+  // the interval always leads into Part 2, even if Part 1 ended with something left undone
+  const part2Started = ['rich', 'jai', 'zikomo', 'dhol', 'chaos', 'after'].some((m) => s.missions[m]?.status !== 'locked');
+  if (s.partEnded === 'part1' && (s.mstate['pending.rich'] || !part2Started)) {
+    if (s.missions.ritu?.status === 'active') set({ missions: { ...s.missions, ritu: { status: 'done', done: s.missions.ritu.done } } });
     set({ mstate: { ...s.mstate, 'pending.rich': false } });
     activateMission('rich');
     toast(MISSION_MAP.rich.title, 'mission', 'Part 2');

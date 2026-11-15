@@ -131,15 +131,15 @@ export function PawPrints() {
     }
     return out;
   }, []);
-  const m = useMemo(() => new THREE.MeshBasicMaterial({ color: '#4a2e1c', transparent: true, opacity: 0.75, depthWrite: false }), []);
+  const m = useMemo(() => new THREE.MeshBasicMaterial({ color: '#3a2214', transparent: true, opacity: 0.9, depthWrite: false }), []);
   if (!show) return null;
   return (
     <group>
       {prints.map((p, i) => (
         <group key={i} position={[p.x, 0.04, p.z]} rotation={[0, p.r, 0]}>
-          <mesh geometry={GEO.sphereLo} material={m} scale={[0.14, 0.01, 0.18]} />
-          {[-0.08, 0, 0.08].map((x) => (
-            <mesh key={x} geometry={GEO.sphereLo} material={m} position={[x, 0, 0.14]} scale={[0.05, 0.01, 0.05]} />
+          <mesh geometry={GEO.sphereLo} material={m} scale={[0.28, 0.01, 0.34]} />
+          {[-0.15, 0, 0.15].map((x) => (
+            <mesh key={x} geometry={GEO.sphereLo} material={m} position={[x, 0, 0.27]} scale={[0.1, 0.01, 0.1]} />
           ))}
         </group>
       ))}

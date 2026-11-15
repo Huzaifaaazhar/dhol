@@ -385,7 +385,360 @@ export async function zikomoFail(t) {
     const g = window.__dhol.useGame;
     g.setState({ mstate: { ...g.getState().mstate, caught: 2 } });
   });
+  // step out from behind the bench
+  await page.keyboard.down('KeyW');
+  await t.wait(400);
+  await page.keyboard.up('KeyW');
   await inFrontOf(t, 'bhaloo', 'sam', 1.8);
   const s = await t.until((x) => !!x.failure, 25000, 'third capture');
   check(s.failure.reason.includes('three times'), 'caught a third time: mission failed');
+}
+
+/* ═════════ 4. FIND THE DHOL ═════════ */
+export async function dhol(t) {
+  const { st, api, key, advance, choose, page } = t;
+  await api('jumpTo', 'dhol');
+  await t.wait(1500);
+  let s = await st();
+  check(s.dhol === 'junk', 'the dhol is lost somewhere in the colony');
+  check((await api('agentIds')).includes('shambhu'), 'Shambhu the kabadiwala is doing his rounds');
+
+  // 1. Daadi, inside the bungalow
+  await api('tp', -28, -11.2);
+  await t.wait(800);
+  await key('KeyE', 2400);
+  await api('tp', -3.0, -1.8);
+  await t.wait(800);
+  await key('KeyE', 500);
+  await advance();
+  s = await st();
+  check(s.flags['clue.daadi'], 'Daadi sold it to Shambhu for forty rupees');
+  await api('tp', 4, 4.2);
+  await t.wait(800);
+  await key('KeyE', 2400);
+
+  // 2. Shambhu, wherever his rounds have taken him
+  await t.near('shambhu', 0.9, 0.9);
+  await key('KeyE', 600);
+  await advance();
+  await choose('Pay twenty');
+  await advance();
+  s = await st();
+  check(s.flags['clue.shambhu'] && s.money === 230, 'paid Shambhu ₹20: he sold it to Lalaji');
+
+  // 3. Lalaji
+  await api('tp', 13.5, -6.8);
+  await t.wait(800);
+  await key('KeyE', 2400);
+  await api('tp', -0.8, -0.2);
+  await t.wait(800);
+  await key('KeyE', 500);
+  await advance();
+  s = await st();
+  check(s.flags['clue.lalaji'], 'Lalaji lent it to the cricket kids');
+  await api('tp', 3, 3.3);
+  await t.wait(800);
+  await key('KeyE', 2400);
+
+  // 4. the kids
+  await api('tp', 0.6, 12.2);
+  await t.wait(800);
+  await key('KeyE', 500);
+  await advance();
+  s = await st();
+  check(s.flags.paws && s.missions.dhol.includes('dhol.trail'), 'Moti ran off with it: paw prints appear');
+  await api('tp', 9, 17.2);
+  await t.wait(1500);
+  await t.shot('dhol-paws');
+
+  // Goti digs it out of the junk pile
+  await api('switchFriend', 'goti');
+  await t.wait(500);
+  await api('tp', 22.2, 18.3);
+  await t.wait(900);
+  await key('KeyF', 500);
+  s = await t.until((x) => x.dhol === 'lane', 40000, 'Goti to dig out the dhol');
+  check(s.missions.dhol.includes('dhol.find'), 'Goti found Rahul’s dhol in the junk');
+  await t.wait(800);
+  await key('KeyE', 700);
+  s = await st();
+  check(s.dhol === 'carried:goti', 'Goti lifted the dhol');
+  check((await api('agentIds')).includes('spanner'), 'Zikomo’s men turn up as soon as it is lifted');
+  await t.shot('dhol-carry');
+
+  // hand it over to Sam
+  const g = await api('pos', 'goti');
+  await api('tp', g[0] + 0.9, g[1], 'sam');
+  await t.wait(500);
+  await key('KeyE', 600);
+  s = await st();
+  check(s.dhol === 'carried:sam', 'Goti handed the dhol to Sam (E next to a friend)');
+  await api('switchFriend', 'sam');
+  await t.wait(500);
+  await enterHideout(t);
+  s = await st();
+  check(s.dhol === 'hideout' && s.missions.dhol.includes('dhol.bring'), 'the dhol is safe in the hideout');
+
+  // Sam can’t find the seam; Goti can
+  await api('tp', 0.2, 3.2);
+  await t.wait(800);
+  const prompt = await page.locator('.prompt').innerText();
+  check(prompt.includes('Examine the dhol') && prompt.includes('Goti could try'), 'prompt offers Sam a slow search and hints that Goti is better');
+  await api('switchFriend', 'goti');
+  await t.wait(2600);
+  await enterHideout(t);
+  await api('tp', 0.2, 3.2);
+  await t.wait(800);
+  await key('KeyF', 500);
+  s = await t.until((x) => x.dialogue?.script === 'dhol_open', 30000, 'Goti to find the hidden packet');
+  await advance();
+  s = await t.until((x) => x.missions.dhol.startsWith('done'), 8000, 'dhol mission complete');
+  check(s.items.includes('packet'), 'a sealed packet was sewn inside the drum');
+  await t.until((x) => x.missions.chaos.startsWith('active'), 10000, 'Everything Goes Wrong to start');
+  check(true, 'Everything Goes Wrong started');
+}
+
+export async function dholFail(t) {
+  const { api, key } = t;
+  await api('jumpTo', 'dhol', { paws: true, 'clue.kids': true }, { dhol: 'lane' });
+  await t.wait(1500);
+  await api('tp', 22.2, 18.6);
+  await t.wait(900);
+  await key('KeyE', 700);
+  let s = await t.st();
+  check(s.dhol === 'carried:sam', 'Sam picked up the dhol');
+  await t.wait(800);
+  await t.page.keyboard.down('KeyS');
+  await t.wait(300);
+  await t.page.keyboard.up('KeyS');
+  await inFrontOf(t, 'spanner', 'sam', 1.8);
+  s = await t.until((x) => !!x.failure, 30000, 'Spanner to catch the carrier');
+  check(s.failure.reason.includes('Spanner') && s.dhol === 'zikomo', 'caught carrying the dhol: Zikomo has it, mission failed');
+}
+
+/* ═════════ 5. EVERYTHING GOES WRONG ═════════ */
+async function exitHideout(t) {
+  await t.api('tp', 3.5, 3.9);
+  await t.wait(800);
+  await t.key('KeyE', 2400);
+}
+
+export async function chaos(t) {
+  const { st, api, key, advance, choose, page } = t;
+  await api('jumpTo', 'chaos');
+  await t.until((x) => x.dialogue?.script === 'chaos_intro', 10000, 'Pinky’s warning');
+  await advance();
+  let s = await st();
+  check(s.scene === 'hideout' && s.dhol === 'hideout', 'everyone is in the hideout with the real dhol');
+
+  // Sam makes the plan
+  await api('tp', 2.4, -2.5);
+  await t.wait(800);
+  await key('KeyF', 600);
+  await advance();
+  await choose('Plan B');
+  await advance();
+  s = await st();
+  check(s.missions.chaos.includes('chaos.plan') && s.mstate.timerEnd > 0, `plan B chosen: the sunset clock is running`);
+  check((await page.locator('.timer').count()) === 1, 'the sunset clock is on screen');
+
+  // Pakya keeps Tiwari-ji talking
+  await key('Digit2', 700);
+  await exitHideout(t);
+  await api('tp', -10.6, -5.9);
+  await t.wait(900);
+  await key('KeyF', 600);
+  s = await st();
+  check(s.tasks.some((x) => x.who === 'pakya' && x.kind === 'stall'), 'Pakya is keeping Tiwari-ji talking');
+  check((await api('agent', 'tiwari')).mode === 'stalled', 'Tiwari-ji is stuck in conversation');
+  s = await t.until((x) => !!x.question, 30000, 'Tiwari-ji to ask Pakya something');
+  check(s.question.npc === 'tiwari', `Tiwari-ji asks: “${s.question.prompt}”`);
+  await t.shot('chaos-question');
+  await key('Digit1', 700);
+  s = await st();
+  check(s.lies.claims.some((c) => c.by === 'pakya' && c.to === 'tiwari'), 'Pakya’s answer went into the lie ledger');
+
+  // Goti starts scavenging; the world keeps going while we switch away
+  await key('Digit3', 2600);
+  await exitHideout(t);
+  await api('tp', -20.1, 12.6);
+  await t.wait(900);
+  await key('KeyF', 600);
+  s = await st();
+  const g0 = s.tasks.find((x) => x.who === 'goti')?.elapsed ?? -1;
+  check(g0 >= 0, 'Goti is searching the laundry line for rope');
+
+  // Maru takes the lookout post at the mouth of the lane, once Spanner has moved on
+  await key('Digit4', 2600);
+  for (let i = 0; i < 80; i++) {
+    const a = await api('agent', 'spanner');
+    if (Math.hypot(a.x + 20, a.z - 10) > 10) break;
+    await t.wait(500);
+  }
+  await exitHideout(t);
+  await api('tp', -20, 10.0);
+  await t.wait(900);
+  await key('KeyF', 600);
+  s = await st();
+  check(s.tasks.some((x) => x.who === 'maru' && x.kind === 'watch'), 'Maru is keeping watch');
+  check((s.tasks.find((x) => x.who === 'goti')?.elapsed ?? 99) > g0 || s.items.includes('rope'), 'Goti’s search kept running while we set up Maru');
+  s = await t.until((x) => x.items.includes('rope'), 30000, 'rope');
+  check(true, 'Goti found rope while nobody was controlling him');
+
+  // more parts: biscuit tin and a tabla skin
+  await api('switchFriend', 'goti');
+  await t.wait(500);
+  for (const [x, z, item] of [
+    [14.0, 12.0, 'tin'],
+    [28.2, -6.7, 'skin'],
+  ]) {
+    await api('tp', x, z);
+    await t.wait(900);
+    await key('KeyF', 600);
+    s = await t.until((y) => y.items.includes(item), 40000, item);
+    check(true, `Goti found the ${item}`);
+  }
+  await enterHideout(t);
+  await api('tp', 1.9, 2.6);
+  await t.wait(900);
+  await key('KeyF', 600);
+  s = await t.until((x) => x.mstate.fake === 'hideout', 40000, 'the fake dhol to be built');
+  check(s.missions.chaos.includes('chaos.fake'), 'Goti built a fake dhol from a tin, rope and a tabla skin');
+
+  // a question may be waiting for Pakya; answer anything pending
+  s = await st();
+  if (s.question) {
+    await api('switchFriend', 'pakya');
+    await t.wait(2600);
+    await key('Digit1', 600);
+  }
+
+  // Sam carries the real dhol home while Pakya keeps Tiwari-ji busy
+  await api('switchFriend', 'sam');
+  await t.wait(2600);
+  s = await st();
+  check(s.scene === 'hideout', 'back to Sam in the hideout');
+  await api('tp', 0.2, 3.0);
+  await t.wait(900);
+  await key('KeyE', 600);
+  s = await st();
+  check(s.dhol === 'carried:sam', 'Sam picked up the real dhol');
+  await exitHideout(t);
+  await api('tp', -14, -6.9);
+  await t.wait(900);
+  s = await st();
+  check(s.dhol === 'carried:sam', 'Tiwari-ji didn’t notice: Pakya kept him busy');
+  await key('KeyE', 2400);
+  await api('tp', -3.9, 1.6);
+  await t.wait(900);
+  const p = await page.locator('.prompt').innerText();
+  check(p.includes('Hide the real dhol'), 'the charpai offers to hide the real dhol');
+  await key('KeyE', 700);
+  s = await st();
+  check(s.dhol === 'house' && s.missions.chaos.includes('chaos.hide'), 'the real dhol is under Maru’s charpai');
+
+  // fast-forward to sunset
+  await page.evaluate(() => {
+    const g = window.__dhol.useGame;
+    g.setState({ mstate: { ...g.getState().mstate, timerEnd: window.__dhol.api.now() + 2 } });
+  });
+  s = await t.until((x) => x.dialogue?.script === 'chaos_end', 20000, 'Zikomo to arrive at sunset');
+  check(s.flags['end.fake'], 'Zikomo found the fake dhol');
+  await t.shot('chaos-sunset');
+  await advance();
+  s = await t.until((x) => x.partEnded === 'part2', 10000, 'end of Part 2');
+  check(s.missions.chaos.startsWith('done'), 'Everything Goes Wrong complete: Part 2 ends');
+  await t.wait(1500);
+  await t.shot('part2-end');
+}
+
+/* Maru panics and runs past Tiwari-ji, wrecking Pakya's "sick in bed" story */
+export async function chaosPanic(t) {
+  const { st, api, page } = t;
+  await api('jumpTo', 'chaos', {}, {
+    lies: { claims: [], suspicion: {}, contradictions: [], stories: {}, beliefs: { tiwari: { 'maru.health': { value: 'Sick in bed', by: 'pakya', t: 0 } } } },
+  });
+  await t.until((x) => x.dialogue?.script === 'chaos_intro', 10000, 'intro');
+  await t.advance();
+  await api('switchFriend', 'maru');
+  await t.wait(400);
+  await page.evaluate(() => {
+    const g = window.__dhol.useGame;
+    g.setState({ where: { ...g.getState().where, maru: 'street' }, panic: 99 });
+  });
+  const sp = await api('agent', 'spanner');
+  await api('tp', sp.x + 3, sp.z + 3, 'maru');
+  const s = await t.until((x) => x.lies.contradictions.some((c) => c.npc === 'tiwari' && c.topic === 'maru.health'), 20000, 'Maru’s panic to reach Tiwari-ji');
+  check(s.lies.suspicion.tiwari >= 20, 'Tiwari-ji saw “sick” Maru sprinting past: suspicion up');
+  check(s.stats['gang.harmony'] < 60, 'Pakya blames Maru: harmony drops');
+}
+
+/* Sunset with the real dhol still in the hideout: Zikomo takes it */
+export async function chaosFail(t) {
+  const { api, page } = t;
+  await api('jumpTo', 'chaos');
+  await t.until((x) => x.dialogue?.script === 'chaos_intro', 10000, 'intro');
+  await t.advance();
+  await page.evaluate(() => {
+    const g = window.__dhol.useGame;
+    window.__dhol.api.completeObjective('chaos.plan');
+    g.setState({ mstate: { ...g.getState().mstate, timerEnd: window.__dhol.api.now() + 2 } });
+  });
+  const s = await t.until((x) => !!x.failure, 20000, 'sunset failure');
+  check(s.dhol === 'zikomo' && s.failure.reason.includes('real dhol'), 'real dhol left in the hideout at sunset: Zikomo takes it, mission failed');
+}
+
+/* ═════════ Part 1 regression ═════════ */
+export async function part1Start(t) {
+  const { st, key, advance, choose, page } = t;
+  await key('KeyX', 1500); // boot
+  await key('Escape', 2500); // skip intro
+  await key('Enter', 3000); // start the story
+  let s = await st();
+  check(s.mode === 'play' && s.scene === 'house' && s.missions.rent.startsWith('active'), 'new game starts in the rented room');
+  await page.keyboard.down('KeyD');
+  await t.wait(800);
+  await page.keyboard.up('KeyD');
+  for (const k of ['Digit2', 'Digit3', 'Digit4', 'Digit1']) await key(k, 500);
+  s = await st();
+  check(s.missions.rent.includes('rent.meet'), 'switching to every friend wakes the gang');
+  check(Object.values(s.where).every((w) => w === 'house') && !Object.values(s.posted).some(Boolean), 'outside split-up missions the gang still sticks together');
+  await t.api('tp', 3.5, 3.9);
+  await t.wait(800);
+  await key('KeyE', 2600);
+  s = await st();
+  check(s.scene === 'street' && s.dialogue?.script === 'tiwari', 'Tiwari-ji blocks the door');
+  check(Object.values(s.where).every((w) => w === 'street'), 'the whole gang came outside together');
+  await advance();
+  await choose('somebody important');
+  await advance();
+  await choose('Income Tax');
+  await advance();
+  s = await st();
+  check(s.missions.rent.startsWith('done'), 'Rent Day still completes');
+  check(s.lies.beliefs.tiwari?.['pakya.job']?.value === 'income tax officer', 'Part 1 bluffs are recorded in the lie ledger');
+}
+
+export async function interval(t) {
+  const { st, api, key, advance } = t;
+  await api('jumpTo', 'ritu', { 'ritu.in': true });
+  await api('completeObjective', 'ritu.in');
+  await t.wait(1000);
+  await api('tp', -28, -11.2);
+  await t.wait(800);
+  await key('KeyE', 2400);
+  for (const k of ['Digit1', 'Digit2', 'Digit3', 'Digit4']) {
+    await key(k, 500);
+    await api('tp', 1.2, -0.4);
+    await t.wait(800);
+    await key('KeyE', 600);
+    await advance();
+  }
+  let s = await t.until((x) => x.partEnded === 'part1', 15000, 'the interval card');
+  check(s.missions.ritu.startsWith('done') && s.missions.rich.startsWith('locked'), 'Part 1 ends on the interval card; Part 2 waits');
+  await t.shot('interval');
+  await t.wait(1500);
+  await key('Enter', 1500);
+  s = await st();
+  check(!s.partEnded && s.missions.rich.startsWith('active'), 'closing the interval starts The Rich Girl Plan');
 }

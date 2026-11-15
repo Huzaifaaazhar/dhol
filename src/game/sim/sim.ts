@@ -25,6 +25,7 @@ let secondAcc = 0;
 let gossipAcc = 0;
 const alerted = new Map<string, number>();
 const chased = new Map<string, number>();
+const spottedToast = new Map<string, number>();
 
 export function worldNow() {
   return simClock.t;
@@ -36,6 +37,7 @@ export function resetSim() {
   gossipAcc = 0;
   alerted.clear();
   chased.clear();
+  spottedToast.clear();
 }
 
 function director() {
@@ -171,8 +173,13 @@ function stealth(now: number) {
       sfx('honk');
       emote(agent.id, '!', 1.6);
       bark(agent.id, ['OYE! You! Stop!', 'Found one! Boss!', 'Hey, idiot number ' + (CHAR_IDS.indexOf(who) + 1) + '!'][Math.floor(Math.random() * 3)], 2.2);
-      if (s.active === who) toast('You have been spotted. Run, or hide!', 'alert');
-      else toast(`${FRIENDS[who].name} has been spotted!`, 'alert', `Press ${CHAR_IDS.indexOf(who) + 1} to help him`);
+      const lastToast = spottedToast.get(who) ?? -99;
+      const following = who !== s.active && !s.posted[who] && s.where[who] === s.scene;
+      if (now - lastToast > 6 && !following) {
+        spottedToast.set(who, now);
+        if (s.active === who) toast('You have been spotted. Run, or hide!', 'alert');
+        else toast(`${FRIENDS[who].name} has been spotted!`, 'alert', `Press ${CHAR_IDS.indexOf(who) + 1} to help him`);
+      }
     }
   }
   for (const a of agents.values()) {

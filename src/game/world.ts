@@ -75,3 +75,21 @@ export function currentFocus(): Interactable | null {
   const e = ent(s.active);
   return findFocus(scene, e.x, e.z, present);
 }
+
+/** Everything usable within reach, nearest first. */
+export function nearbyInteractables(): Interactable[] {
+  const s = useGame.getState();
+  const scene = SCENES[s.scene];
+  const v = view();
+  const present = new Set<string>([
+    ...resolveNpcs(scene).filter((n) => !agents.has(n.id)).map((n) => n.id),
+    ...[...agents.values()].filter((a) => a.scene === scene.id).map((a) => a.id),
+  ]);
+  const e = ent(s.active);
+  return scene.interactables
+    .filter((it) => (!it.npc || present.has(it.npc)) && (!it.showIf || it.showIf(v)))
+    .map((it) => ({ it, d: Math.hypot(interactablePos(it).x - e.x, interactablePos(it).z - e.z) }))
+    .filter(({ it, d }) => d <= (it.radius ?? 1.5) && actionsFor(it).length)
+    .sort((a, b) => a.d - b.d)
+    .map(({ it }) => it);
+}
