@@ -1,11 +1,16 @@
 import { onInput } from './input';
-import { useGame, cycleChar, switchTo, bark, emote, toast } from './store';
+import { useGame, bark, emote, toast, setM } from './store';
+import { switchFriend, toggleWait, rally, hideAt } from './party';
+import { answerQuestion } from './sim/tasks';
+import { agentsIn, investigate } from './sim/agents';
+import { simClock } from './sim/clock';
+import type { CharId } from './types';
 import { SCENES } from './data/scenes';
 import { FRIENDS } from './data/characters';
 import { CHAR_IDS } from './types';
 import { actionsFor, runAction } from './effects';
 import { ent, playOneShot, runtime } from './runtime';
-import { resolveNpcs } from './world';
+import { currentFocus, resolveNpcs } from './world';
 import { setMuted, sfx } from './audio';
 
 const get = useGame.getState;
@@ -23,11 +28,18 @@ export function installController() {
       return;
     }
     if (s.mode !== 'play' || s.transition || s.partEnded) return;
+    if (s.failure) return;
     if (s.dialogue) {
-      if (a === 'cycle') {
-        cycleChar(1);
-        sfx('switch');
-      }
+      if (a === 'cycle') cycle();
+      return;
+    }
+    if (a === 'book') {
+      set({ lieBook: !s.lieBook, paused: false, hints: { ...s.hints, ordered: true } });
+      sfx('select');
+      return;
+    }
+    if (s.lieBook) {
+      if (a === 'pause') set({ lieBook: false });
       return;
     }
     if (a === 'pause') {
@@ -37,10 +49,22 @@ export function installController() {
     }
     if (s.paused) return;
 
+    // Pakya answering a question while keeping someone busy: number keys pick the answer
+    if (s.question && s.active === 'pakya' && /^char[1-3]$/.test(a)) {
+      const i = Number(a.slice(-1)) - 1;
+      if (i < s.question.options.length) {
+        answerQuestion(i);
+        return;
+      }
+    }
+
     switch (a) {
       case 'cycle':
-        cycleChar(1);
-        sfx('switch');
+        cycle();
+        break;
+      case 'order':
+        toggleWait();
+        if (!s.hints.ordered) set({ hints: { ...s.hints, ordered: true } });
         break;
       case 'char1':
       case 'char2':
@@ -48,7 +72,7 @@ export function installController() {
       case 'char4': {
         const id = CHAR_IDS[Number(a.slice(-1)) - 1];
         if (id !== s.active) {
-          switchTo(id);
+          switchFriend(id);
           sfx('switch');
         }
         break;
@@ -63,10 +87,33 @@ export function installController() {
   });
 }
 
+function cycle() {
+  const s = get();
+  const i = CHAR_IDS.indexOf(s.active);
+  switchFriend(CHAR_IDS[(i + 1) % CHAR_IDS.length]);
+  sfx('switch');
+}
+
 function interact(special: boolean) {
   const s = get();
   const scene = SCENES[s.scene];
-  const it = s.focus ? scene.interactables.find((i) => i.id === s.focus) : null;
+  const it = currentFocus() ?? (s.focus ? scene.interactables.find((i) => i.id === s.focus) : null);
+  if (it && it.id !== s.focus) set({ focus: it.id });
+  if (it?.hide && !special) {
+    hideAt(it.id, it.x, it.z);
+    return;
+  }
+  // E with nothing in front of you while carrying the dhol: hand it to the nearest friend
+  if (!it && !special && s.dhol === `carried:${s.active}`) {
+    const me = ent(s.active);
+    const near = CHAR_IDS.filter((c) => c !== s.active && s.where[c] === s.scene).find((c) => Math.hypot(ent(c).x - me.x, ent(c).z - me.z) < 2);
+    if (near) {
+      set({ dhol: `carried:${near}` });
+      sfx('thud');
+      bark(near, ['Why me?', 'Give it here. Gently.', 'Ooh! Can I play it?', 'It’s so heavy. And so wanted by criminals.'][CHAR_IDS.indexOf(near)], 2.2);
+      return;
+    }
+  }
   if (it) {
     const acts = actionsFor(it);
     if (special) {
@@ -90,7 +137,10 @@ function signature() {
   if (e.oneShot > 0) return;
   const def = FRIENDS[id];
   playOneShot(id, 'signature', id === 'goti' ? 1.0 : 1.3);
+  if (id === 'sam' && rallyGang()) return;
+  if (id === 'goti' && throwCracker()) return;
   bark(id, def.signature[Math.floor(Math.random() * def.signature.length)]);
+  if (id === 'maru') distractAround(e.x, e.z);
   if (id === 'maru') {
     sfx('scream');
     runtime.shake = 0.35;
@@ -133,4 +183,61 @@ function reaction(by: string, at: string) {
   const l = lines[by] ?? ['…'];
   void at;
   return l[Math.floor(Math.random() * l.length)];
+}
+
+/** Sam: everyone waiting nearby falls in behind him. */
+function rallyGang() {
+  const n = rally();
+  if (!n) return false;
+  bark('sam', 'Gang! On me! Formation! …Any formation!', 2.4);
+  sfx('switch');
+  toast(`${n} friend${n > 1 ? 's' : ''} rejoined Sam`, 'info');
+  return true;
+}
+
+/** Maru: whoever is close stops what they are doing to stare at him. */
+function distractAround(x: number, z: number) {
+  const s = get();
+  const now = simClock.t;
+  let n = 0;
+  for (const a of agentsIn(s.scene)) {
+    const o = ent(a.id);
+    if (Math.hypot(o.x - x, o.z - z) < 9) {
+      investigate(a.id, x, z, 8, now, 'distracted');
+      emote(a.id, '!', 1.8);
+      setM(`distracted.${a.id}`, now + 8);
+      n++;
+    }
+  }
+  for (const npc of resolveNpcs(SCENES[s.scene])) {
+    const o = ent(npc.id);
+    if (Math.hypot(o.x - x, o.z - z) < 9) {
+      setM(`distracted.${npc.id}`, now + 10);
+      n++;
+    }
+  }
+  if (n) toast('Everyone nearby is staring at Maru', 'info', 'Distraction');
+}
+
+/** Goti: lob a cracker. Zikomo’s men run to the bang. */
+function throwCracker() {
+  const s = get();
+  if (!s.items.includes('crackers') || SCENES[s.scene].interior) return false;
+  const e = ent('goti' as CharId);
+  const x = e.x + Math.sin(e.face) * 8;
+  const z = e.z + Math.cos(e.face) * 8;
+  set({ items: s.items.filter((i) => i !== 'crackers') });
+  sfx('thud');
+  sfx('honk');
+  runtime.shake = 0.4;
+  bark('goti', 'Happy Diwali! In whatever month this is!', 2.4);
+  let n = 0;
+  for (const a of agentsIn(s.scene)) {
+    if (!a.hostile) continue;
+    investigate(a.id, x, z, 9, simClock.t);
+    emote(a.id, '?', 2);
+    n++;
+  }
+  toast(n ? 'BANG! Zikomo’s men run to look' : 'BANG! Nobody important was around', 'info', 'Cracker');
+  return true;
 }

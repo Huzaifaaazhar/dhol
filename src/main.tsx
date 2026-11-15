@@ -9,7 +9,9 @@ import App from './App';
 import { useGame } from './game/store';
 import { runtime } from './game/runtime';
 
-if (import.meta.env.DEV) Object.assign(window, { __dhol: { useGame, runtime } });
+if (import.meta.env.DEV) {
+  void import('./game/debug').then(({ debugApi }) => Object.assign(window, { __dhol: { useGame, runtime, api: debugApi } }));
+}
 
 // Signboards and posters are painted onto canvases, so wait for the fonts first.
 const fontsReady = Promise.race([

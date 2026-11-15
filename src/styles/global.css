@@ -995,3 +995,419 @@ kbd {
   }
   .grain { display: none; }
 }
+
+/* ═══════════════════════ PART 2 ═══════════════════════ */
+
+/* suspicion: five little eyes */
+.eyes,
+.prompt-sus {
+  display: inline-flex;
+  gap: 3px;
+  margin-left: 8px;
+  vertical-align: middle;
+}
+.eyes i,
+.prompt-sus i {
+  width: 9px;
+  height: 6px;
+  border-radius: 50%;
+  border: 1.5px solid currentColor;
+  opacity: 0.35;
+}
+.eyes i.on,
+.prompt-sus i.on {
+  opacity: 1;
+  background: #ff4d6d;
+  border-color: #ff4d6d;
+}
+.prompt-sus {
+  color: var(--paper-dim);
+}
+
+/* Pakya can see which lines fit the story */
+.lie-ok,
+.lie-bad,
+.lie-new {
+  font: 800 11px var(--body);
+  padding: 1px 7px 2px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.lie-ok {
+  background: rgba(108, 192, 74, 0.2);
+  color: #9be07c;
+}
+.lie-bad {
+  background: rgba(255, 77, 109, 0.18);
+  color: #ff8fa3;
+}
+.lie-new {
+  background: rgba(255, 180, 0, 0.16);
+  color: var(--marigold);
+}
+
+/* friends busy somewhere: label over their heads */
+.busy {
+  display: grid;
+  justify-items: center;
+  gap: 1px;
+  padding: 3px 9px 5px;
+  background: rgba(42, 18, 56, 0.9);
+  border-left: 4px solid var(--c);
+  white-space: nowrap;
+  transform: translateY(-10px);
+}
+.busy-who {
+  font: 400 13px/1 var(--display);
+  color: var(--c);
+}
+.busy-what {
+  font: 600 12px var(--body);
+  color: var(--paper);
+}
+.busy-bar {
+  width: 90px;
+  height: 5px;
+  background: var(--ink-3);
+}
+.busy-bar span {
+  display: block;
+  height: 100%;
+  width: 0;
+  background: var(--c);
+}
+.busy-slow {
+  font: 600 10px var(--body);
+  color: var(--paper-dim);
+  font-style: italic;
+}
+
+/* the gang, at a glance, during split-up missions */
+.situations {
+  position: absolute;
+  right: 16px;
+  top: 60px;
+  display: grid;
+  gap: 6px;
+  width: 210px;
+}
+.sit {
+  position: relative;
+  display: grid;
+  grid-template-columns: 20px 1fr;
+  column-gap: 8px;
+  text-align: left;
+  padding: 6px 10px 7px 8px;
+  background: rgba(42, 18, 56, 0.9);
+  border: 0;
+  border-left: 5px solid var(--c);
+  cursor: pointer;
+}
+.sit.is-active {
+  background: var(--ink);
+  box-shadow: 3px 3px 0 var(--c);
+}
+.sit.is-danger {
+  animation: dangerPulse 0.9s ease-in-out infinite;
+}
+@keyframes dangerPulse {
+  50% { box-shadow: 0 0 0 3px #ff4d6d; }
+}
+.sit-key {
+  grid-row: span 3;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  background: var(--paper);
+  color: var(--ink);
+  font: 800 11px var(--body);
+}
+.sit-name {
+  font: 400 16px/1.1 var(--display);
+  color: var(--c);
+}
+.sit-where {
+  font: 600 11px var(--body);
+  color: var(--paper-dim);
+}
+.sit-what {
+  font: 600 12px/1.25 var(--body);
+}
+.sit-bar,
+.sit-panic {
+  grid-column: 2;
+  height: 4px;
+  margin-top: 4px;
+  background: var(--ink-3);
+}
+.sit-bar span,
+.sit-panic span {
+  display: block;
+  height: 100%;
+  background: var(--c);
+}
+.sit-panic span {
+  background: #ff4d6d;
+}
+.sit-alert {
+  position: absolute;
+  right: 8px;
+  top: 6px;
+  font: 800 18px var(--body);
+  color: #ff4d6d;
+}
+
+/* sunset clock */
+.timer {
+  position: absolute;
+  top: 14px;
+  left: 50%;
+  transform: translateX(-50%) rotate(-1deg);
+  display: grid;
+  justify-items: center;
+  padding: 4px 22px 8px;
+  background: var(--marigold);
+  color: var(--ink);
+  border: 3px solid var(--ink);
+  box-shadow: var(--hard);
+  pointer-events: none;
+}
+.timer-label {
+  font: 800 12px var(--body);
+}
+.timer-time {
+  font: 400 34px/1 var(--display);
+}
+.timer.is-urgent {
+  background: #ff4d6d;
+  color: #fff;
+  animation: pulse 0.8s ease-in-out infinite;
+}
+.app.has-dialogue .timer,
+.timer ~ .toasts {
+  top: 90px;
+}
+
+/* question for Pakya */
+.question {
+  position: absolute;
+  right: 16px;
+  bottom: 16px;
+  width: min(380px, calc(100vw - 32px));
+  padding: 12px 14px 12px;
+  background: var(--ink);
+  border: 3px solid var(--rani);
+  box-shadow: 5px 5px 0 var(--marigold);
+  animation: pop 0.3s cubic-bezier(0.2, 1.6, 0.4, 1) both;
+  z-index: 7;
+}
+.question-who {
+  display: flex;
+  justify-content: space-between;
+  font: 800 13px var(--body);
+  color: var(--marigold);
+}
+.question-left {
+  color: #ff8fa3;
+}
+.question-text {
+  margin: 6px 0 8px;
+  font: 600 16px/1.35 var(--body);
+}
+.question-opts {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 4px;
+}
+.question-opts button {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  text-align: left;
+  padding: 5px 8px;
+  border: 0;
+  border-left: 4px solid var(--rani);
+  background: rgba(255, 255, 255, 0.05);
+  font: 600 14px var(--body);
+  cursor: pointer;
+}
+.question-opts button:hover {
+  background: rgba(255, 180, 0, 0.14);
+}
+.question-switch {
+  margin: 0;
+  font: 600 14px var(--body);
+  color: var(--paper-dim);
+}
+
+/* plan failed */
+.fail {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgba(42, 18, 56, 0.82);
+  z-index: 12;
+  animation: fadein 0.4s ease both;
+}
+.fail-inner {
+  display: grid;
+  gap: 12px;
+  justify-items: center;
+  text-align: center;
+  max-width: min(560px, calc(100vw - 32px));
+  padding: 26px 28px;
+  background: var(--ink);
+  border: 3px solid #ff4d6d;
+  box-shadow: 8px 8px 0 var(--ink-3);
+  transform: rotate(-0.8deg);
+}
+.fail-kicker {
+  font: 400 clamp(36px, 6vw, 56px) / 1 var(--display);
+  color: #ff4d6d;
+  text-shadow: 3px 3px 0 var(--ink-3);
+}
+.fail-reason {
+  margin: 0;
+  font: 600 18px/1.45 var(--body);
+}
+.fail-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+}
+
+/* Pakya’s Lie Book: a battered pocket diary */
+.book-wrap {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgba(42, 18, 56, 0.7);
+  z-index: 11;
+}
+.book {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  width: min(900px, calc(100vw - 32px));
+  max-height: calc(100vh - 40px);
+  background: #3d1c50;
+  padding: 10px;
+  border-radius: 6px;
+  box-shadow: 10px 10px 0 rgba(0, 0, 0, 0.35);
+  transform: rotate(-0.6deg);
+}
+.page {
+  overflow: auto;
+  padding: 18px 22px 18px 46px;
+  color: #2b2240;
+  background:
+    linear-gradient(90deg, transparent 32px, #e05a6d 32px, #e05a6d 34px, transparent 34px),
+    repeating-linear-gradient(180deg, #f6ead2 0 27px, #b9cfe3 27px 28px);
+  font: 600 15px/28px var(--body);
+}
+.page + .page {
+  border-left: 2px solid #c9b48f;
+}
+.page h2 {
+  margin: 0 0 4px;
+  font: 400 26px/28px var(--display);
+  color: var(--rani);
+}
+.page h2 + .page-sub {
+  margin-top: 0;
+}
+.page-sub,
+.page-empty,
+.page-foot {
+  margin: 0 0 6px;
+  font-style: italic;
+  color: #6b5a7d;
+}
+.page-foot {
+  margin-top: 14px;
+}
+.entry {
+  margin-bottom: 4px;
+}
+.entry-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: #2b2240;
+}
+.entry-head .eyes {
+  color: #6b5a7d;
+}
+.entry-line {
+  padding-left: 10px;
+}
+.entry-topic {
+  color: #6b5a7d;
+}
+.entry-by {
+  margin-left: 6px;
+  font: 800 11px var(--body);
+  color: var(--c, #6b5a7d);
+  filter: brightness(0.75);
+}
+.caught {
+  position: relative;
+  margin-bottom: 6px;
+  line-height: 1.5;
+}
+.stamp {
+  display: inline-block;
+  margin-right: 6px;
+  padding: 0 6px;
+  border: 2px solid #c1121f;
+  color: #c1121f;
+  font: 800 11px/1.4 var(--body);
+  transform: rotate(-6deg);
+}
+
+.toast-lie {
+  border-color: #ff4d6d;
+  box-shadow: 4px 4px 0 #ff4d6d;
+}
+.toast-lie .toast-sub {
+  color: #ff8fa3;
+}
+.toast-alert {
+  background: var(--rani);
+  border-color: var(--ink);
+}
+.toast-alert .toast-sub {
+  color: var(--marigold);
+}
+
+@media (max-width: 760px) {
+  .situations { width: 150px; top: 56px; }
+  .sit-where { display: none; }
+  .book { grid-template-columns: 1fr; overflow: auto; }
+  .page + .page { border-left: 0; border-top: 2px solid #c9b48f; }
+}
+
+/* one DOM layer for every in-world label; each anchor is moved to its projected screen point */
+.hud > .world-overlay {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.anchor {
+  position: absolute;
+  left: 0;
+  top: 0;
+  will-change: transform;
+}
+.anchor > * {
+  translate: -50% -100%;
+}

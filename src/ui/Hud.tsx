@@ -122,6 +122,12 @@ export function Hints() {
         <kbd>E</kbd> to interact · <kbd>F</kbd> to try your friend’s ability on it
       </>
     );
+  else if (['rich', 'jai', 'zikomo', 'dhol', 'chaos'].some((m) => missions[m]?.status === 'active') && !hints.ordered)
+    content = (
+      <>
+        <kbd>Q</kbd> tell the nearest friend to wait or come along · <kbd>L</kbd> Pakya’s Lie Book · time keeps running when you switch
+      </>
+    );
   else if (scene === 'house' && missions.rent.done.includes('rent.meet') && missions.rent.status === 'active')
     content = <>The door is at the front of the room. Walk down-left.</>;
   if (!content) return null;

@@ -7,8 +7,15 @@ import { Sun } from './CameraRig';
 import { StreetScene } from './scenes/StreetScene';
 import { InteriorScene } from './scenes/InteriorScene';
 import { Gang } from './Gang';
-import { NPCs } from './NPCs';
-import { Bubbles, Emotes, InteractionPrompt } from './Markers';
+import { NPCs, Agents } from './NPCs';
+import { DholInWorld, JaiBag, JunkPile, PawPrints, VisionCones, ZikomoCar } from './part2props';
+import { simTick } from '../game/sim/sim';
+
+/** Runs the world clock every frame, independent of which scene is drawn. */
+function Simulation() {
+  useFrame((_, dt) => simTick(dt));
+  return null;
+}
 
 export function GameWorld() {
   const sceneId = useGame((s) => s.scene);
@@ -38,6 +45,8 @@ export function GameWorld() {
   });
 
   return (
+    <>
+    <Simulation />
     <group key={sceneId}>
       <color attach="background" args={[scene.interior ? '#2a1238' : '#efcf9f']} />
       {!scene.interior && <fog attach="fog" args={['#f1d2a2', 90, 150]} />}
@@ -45,9 +54,18 @@ export function GameWorld() {
       {scene.interior ? <InteriorScene room={(scene as unknown as { room: RoomDef }).room} /> : <StreetScene />}
       <Gang scene={scene} />
       <NPCs scene={scene} />
-      <InteractionPrompt scene={scene} />
-      <Bubbles />
-      <Emotes />
+      <Agents scene={scene} />
+      <DholInWorld scene={scene.id} />
+      <VisionCones scene={scene.id} />
+      {!scene.interior && (
+        <>
+          <PawPrints />
+          <JunkPile />
+          <JaiBag />
+          <ZikomoCar />
+        </>
+      )}
     </group>
+    </>
   );
 }

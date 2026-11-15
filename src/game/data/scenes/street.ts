@@ -1,5 +1,8 @@
 import type { Box, SceneDef } from '../../types';
-import { door, has, not, talk } from './helpers';
+import { door, has, not, talk, searchSpot, hideSpot, watchSpot, smooth, stall } from './helpers';
+import type { StateView } from '../../types';
+
+const act = (m: string) => (s: StateView) => s.missionStatus(m) === 'active';
 
 export type BuildingStyle = 'chawl' | 'bungalow' | 'shop' | 'apartment' | 'cinema' | 'house' | 'garage' | 'filler';
 
@@ -135,9 +138,69 @@ export const street: SceneDef = {
         { id: 'enter', verb: 'Enter', effects: [{ goto: 'ritu', spawn: 'door' }, { sfx: 'door' }], showIf: has('ritu.in') },
       ],
     },
-    talk('tiwari', 'Tiwari-ji', 'tiwari'),
-    talk('bablu', 'Bablu’s chai', 'bablu', [], 3.2),
-    talk('pappu', 'Pappu the barber', 'pappu', [{ id: 'herocut', verb: 'Talk him into a free haircut', who: 'pakya', dialogue: 'pappu_pakya', once: true }]),
+    talk('tiwari', 'Tiwari-ji', 'tiwari', [stall('tiwari'), smooth('tiwari')]),
+    talk('bablu', 'Bablu’s chai', 'bablu', [smooth('bablu')], 3.2),
+    talk('pappu', 'Pappu the barber', 'pappu', [{ id: 'herocut', verb: 'Talk him into a free haircut', who: 'pakya', dialogue: 'pappu_pakya', once: true }, smooth('pappu')]),
+    /* ── Part 2 people ── */
+    talk('ritu', 'Ritu', 'ritu2', [smooth('ritu')], 2.4),
+    talk('jai', 'Jai', 'jai', [], 2.4),
+    talk('zikomo', 'Zikomo', 'zikomo', [stall('zikomo')], 2.6),
+    talk('spanner', 'Spanner', 'goon', [], 1.8),
+    talk('bhaloo', 'Bhaloo', 'goon', [], 1.8),
+    talk('shambhu', 'Shambhu the kabadiwala', 'shambhu', [], 2.4),
+    /* ── Part 2 searching ── */
+    searchSpot('srch_swing', 'Under the swing', -32.7, -10.6, {
+      duration: 6,
+      hidden: true,
+      noise: 0.15,
+      target: 'daadi',
+      onDone: [{ toast: 'A page from Ritu’s notebook: “I like: rain, hot jalebi, Bhaiya’s dhol songs. I don’t like: liars.”' }, { flag: 'likes.jalebi' }, { flag: 'likes.songs' }, { flag: 'likes.liars' }, { event: 'like' }],
+      empty: 'Grass. Some more grass. Goti would find something here, he has a nose for nonsense.',
+    }, (s) => act('rich')(s) && !(s.flags['likes.jalebi'] && s.flags['likes.songs'])),
+    searchSpot('srch_shrine', 'Corner shrine', -35.4, 7.0, {
+      duration: 4,
+      onDone: [{ give: 'marigolds' }],
+    }, (s) => act('rich')(s) && !s.has('marigolds') && !s.flags['move.goti']),
+    searchSpot('jai_bag', 'Jai’s bag', -22.3, -6.3, {
+      duration: 5,
+      hidden: true,
+      noise: 0.2,
+      target: 'jai',
+      onDone: [{ give: 'photo' }, { toast: 'A photo: Jai and a laughing young man with a dhol. On the back: “Rahul & me, Dubai.”' }, { event: 'proof' }],
+      empty: 'Clothes, a phone charger, three combs. Goti would find a secret pocket in a sock.',
+    }, (s) => act('jai')(s) && !s.objectiveDone('jai.proof')),
+    searchSpot('junk', 'Junk pile behind the cinema', 22.2, 19.4, {
+      duration: 6,
+      hidden: true,
+      noise: 0.3,
+      onDone: [{ event: 'found' }],
+      empty: 'Broken chairs, a bicycle wheel, a smell. Goti would know how to dig through this.',
+    }, (s) => act('dhol')(s) && !!s.flags.paws && s.dhol === 'junk'),
+    {
+      id: 'dhol_lane',
+      label: 'Rahul’s dhol',
+      x: 22.2,
+      z: 19.4,
+      y: 1.8,
+      radius: 1.8,
+      showIf: (s) => s.dhol === 'lane',
+      actions: [{ id: 'lift', verb: 'Lift the dhol', effects: [{ dholTo: 'carry' }, { event: 'pickup' }] }],
+    },
+    searchSpot('srch_tin', 'Bablu’s biscuit tins', 14.0, 11.2, { duration: 5, noise: 0.5, target: 'bablu', onDone: [{ give: 'tin' }] }, (s) => act('chaos')(s) && !s.has('tin') && s.m('fake') !== 'hideout'),
+    searchSpot('srch_rope', 'Laundry line', -20.1, 13.4, { duration: 4, noise: 0.2, target: 'sabziwali', onDone: [{ give: 'rope' }] }, (s) => act('chaos')(s) && !s.has('rope') && s.m('fake') !== 'hideout'),
+    searchSpot('srch_skin', 'Pappu’s junk box', 25.6, -8.2, { duration: 5, noise: 0.35, target: 'pappu', onDone: [{ give: 'skin' }] }, (s) => act('chaos')(s) && !s.has('skin') && s.m('fake') !== 'hideout'),
+    /* ── Part 2 hiding and watching ── */
+    hideSpot('hide_cart', 'Behind the vegetable cart', -4.1, 13.4),
+    hideSpot('hide_auto', 'Inside the parked auto', -30, 7.9),
+    hideSpot('hide_cow', 'Behind Gauri the cow', -7.8, 7.4),
+    hideSpot('hide_scooter', 'Behind the scooter', -17.5, -5.4),
+    hideSpot('hide_drum', 'Behind the blue drum', 19.5, -11.0),
+    hideSpot('hide_sign', 'Behind the lane sign', -18.2, 9.9),
+    hideSpot('hide_bench', 'Behind the plaza bench', 14.6, 15.2),
+    hideSpot('hide_barber', 'Under a hot towel in the barber chair', 23.6, -6.4),
+    watchSpot('watch_lane', 'Mouth of the lane', -20.0, 10.6),
+    watchSpot('watch_cross', 'Up the north road', -6.2, -10.5),
+    watchSpot('watch_plaza', 'Behind the plaza benches', 9.4, 15.6),
     talk('sharma', 'Carrom uncles', 'carrom', [], 2.4),
     talk('chintu', 'Street cricket', 'kids'),
     talk('sabziwali', 'Kamla’s vegetables', 'sabzi'),

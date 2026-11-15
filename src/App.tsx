@@ -2,10 +2,13 @@ import { useEffect } from 'react';
 import { useGame } from './game/store';
 import { installInput } from './game/input';
 import { installController } from './game/controller';
+import { installSim } from './game/sim/sim';
 import { Stage } from './render/Stage';
 import { DialogueBox } from './ui/DialogueBox';
 import { Hints, ObjectiveSign, Roster, SceneCard, Toasts } from './ui/Hud';
 import { Boot, Fader, IntroOverlay, PartEnd, PauseMenu, TitleScreen } from './ui/Screens';
+import { FailCard, LieBook, MissionTimer, QuestionCard, Situations } from './ui/Part2';
+import { WorldOverlay } from './ui/WorldOverlay';
 
 export default function App() {
   const mode = useGame((s) => s.mode);
@@ -13,6 +16,7 @@ export default function App() {
 
   useEffect(() => {
     installInput();
+    installSim();
     return installController();
   }, []);
 
@@ -26,11 +30,17 @@ export default function App() {
       {mode === 'title' && <TitleScreen />}
       {mode === 'play' && (
         <div className="hud">
+          <WorldOverlay />
           <ObjectiveSign />
           <Roster />
           <Hints />
           <SceneCard />
+          <MissionTimer />
+          <Situations />
+          <QuestionCard />
           <DialogueBox />
+          <LieBook />
+          <FailCard />
           <PauseMenu />
           <PartEnd />
           <button className="menu-btn" onClick={() => useGame.setState({ paused: true })} aria-label="Open menu">

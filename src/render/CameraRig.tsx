@@ -35,6 +35,8 @@ export function CameraRig() {
     c.position.set(pos.current.x + OFFSET.x + sx, pos.current.y + OFFSET.y + sy, pos.current.z + OFFSET.z);
     c.lookAt(pos.current.x + sx, pos.current.y + sy, pos.current.z);
     c.updateProjectionMatrix();
+    c.updateMatrixWorld();
+    runtime.camera = c;
   });
 
   return <OrthographicCamera ref={cam} makeDefault near={0.1} far={400} zoom={44} position={[60, 60, 60]} />;

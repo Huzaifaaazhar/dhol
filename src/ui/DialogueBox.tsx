@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useGame } from '../game/store';
-import { advanceDialogue, chooseDialogue, currentNode, endDialogue, visibleChoices } from '../game/effects';
+import { advanceDialogue, chooseDialogue, currentNode, endDialogue, lineCheck, visibleChoices } from '../game/effects';
 import { onInput } from '../game/input';
 import { FRIENDS } from '../game/data/characters';
 import { NPCS } from '../game/data/npcs';
@@ -115,6 +115,7 @@ export function DialogueBox() {
                 {f && <span className="choice-tag">{f.name} · {c.tag}</span>}
                 <span className="choice-text">{c.text}</span>
                 {locked && <span className="choice-lock">{f!.name} steps in</span>}
+                <LieHint effects={c.effects} />
               </li>
             );
           })}
@@ -127,4 +128,20 @@ export function DialogueBox() {
       )}
     </div>
   );
+}
+
+/** Only Pakya keeps track of the stories: as Pakya you see whether a line fits what was said before. */
+function LieHint({ effects }: { effects?: import('../game/types').Effect[] }) {
+  const active = useGame((s) => s.active);
+  const talkingTo = useGame((s) => s.talkingTo);
+  useGame((s) => s.lies);
+  if (active !== 'pakya' || !effects) return null;
+  const c = effects.find((e) => 'claim' in e) as { claim: string; value: string; to?: string; truth?: boolean } | undefined;
+  if (!c) return null;
+  if (c.truth) return <span className="lie-ok">the truth, for once</span>;
+  const to = c.to ?? talkingTo ?? '';
+  const r = lineCheck(c.claim, c.value, to);
+  if (r.kind === 'matches') return <span className="lie-ok">fits your story</span>;
+  if (r.kind === 'contradicts') return <span className="lie-bad">clashes: {NPCS[r.against.to]?.name ?? r.against.to} heard “{r.against.value}”</span>;
+  return <span className="lie-new">new lie</span>;
 }

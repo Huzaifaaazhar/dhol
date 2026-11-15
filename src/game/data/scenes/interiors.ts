@@ -1,5 +1,8 @@
 import type { Box, SceneDef, SceneId } from '../../types';
-import { has, talk } from './helpers';
+import { has, talk, searchSpot, smooth, stall } from './helpers';
+import type { StateView } from '../../types';
+
+const act = (m: string) => (s: StateView) => s.missionStatus(m) === 'active';
 
 export type FurnitureType =
   | 'charpai'
@@ -203,6 +206,12 @@ export const house = interior(
         z: 1.6,
         y: 1.4,
         actions: [
+          {
+            id: 'hidedhol',
+            verb: 'Hide the real dhol under it',
+            showIf: (st) => act('chaos')(st) && st.dhol === `carried:${st.active}`,
+            effects: [{ dholTo: 'house' }, { event: 'hideReal' }],
+          },
           { id: 'search', verb: 'Look underneath', once: true, say: 'A ₹50 note! Maru was hiding it “for emergencies”. This is an emergency.', effects: [{ money: 50 }, { secret: 'charpai' }] },
           { id: 'hide', verb: 'Hide under it', who: 'maru', say: 'If I don’t move, the rent can’t see me.' },
         ],
@@ -263,7 +272,13 @@ export const shop = interior(
     triggers: [],
     npcs: [{ id: 'lalaji', x: -0.8, z: -2.4, face: 0, anim: 'idle' }],
     interactables: [
-      talk('lalaji', 'Lalaji', 'lalaji', [], 2.4),
+      talk('lalaji', 'Lalaji', 'lalaji', [stall('lalaji'), smooth('lalaji')], 2.4),
+      searchSpot('s_shelf2', 'Back shelf', 2.6, -2.9, { duration: 4, noise: 0.4, target: 'lalaji', onDone: [{ give: 'crackers' }, { toast: 'Crackers! Goti can light one to send Zikomo’s men the wrong way (F outdoors).' }] }, (st) => act('zikomo')(st) && !st.has('crackers')),
+      searchSpot('s_ledger', 'Lalaji’s ledger', -2.8, -0.2, {
+        duration: 5,
+        target: 'lalaji',
+        onDone: [{ toast: 'Ledger: “Drum, from Shambhu, ₹60. Lent to cricket children. Returned: one ball (cracked).”' }, { flag: 'clue.lalaji' }, { event: 'clue' }],
+      }, (st) => act('dhol')(st) && !!st.flags['clue.shambhu'] && !st.flags['clue.lalaji']),
       {
         id: 's_fridge',
         label: 'Cursed soda fridge',
@@ -359,12 +374,12 @@ export const ritu = interior(
     exitTo: 'rituGate',
     triggers: [],
     npcs: [
-      { id: 'ritu', x: 1.2, z: -1.6, face: 0.3, anim: 'idle' },
+      { id: 'ritu', x: 1.2, z: -1.6, face: 0.3, anim: 'idle', showIf: (st) => !act('rich')(st) },
       { id: 'daadi', x: -3.8, z: -3.0, face: 0.4, anim: 'sit' },
     ],
     interactables: [
-      talk('ritu', 'Ritu', 'ritu', [], 2.2),
-      talk('daadi', 'Daadi', 'daadi', [], 2.4),
+      talk('ritu', 'Ritu', 'ritu', [smooth('ritu')], 2.2),
+      talk('daadi', 'Daadi', 'daadi', [smooth('daadi')], 2.4),
       {
         id: 'r_vase',
         label: 'Brass vase',
@@ -457,7 +472,63 @@ export const hideout = interior(
         z: -3.5,
         y: 3,
         radius: 1.8,
+        showIf: (st) => !act('chaos')(st),
         actions: [{ id: 'plan', verb: 'Hold a meeting', dialogue: 'plan_board' }],
+      },
+      {
+        id: 'k_board2',
+        label: 'The plan board',
+        x: 2.4,
+        z: -3.5,
+        y: 3,
+        radius: 1.8,
+        showIf: act('chaos'),
+        actions: [
+          { id: 'plan', verb: 'Read the plan', dialogue: 'chaos_board', showIf: (st) => st.objectiveDone('chaos.plan') },
+          { id: 'plan2', verb: 'Make the plan', who: 'sam', dialogue: 'chaos_board', showIf: (st) => !st.objectiveDone('chaos.plan') },
+        ],
+      },
+      {
+        id: 'k_dhol',
+        label: 'Rahul’s dhol',
+        x: 0.2,
+        z: 2.2,
+        y: 1.9,
+        radius: 1.5,
+        showIf: (st) => st.dhol === 'hideout',
+        actions: [
+          {
+            id: 'examine',
+            verb: 'Examine the dhol',
+            showIf: act('dhol'),
+            task: { kind: 'search', duration: 5, hidden: true, label: 'Examining the dhol', onDone: [{ event: 'opened' }], empty: 'It’s a drum. It’s very drum-like. Goti would find a hidden seam.' },
+          },
+          { id: 'gexamine', verb: 'Feel along the seams', who: 'goti', showIf: act('dhol'), task: { kind: 'search', duration: 5, hidden: true, label: 'Examining the dhol', onDone: [{ event: 'opened' }] } },
+          { id: 'take', verb: 'Pick up the real dhol', showIf: (st) => act('chaos')(st) && st.objectiveDone('chaos.plan'), effects: [{ dholTo: 'carry' }] },
+        ],
+      },
+      {
+        id: 'k_build',
+        label: 'Crates (workbench)',
+        x: 1.9,
+        z: 1.7,
+        y: 1.8,
+        radius: 1.5,
+        showIf: (st) => act('chaos')(st) && st.m('fake') !== 'hideout' && st.has('tin') && st.has('rope') && st.has('skin'),
+        actions: [
+          { id: 'look', verb: 'Inspect', say: 'Tin, rope, tabla skin. Goti could turn this into a dhol. Probably.' },
+          { id: 'build', verb: 'Build a fake dhol', who: 'goti', task: { kind: 'wait', duration: 7, label: 'Building a fake dhol', onDone: [{ take: 'tin' }, { take: 'rope' }, { take: 'skin' }, { event: 'built' }] } },
+        ],
+      },
+      {
+        id: 'k_decoy',
+        label: 'Spot for the decoy',
+        x: -0.8,
+        z: 0.6,
+        y: 1.8,
+        radius: 1.6,
+        showIf: (st) => act('chaos')(st) && st.has('fakedhol'),
+        actions: [{ id: 'place', verb: 'Set up the decoy dhol', effects: [{ event: 'placeFake' }] }],
       },
       {
         id: 'k_dart',

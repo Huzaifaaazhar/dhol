@@ -7,6 +7,10 @@ import { FRIENDS } from '../game/data/characters';
 import { SECRETS } from '../game/data/missions';
 import { SCENES } from '../game/data/scenes';
 import { MissionLog } from './Hud';
+import { CHAR_IDS } from '../game/types';
+import { NPCS } from '../game/data/npcs';
+import { MISSION_MAP } from '../game/data/missions';
+import { activateMission, toast } from '../game/store';
 
 const set = useGame.setState;
 
@@ -259,6 +263,14 @@ export function PauseMenu() {
               </dt>
               <dd>Continue dialogue. Number keys pick a reply.</dd>
               <dt>
+                <kbd>Q</kbd>
+              </dt>
+              <dd>Tell the nearest friend to wait here, or to come along again.</dd>
+              <dt>
+                <kbd>L</kbd>
+              </dt>
+              <dd>Pakya’s Lie Book: who was told what, and how suspicious they are.</dd>
+              <dt>
                 <kbd>M</kbd>
               </dt>
               <dd>Mute or unmute.</dd>
@@ -275,6 +287,9 @@ export function PauseMenu() {
           )}
         </div>
         <div className="pause-foot">
+          <button className="btn ghost" onClick={() => set({ paused: false, lieBook: true })}>
+            Lie Book <kbd>L</kbd>
+          </button>
           <button
             className="btn ghost"
             onClick={() => {
@@ -315,6 +330,9 @@ export function PartEnd() {
   const ended = useGame((s) => s.partEnded);
   const secrets = useGame((s) => s.secrets);
   const money = useGame((s) => s.money);
+  const stats = useGame((s) => s.stats);
+  const lies = useGame((s) => s.lies);
+  const flags = useGame((s) => s.flags);
   const openedAt = useRef(0);
   useEffect(() => {
     if (!ended) {
@@ -330,27 +348,56 @@ export function PartEnd() {
     () =>
       onInput((a) => {
         const opened = openedAt.current;
-        if (useGame.getState().partEnded && opened > 0 && performance.now() - opened > 1200 && (a === 'confirm' || a === 'pause')) set({ partEnded: false });
+        if (useGame.getState().partEnded && opened > 0 && performance.now() - opened > 1200 && (a === 'confirm' || a === 'pause')) closePartEnd();
       }),
     [],
   );
   if (!ended) return null;
+  const part2 = ended === 'part2';
+  const worst = Object.entries(lies.suspicion).sort((a, b) => b[1] - a[1])[0];
   return (
-    <div className="partend" role="dialog" aria-label="End of part one">
+    <div className="partend" role="dialog" aria-label={part2 ? 'End of part two' : 'Interval'}>
       <div className="partend-inner">
-        <div className="partend-kicker">End of Part 1</div>
+        <div className="partend-kicker">{part2 ? 'End of Part 2' : 'Interval'}</div>
         <Logo size="md" />
-        <p className="partend-line">Four friends. One neighbour. Each of them sure she liked him.</p>
-        <p className="partend-stats">
-          ₹{money} saved of ₹6,000 · {secrets.length} of {Object.keys(SECRETS).length} secrets found
-        </p>
-        <p className="partend-next">The story continues in Part 2. Until then, the colony is yours to poke around.</p>
-        <button className="btn" onClick={() => set({ partEnded: false })}>
-          Keep exploring <kbd>Enter</kbd>
+        {part2 ? (
+          <>
+            <p className="partend-line">{flags['end.fake'] ? 'Zikomo drove off with a drum full of nothing.' : 'Zikomo left empty-handed, and angrier.'} Tomorrow, he finds out.</p>
+            <p className="partend-stats">
+              Ritu’s trust {Math.round(stats['ritu.trust'] ?? 0)} · Gang harmony {Math.round(stats['gang.harmony'] ?? 0)} · {lies.contradictions.length} lies caught
+              {worst && worst[1] > 0 ? ` · Most suspicious: ${NPCS[worst[0]]?.name ?? worst[0]}` : ''}
+            </p>
+            <p className="partend-next">
+              {flags['end.tiwari'] ? 'The real dhol is sitting next to Tiwari-ji’s chair, held hostage for rent. ' : 'The real dhol is safe under Maru’s charpai. Maru has not slept. '}
+              The story continues in Part 3.
+            </p>
+          </>
+        ) : (
+          <>
+            <p className="partend-line">Four friends. One neighbour. Each of them sure she liked him.</p>
+            <p className="partend-stats">
+              ₹{money} saved of ₹6,000 · {secrets.length} of {Object.keys(SECRETS).length} secrets found
+            </p>
+            <p className="partend-next">Samosa break. After this: the four of them start competing for Ritu, and everything gets worse.</p>
+          </>
+        )}
+        <button className="btn" onClick={closePartEnd}>
+          {part2 ? 'Keep exploring' : 'Start Part 2'} <kbd>Enter</kbd>
         </button>
       </div>
     </div>
   );
+}
+
+/** Closing the interval card starts Part 2. */
+function closePartEnd() {
+  const s = useGame.getState();
+  set({ partEnded: false });
+  if (s.mstate['pending.rich']) {
+    set({ mstate: { ...s.mstate, 'pending.rich': false } });
+    activateMission('rich');
+    toast(MISSION_MAP.rich.title, 'mission', 'Part 2');
+  }
 }
 
 /* ───────────── scene transitions ───────────── */
@@ -364,8 +411,14 @@ export function Fader() {
     if (transition.phase === 'out') {
       const t = window.setTimeout(() => {
         const sc = SCENES[transition.to];
-        const sp = sc.spawns[transition.spawn] ?? Object.values(sc.spawns)[0];
+        const sp = transition.at ?? sc.spawns[transition.spawn] ?? Object.values(sc.spawns)[0];
+        const st = useGame.getState();
+        // the leader and anyone following him walk through together; friends left waiting stay put
+        const where = { ...st.where, [st.active]: transition.to };
+        for (const c of CHAR_IDS) if (c !== st.active && !st.posted[c] && st.where[c] === st.scene) where[c] = transition.to;
         set({
+          where,
+          friendPos: { ...st.friendPos, [st.active]: sp },
           scene: transition.to,
           entry: sp,
           savedPos: { scene: transition.to, x: sp.x, z: sp.z, face: sp.face },

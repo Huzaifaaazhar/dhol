@@ -29,6 +29,8 @@ interface Props {
   personality?: Personality;
   /** highlight ring colour for the active friend */
   ring?: string | null;
+  /** hiding: duck down */
+  crouch?: boolean;
 }
 
 function wrapAngle(a: number) {
@@ -37,7 +39,7 @@ function wrapAngle(a: number) {
   return a;
 }
 
-export function Person({ id, look, move = DEFAULT_MOVE, personality = 'npc', ring }: Props) {
+export function Person({ id, look, move = DEFAULT_MOVE, personality = 'npc', ring, crouch = false }: Props) {
   const root = useRef<THREE.Group>(null!);
   const body = useRef<THREE.Group>(null!);
   const torso = useRef<THREE.Group>(null!);
@@ -95,6 +97,8 @@ export function Person({ id, look, move = DEFAULT_MOVE, personality = 'npc', rin
     const g = root.current;
     if (!g) return;
     g.position.set(e.x, e.y, e.z);
+    const sy = crouch ? 0.62 : 1;
+    g.scale.y += (sy - g.scale.y) * Math.min(1, dt * 10);
     const d = wrapAngle(e.face - g.rotation.y);
     g.rotation.y += d * Math.min(1, dt * 12);
 
@@ -415,6 +419,14 @@ export function Person({ id, look, move = DEFAULT_MOVE, personality = 'npc', rin
         <>
           <mesh geometry={GEO.sphere} material={m.hair} position={[headR * 0.85, 0, -headR * 0.2]} scale={[headR * 0.4, headR * 0.5, headR * 0.9]} />
           <mesh geometry={GEO.sphere} material={m.hair} position={[-headR * 0.85, 0, -headR * 0.2]} scale={[headR * 0.4, headR * 0.5, headR * 0.9]} />
+        </>
+      );
+      break;
+    case 'cap':
+      hair = (
+        <>
+          <mesh geometry={GEO.sphere} material={mat('#e63946')} position={[0, headR * 0.45, -headR * 0.02]} scale={[headR * 2.12, headR * 1.3, headR * 2.12]} />
+          <mesh geometry={GEO.box} material={mat('#e63946')} position={[0, headR * 0.5, headR * 1.0]} scale={[headR * 1.4, headR * 0.12, headR * 0.9]} />
         </>
       );
       break;

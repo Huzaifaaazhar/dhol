@@ -2,6 +2,8 @@ export interface ObjectiveDef {
   id: string; // full id "mission.obj"
   text: string;
   hint?: string;
+  /** not needed to finish the mission */
+  optional?: boolean;
 }
 
 export interface MissionDef {
@@ -10,6 +12,12 @@ export interface MissionDef {
   intro: string;
   objectives: ObjectiveDef[];
   next?: string;
+  /** don't start `next` automatically (an interval card starts it) */
+  holdNext?: boolean;
+  /** runs on live timers and patrols: reloading restarts it from its checkpoint */
+  live?: boolean;
+  /** part of the story this belongs to */
+  part: 1 | 2;
 }
 
 export const MISSIONS: MissionDef[] = [
@@ -22,6 +30,7 @@ export const MISSIONS: MissionDef[] = [
       { id: 'rent.leave', text: 'Get out of the house past Tiwari-ji', hint: 'Someone who lies well, or panics well' },
     ],
     next: 'chai',
+    part: 1,
   },
   {
     id: 'chai',
@@ -29,6 +38,7 @@ export const MISSIONS: MissionDef[] = [
     intro: 'No breakfast. No money. But Bablu’s chai stall is right at the crossing.',
     objectives: [{ id: 'chai.get', text: 'Get four cups of chai from Bablu', hint: 'Bablu respects a good business deal' }],
     next: 'job',
+    part: 1,
   },
   {
     id: 'job',
@@ -39,6 +49,7 @@ export const MISSIONS: MissionDef[] = [
       { id: 'job.fix', text: 'Fix the cursed soda fridge', hint: 'Sensible people already tried. Send Goti.' },
     ],
     next: 'plan',
+    part: 1,
   },
   {
     id: 'plan',
@@ -49,6 +60,7 @@ export const MISSIONS: MissionDef[] = [
       { id: 'plan.board', text: 'Hold a strategy meeting at the plan board' },
     ],
     next: 'ritu',
+    part: 1,
   },
   {
     id: 'ritu',
@@ -58,13 +70,81 @@ export const MISSIONS: MissionDef[] = [
       { id: 'ritu.in', text: 'Get past Daadi at the bungalow door', hint: 'Daadi trusts officials, and pities the weak' },
       { id: 'ritu.impress', text: 'Impress Ritu: every friend gets one try', hint: 'Talk to Ritu as each friend' },
     ],
-    next: 'part2',
+    next: 'rich',
+    holdNext: true,
+    part: 1,
+  },
+  /* ───────────────────────── PART 2 ───────────────────────── */
+  {
+    id: 'rich',
+    title: 'The Rich Girl Plan',
+    intro: 'All four of them have decided Ritu is the one. Unfortunately, all four of them have decided this.',
+    part: 2,
+    objectives: [
+      { id: 'rich.learn', text: 'Find out what Ritu likes (2 things)', hint: 'Daadi, the kids and Lalaji all know her. Goti could search her garden.' },
+      { id: 'rich.moves', text: 'Every friend makes his move on Ritu', hint: 'She walks around the colony. Leave the others somewhere (Q) or they butt in.' },
+      { id: 'rich.result', text: 'Find out what Ritu is hiding', hint: 'Keep her trust up. Lies have a way of getting back to Daadi.' },
+    ],
+    next: 'jai',
   },
   {
-    id: 'part2',
+    id: 'jai',
+    title: 'Who Exactly Is Jai?',
+    intro: 'A stranger in a cap keeps watching the yellow bungalow. Everyone in the colony has heard a different story about him.',
+    part: 2,
+    objectives: [
+      { id: 'jai.stories', text: 'Ask around: what did Jai tell people?', hint: 'Bablu, Lalaji, Pappu and Tiwari-ji have all met him.' },
+      { id: 'jai.proof', text: 'Get proof of who Jai really is', hint: 'Search his bag (Goti), follow him unseen, or talk Pappu into opening his register (Sam).' },
+      { id: 'jai.confront', text: 'Confront Jai' },
+    ],
+    next: 'zikomo',
+  },
+  {
+    id: 'zikomo',
+    title: 'Zikomo Is Looking for You',
+    intro: 'A white car. White shoes. Two very large men. Zikomo wants to talk to “the four idiots”, and the whole colony knows who that means.',
+    part: 2,
+    live: true,
+    objectives: [
+      { id: 'zikomo.gather', text: 'Get all four friends to the hideout without being caught', hint: 'Switch between them. Hide (E) behind carts. Maru on watch shows where the goons are looking.' },
+      { id: 'zikomo.deal', text: 'Or: walk up to Zikomo and make a deal', optional: true },
+    ],
+    next: 'dhol',
+  },
+  {
+    id: 'dhol',
+    title: 'Find the Dhol',
+    intro: 'Rahul’s dhol. Zikomo wants it. Jai wants it kept safe. Nobody knows where it went.',
+    part: 2,
+    live: true,
+    objectives: [
+      { id: 'dhol.trail', text: 'Follow the trail of the missing dhol', hint: 'Start with Daadi. Every person in the chain blames the next one.' },
+      { id: 'dhol.find', text: 'Find the dhol itself', hint: 'Follow the paw prints. Goti finds things nobody else can.' },
+      { id: 'dhol.bring', text: 'Carry the dhol to the hideout without being seen', hint: 'It is heavy. Hand it to another friend with E if you need to.' },
+      { id: 'dhol.open', text: 'Examine the dhol at the hideout' },
+    ],
+    next: 'chaos',
+  },
+  {
+    id: 'chaos',
+    title: 'Everything Goes Wrong',
+    intro: 'Zikomo is coming to search the hideout at sunset. Four jobs, four idiots, one clock.',
+    part: 2,
+    live: true,
+    objectives: [
+      { id: 'chaos.plan', text: 'Sam: choose the plan at the plan board' },
+      { id: 'chaos.fake', text: 'Get a fake dhol into the hideout', optional: true, hint: 'Sam’s plan decides how: borrow one from Lalaji, or Goti builds one.' },
+      { id: 'chaos.hide', text: 'Hide the real dhol at home, under Maru’s charpai', optional: true, hint: 'Tiwari-ji is watching the door. Pakya can keep him busy.' },
+      { id: 'chaos.survive', text: 'Survive Zikomo’s visit at sunset' },
+    ],
+    next: 'after',
+  },
+  {
+    id: 'after',
     title: 'To Be Continued',
-    intro: 'Four friends. One neighbour. Zero rent. Part 2 is coming.',
-    objectives: [{ id: 'part2.wait', text: 'Explore the colony and find every secret' }],
+    intro: 'Zikomo has a dhol. It is not the right one. He will find out.',
+    part: 2,
+    objectives: [{ id: 'after.wait', text: 'Part 3 is coming. Explore, find secrets, mend your lies.' }],
   },
 ];
 

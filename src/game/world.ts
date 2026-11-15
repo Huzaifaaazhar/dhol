@@ -4,6 +4,7 @@ import { NPCS } from './data/npcs';
 import { useGame, view } from './store';
 import { ent } from './runtime';
 import { actionsFor } from './effects';
+import { agents } from './sim/agents';
 
 export interface ResolvedNpc extends NpcPlacement {
   baseX: number;
@@ -61,4 +62,16 @@ export function findFocus(scene: SceneDef, x: number, z: number, present: Set<st
 
 export function npcName(id: string) {
   return NPCS[id]?.name ?? id;
+}
+
+/** Recompute focus right now (key presses must not depend on the last cached frame). */
+export function currentFocus(): Interactable | null {
+  const s = useGame.getState();
+  const scene = SCENES[s.scene];
+  const present = new Set<string>([
+    ...resolveNpcs(scene).filter((n) => !agents.has(n.id)).map((n) => n.id),
+    ...[...agents.values()].filter((a) => a.scene === scene.id).map((a) => a.id),
+  ]);
+  const e = ent(s.active);
+  return findFocus(scene, e.x, e.z, present);
 }

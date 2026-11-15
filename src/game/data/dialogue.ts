@@ -1,4 +1,5 @@
 import type { DialogueScript, StateView } from '../types';
+import { DIALOGUES_2, EXTENSIONS } from './dialogue2';
 
 const f = (s: StateView, k: string) => !!s.flags[k];
 const pick = <T,>(arr: T[]) => arr[Math.floor(Math.random() * arr.length)];
@@ -35,9 +36,9 @@ export const DIALOGUES: Record<string, DialogueScript> = {
         speaker: 'pakya',
         text: '*adjusts collar* Tiwari-ji, you are speaking to a very busy man. I am actually…',
         choices: [
-          { who: 'pakya', tag: 'Bluff', text: '“…a bank officer. Salary credits on Monday.”', next: 'bank1' },
-          { who: 'pakya', tag: 'Bluff', text: '“…from the Income Tax department. Undercover.”', next: 'tax1' },
-          { who: 'pakya', tag: 'Bluff', text: '“…a film producer. Scouting your terrace.”', next: 'film1' },
+          { who: 'pakya', tag: 'Bluff', text: '“…a bank officer. Salary credits on Monday.”', effects: [{ claim: 'pakya.job', value: 'bank officer', to: 'tiwari' }], next: 'bank1' },
+          { who: 'pakya', tag: 'Bluff', text: '“…from the Income Tax department. Undercover.”', effects: [{ claim: 'pakya.job', value: 'income tax officer', to: 'tiwari' }], next: 'tax1' },
+          { who: 'pakya', tag: 'Bluff', text: '“…a film producer. Scouting your terrace.”', effects: [{ claim: 'pakya.job', value: 'film producer', to: 'tiwari' }], next: 'film1' },
         ],
       },
       bank1: { speaker: 'tiwari', text: 'A bank? You? *squints* Which bank?', next: 'bank2' },
@@ -96,7 +97,7 @@ export const DIALOGUES: Record<string, DialogueScript> = {
         text: 'Four chai? Your tab is three hundred and forty rupees. My stall has a wall of shame, and you four ARE the wall.',
         choices: [
           { who: 'sam', tag: 'Negotiate', text: 'Pitch a partnership: free advertising.', next: 'sam1' },
-          { who: 'pakya', tag: 'Bluff', text: 'Reveal yourself as a famous food critic.', next: 'pakya1' },
+          { who: 'pakya', tag: 'Bluff', text: 'Reveal yourself as a famous food critic.', effects: [{ claim: 'pakya.job', value: 'food critic', to: 'bablu' }], next: 'pakya1' },
           { who: 'maru', tag: 'Make a scene', text: 'Faint from hunger.', next: 'maru1' },
           { who: 'goti', tag: 'Something weird', text: 'Offer to taste-test the biscuits. All of them.', next: 'goti1' },
           { text: 'Never mind.', next: 'bye' },
@@ -230,7 +231,7 @@ export const DIALOGUES: Record<string, DialogueScript> = {
         speaker: 'daadi',
         text: 'Well? Speak. I am old, not patient.',
         choices: [
-          { who: 'sam', tag: 'Negotiate', text: 'Introduce yourselves as the official welcome committee.', next: 'sam1' },
+          { who: 'sam', tag: 'Negotiate', text: 'Introduce yourselves as the official welcome committee.', effects: [{ claim: 'gang.who', value: 'the Lane Four Welcome Committee', to: 'daadi' }], next: 'sam1' },
           { who: 'pakya', tag: 'Bluff', text: 'Claim to be here on official business.', next: 'pakya1' },
           { who: 'maru', tag: 'Make a scene', text: 'Wilt dramatically on her doorstep.', next: 'maru1' },
           { who: 'goti', tag: 'Something weird', text: 'Ask if she has any spare biscuits.', next: 'goti1' },
@@ -245,8 +246,8 @@ export const DIALOGUES: Record<string, DialogueScript> = {
         speaker: 'pakya',
         text: 'Madam, we are from the…',
         choices: [
-          { who: 'pakya', tag: 'Bluff', text: '“…Cable TV company. Routine inspection.”', next: 'cable1' },
-          { who: 'pakya', tag: 'Bluff', text: '“…Census department. Counting people.”', next: 'census1' },
+          { who: 'pakya', tag: 'Bluff', text: '“…Cable TV company. Routine inspection.”', effects: [{ claim: 'pakya.job', value: 'cable TV inspector', to: 'daadi' }], next: 'cable1' },
+          { who: 'pakya', tag: 'Bluff', text: '“…Census department. Counting people.”', effects: [{ claim: 'gang.who', value: 'census officers', to: 'daadi' }], next: 'census1' },
         ],
       },
       cable1: {
@@ -475,4 +476,13 @@ export const DIALOGUES: Record<string, DialogueScript> = {
 
 function check(s: StateView) {
   return ['sam', 'pakya', 'goti', 'maru'].every((c) => s.flags[`impress.${c}`]) ? 'finale1' : 'more';
+}
+
+/* Part 2: new scripts, and extra branches on Part 1 characters */
+Object.assign(DIALOGUES, DIALOGUES_2);
+for (const ext of EXTENSIONS) {
+  const base = DIALOGUES[ext.id];
+  const old = base.start;
+  Object.assign(base.nodes, ext.nodes);
+  base.start = (s) => ext.start(s) ?? (typeof old === 'function' ? old(s) : old);
 }

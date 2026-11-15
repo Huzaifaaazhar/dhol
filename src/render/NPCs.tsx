@@ -8,12 +8,16 @@ import { resolveNpcs } from '../game/world';
 import { insideAnyBox } from '../game/collision';
 import { currentNode } from '../game/effects';
 import { Cow, Dog, Person } from './Person';
+import { agents, agentsIn } from '../game/sim/agents';
+import { CartProp } from './part2props';
 
 const SEATED = new Set(['sit', 'read', 'carrom']);
 
 export function NPCs({ scene }: { scene: SceneDef }) {
   const flags = useGame((s) => s.flags);
-  const npcs = useMemo(() => resolveNpcs(scene), [scene, flags]);
+  const agentsV = useGame((s) => s.agentsV);
+  // anyone the simulation is moving around is drawn by <Agents> instead
+  const npcs = useMemo(() => resolveNpcs(scene).filter((n) => !agents.has(n.id)), [scene, flags, agentsV]);
   const placed = useRef(new Set<string>());
   const wander = useRef(new Map<string, { x: number; z: number; t: number }>());
 
@@ -102,6 +106,40 @@ export function NPCs({ scene }: { scene: SceneDef }) {
         if (def.kind === 'cow') return <Cow key={n.id} id={n.id} />;
         if (def.kind === 'dog') return <Dog key={n.id} id={n.id} />;
         return <Person key={n.id} id={n.id} look={def.look} />;
+      })}
+    </>
+  );
+}
+
+/** NPCs driven by the simulation (patrols, schedules), drawn when their scene is on screen. */
+export function Agents({ scene }: { scene: SceneDef }) {
+  useGame((s) => s.agentsV);
+  const list = agentsIn(scene.id);
+  useFrame(() => {
+    const st = useGame.getState();
+    const node = st.dialogue ? currentNode() : null;
+    for (const a of agentsIn(scene.id)) {
+      const e = ent(a.id);
+      if (e.oneShot > 0) continue;
+      const talking = node?.speaker === a.id;
+      e.anim = e.speed > 0.1 ? 'idle' : talking ? 'talk' : a.anim;
+      if (st.talkingTo === a.id && st.dialogue) {
+        const p = ent(st.active);
+        e.face = Math.atan2(p.x - e.x, p.z - e.z);
+      }
+    }
+  });
+  return (
+    <>
+      {list.map((a) => {
+        const def = NPCS[a.id];
+        if (!def) return null;
+        return (
+          <group key={a.id}>
+            <Person id={a.id} look={def.look} />
+            {a.id === 'shambhu' && <CartProp follow="shambhu" />}
+          </group>
+        );
       })}
     </>
   );

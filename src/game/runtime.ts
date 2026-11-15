@@ -31,6 +31,10 @@ export const runtime = {
   dynamic: [] as Array<{ x: number; z: number; r: number }>,
   /** where the camera wants to be; the camera rig eases towards it */
   camGoal: { x: 0, z: 0, zoom: 44, k: 5, height: 1 },
+  /** scene in which Maru's lookout reveals the goons' sightlines */
+  reveal: null as null | string,
+  /** the live camera, for projecting in-world labels onto the screen */
+  camera: null as null | import('three').Camera,
 };
 
 export function ent(id: string): EntityRt {

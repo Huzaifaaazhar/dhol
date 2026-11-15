@@ -18,7 +18,9 @@ export type InputAction =
   | 'choice5'
   | 'mute'
   | 'up'
-  | 'down';
+  | 'down'
+  | 'order'
+  | 'book';
 
 const held = new Set<string>();
 const listeners = new Set<(a: InputAction, e: KeyboardEvent) => void>();
@@ -36,6 +38,8 @@ const ACTION_KEYS: Record<string, InputAction[]> = {
   Enter: ['confirm'],
   Space: ['confirm'],
   KeyM: ['mute'],
+  KeyQ: ['order'],
+  KeyL: ['book'],
   ArrowUp: ['up'],
   ArrowDown: ['down'],
   KeyW: ['up'],

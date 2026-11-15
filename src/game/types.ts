@@ -13,6 +13,19 @@ export interface StateView {
   scene: SceneId;
   missionStatus: (id: string) => 'locked' | 'active' | 'done';
   objectiveDone: (id: string) => boolean;
+  /** numeric stats such as ritu.trust, gang.harmony */
+  stat: (key: string) => number;
+  has: (item: string) => boolean;
+  suspicion: (npc: string) => number;
+  /** what an NPC currently believes about a topic */
+  believes: (npc: string, topic: string) => string | undefined;
+  /** friends (other than the active one) close enough to butt in */
+  crowd: CharId[];
+  /** where the dhol is: 'lane', 'hideout', 'house', 'carried:goti', 'tiwari', 'zikomo' ... */
+  dhol: string;
+  time: number;
+  /** mission director state */
+  m: (key: string) => number | string | boolean | undefined;
 }
 
 export type Condition = (s: StateView) => boolean;
@@ -29,7 +42,21 @@ export type Effect =
   | { toast: string }
   | { dialogue: string } // chain into another dialogue after this one closes
   | { sfx: 'coin' | 'fail' | 'success' | 'thud' | 'scream' | 'honk' | 'door' | 'moo' | 'bark' }
-  | { endPart: true };
+  | { endPart: true | 'part2' }
+  /** a friend tells an NPC something; checked against everything already told */
+  | { claim: string; value: string; to?: string; by?: CharId; truth?: boolean }
+  | { stat: string; delta: number }
+  | { setStat: string; value: number }
+  | { give: string }
+  | { take: string }
+  | { suspicion: string; delta: number }
+  /** record a version of someone else's story (e.g. what Jai told Bablu) */
+  | { story: string; teller: string; value: string }
+  | { fail: string }
+  /** hook for the active mission's director */
+  | { event: string }
+  /** move the dhol: 'carry' = into the active friend's arms */
+  | { dholTo: string };
 
 export interface DialogueChoice {
   text: string;
@@ -67,8 +94,28 @@ export interface Action {
   effects?: Effect[];
   /** Simple one-line bark from the active friend instead of a dialogue. */
   say?: string;
+  /** starts a timed task for the active friend */
+  task?: TaskSpec;
   showIf?: Condition;
   once?: boolean;
+}
+
+export type TaskKind = 'search' | 'watch' | 'stall' | 'wait';
+
+export interface TaskSpec {
+  kind: TaskKind;
+  /** seconds for Goti (or the right friend); others take longer */
+  duration?: number;
+  /** search: only Goti can find it at all */
+  hidden?: boolean;
+  /** search: chance of an accidental noisy mishap */
+  noise?: number;
+  /** npc that gets annoyed by noise / is being stalled */
+  target?: string;
+  label?: string;
+  onDone?: Effect[];
+  /** search: what others find instead */
+  empty?: string;
 }
 
 export interface Interactable {
@@ -83,6 +130,10 @@ export interface Interactable {
   npc?: string;
   actions: Action[];
   showIf?: Condition;
+  /** E here hides the active friend from Zikomo's men */
+  hide?: boolean;
+  /** Maru can keep watch from here */
+  watch?: boolean;
 }
 
 export interface Box {
@@ -119,6 +170,8 @@ export interface NpcPlacement {
   /** alternative position when a condition holds */
   alt?: { when: Condition; x: number; z: number; face: number };
   anim?: 'idle' | 'sit' | 'sweep' | 'carrom' | 'cricket' | 'read' | 'chai' | 'swing';
+  /** position driven by the simulation (patrols, schedules), not by the scene */
+  agent?: boolean;
 }
 
 export interface SceneDef {
