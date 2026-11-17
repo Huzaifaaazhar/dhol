@@ -272,6 +272,18 @@ async function inFrontOf(t, agentId, who, d = 2.2) {
   await t.api('tp', a.x + Math.sin(face) * d, a.z + Math.cos(face) * d, who);
 }
 
+async function waitGoonsAway(t, spots, dist) {
+  for (let i = 0; i < 160; i++) {
+    let clear = true;
+    for (const id of ['spanner', 'bhaloo']) {
+      const a = await t.api('agent', id);
+      if (a && a.scene === 'street' && spots.some(([x, z]) => Math.hypot(a.x - x, a.z - z) < dist)) clear = false;
+    }
+    if (clear) return;
+    await t.wait(250);
+  }
+}
+
 async function enterHideout(t) {
   await t.api('tp', -20.3, 18.4);
   await t.wait(900);
@@ -299,6 +311,8 @@ export async function zikomo(t) {
   s = await st();
   check(s.scene === 'street' && s.where.maru === 'street', 'Maru left the house');
   check((await page.evaluate(() => window.__dhol.runtime.reveal)) === null, 'goon sightlines are hidden without a lookout');
+  // like a player watching the patrols: wait until neither goon is near the lane
+  await waitGoonsAway(t, [[-20, 11.2], [-20.3, 18.4]], 10);
   await api('tp', -20.0, 11.2);
   await t.wait(900);
   await key('KeyF', 600);
@@ -927,7 +941,7 @@ async function deliver(t, who = 'goti') {
   await t.api('tp', 11.6, 15.2);
   await t.until((x) => x.dialogue?.script === 'climax', 15000, 'the climax at the chai stall');
   await t.advance(80);
-  return t.until((x) => x.endingShown, 10000, 'the ending card');
+  return t.until((x) => x.endingShown || !!x.mstate.ending, 10000, 'the ending');
 }
 
 export async function finaleTriumph(t) {
@@ -1022,7 +1036,8 @@ export async function finaleTimeout(t) {
   });
   await t.until((x) => x.dialogue?.script === 'climax', 20000, 'night to fall');
   await t.advance(80);
-  const s = await t.until((x) => x.endingShown, 10000, 'ending');
+  // the card may already have been dismissed by the last presses: the decided ending is what matters
+  const s = await t.until((x) => x.endingShown || !!x.mstate.ending, 10000, 'ending');
   check(s.mstate.ending === 'collapse' && s.mstate.endingCause === 'time', 'nightfall without the drum: Zikomo takes it (House of Cards)');
 }
 
