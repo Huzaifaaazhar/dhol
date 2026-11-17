@@ -255,6 +255,8 @@ export function tickAgents(dt: number, now: number): AgentEvent[] {
     // an everyday round: linger at a stop, then walk to the next one, wherever it is
     if (a.tour && a.mode === 'idle') {
       e.speed = 0;
+      // someone came up to him: he lingers a little longer at this stop
+      if (waitsForYou(a, st, dt)) continue;
       a.dwell -= dt;
       if (a.dwell <= 0) {
         a.ti = (a.ti + 1) % a.tour.length;

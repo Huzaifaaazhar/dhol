@@ -1200,11 +1200,9 @@ export async function npcTravel(t) {
   check(s.scene === 'house', 'we are home');
   for (let i = 0; i < 200 && (await api('agent', 'postman'))?.scene === 'house'; i++) await t.wait(250);
   for (let i = 0; i < 400 && (await api('agent', 'postman'))?.scene !== 'house'; i++) await t.wait(250);
-  await api('speed', 3);
+  await api('speed', 1);
   const p = await api('agent', 'postman');
   check(p.scene === 'house', 'the postman came in through our door');
-  await t.wait(1500);
-  await t.shot('postman-in-room');
   for (let i = 0; i < 6 && !(await st()).dialogue; i++) {
     const pp = await api('agent', 'postman');
     if (pp.scene !== 'house') break;
@@ -1213,7 +1211,9 @@ export async function npcTravel(t) {
     await key('KeyE', 900);
   }
   s = await st();
+  await t.shot('postman-in-room');
   check(s.dialogue?.script === 'postman', 'talked to the postman in our room');
+  await api('speed', 3);
   await t.advance();
   await api('ambient', false);
 
