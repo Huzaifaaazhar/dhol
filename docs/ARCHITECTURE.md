@@ -184,5 +184,20 @@ more than one ending. It also had to run well on phones, not just shrink the des
 
 - Easier: a new ending is one rule in `evaluateEnding` and one climax node.
 - Harder: the finale has many interacting systems; tests pin seeds and wait on conditions.
-- Known limits: NPCs do not cross scenes on their own; mid-mission director state is not saved
+- NPCs walk between buildings (see below). Known limit: mid-mission director state is not saved
   (live missions restart from their checkpoint).
+
+## Addendum: NPCs walking between buildings
+
+Each interior's door is known from inside and from the street (`doorOf`). `agentTravel` plans a
+trip as waypoints and steps through doors on the way, so an agent can walk from Lalaji's shop into
+the friends' room. The tick loop resumes an interrupted trip after a distraction or a chase, and a
+patrolling agent that ends up indoors walks back out to its route.
+
+- **Tiwari-ji's inspection** walks into the rented room, to Maru's charpai, and back out.
+- **Goons follow you through a door** (house, shop or cinema; never the secret hideout) when they
+  are close to it, look round for a few seconds, then return to their patrol. Each of those rooms has
+  a "Behind the door" hiding place out of their line of sight. Anyone else standing in the room can be caught.
+- **Ramesh the postman** does a round outside the timed missions: street, shop, the friends' room.
+  Friendly walkers stop when you come up to them, and excuse themselves past you if you block them.
+- Scripted browser tests switch the postman off (`api.ambient(false)`); `npcTravel` tests all three.

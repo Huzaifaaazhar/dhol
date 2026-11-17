@@ -264,6 +264,7 @@ export const street: SceneDef = {
     watchSpot('watch_plaza', 'Behind the plaza benches', 9.4, 15.6),
     talk('sharma', 'Carrom uncles', 'carrom', [], 2.4),
     talk('chintu', 'Street cricket', 'kids'),
+    talk('postman', 'Ramesh the postman', 'postman', [], 1.6),
     talk('sabziwali', 'Kamla’s vegetables', 'sabzi'),
     talk('gauri', 'Gauri the cow', 'cow', [{ id: 'heart', verb: 'Have a heart-to-heart', who: 'goti', dialogue: 'cow_goti', once: true }]),
     talk('moti', 'Moti', 'dog'),

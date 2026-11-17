@@ -1160,3 +1160,104 @@ export async function saves(t) {
   s = await st();
   check(s.scene === 'house' && s.missions.rent === 'active:' && s.missions.jai.startsWith('locked'), 'Restart from the beginning starts a new game');
 }
+
+/* ═════════ NPCs walking between buildings ═════════ */
+export async function npcTravel(t) {
+  const { st, api, key, page } = t;
+  // 1. the postman's round goes into the shop and into the friends' room
+  await api('jumpTo', 'rich');
+  for (let i = 0; i < 80 && !(await api('agentIds')).includes('postman'); i++) await t.wait(250);
+  check((await api('agentIds')).includes('postman'), 'Ramesh the postman is on his round');
+  await api('speed', 8);
+  for (const scene of ['shop', 'street', 'house']) {
+    for (let i = 0; i < 160 && (await api('agent', 'postman'))?.scene !== scene; i++) await t.wait(250);
+    check((await api('agent', 'postman')).scene === scene, `the postman walked into: ${scene}`);
+  }
+  // meet him indoors: wait in the room and he comes through the door
+  await goThroughDoor(t, -14, -7.4);
+  let s = await st();
+  check(s.scene === 'house', 'we are home');
+  for (let i = 0; i < 200 && (await api('agent', 'postman'))?.scene === 'house'; i++) await t.wait(250);
+  for (let i = 0; i < 400 && (await api('agent', 'postman'))?.scene !== 'house'; i++) await t.wait(250);
+  await api('speed', 3);
+  const p = await api('agent', 'postman');
+  check(p.scene === 'house', 'the postman came in through our door');
+  await t.wait(1500);
+  await t.shot('postman-in-room');
+  const pp = await api('agent', 'postman');
+  await api('tp', pp.x + 0.9, pp.z - 0.3);
+  await t.wait(700);
+  await key('KeyE', 700);
+  s = await st();
+  check(s.dialogue?.script === 'postman', 'talked to the postman in our room');
+  await t.advance();
+  await api('ambient', false);
+
+  // 2. Tiwari-ji's inspection: he walks into the room himself
+  await api('jumpTo', 'chaos');
+  await t.until((x) => x.dialogue?.script === 'chaos_intro', 10000, 'intro');
+  await t.advance();
+  await api('tp', 2.4, -2.5);
+  await t.wait(800);
+  await key('KeyF', 600);
+  await t.advance();
+  await t.choose('Plan B');
+  await t.advance();
+  await api('skip', 40);
+  for (let i = 0; i < 160 && (await api('agent', 'tiwari'))?.scene !== 'house'; i++) await t.wait(250);
+  check((await api('agent', 'tiwari')).scene === 'house', 'Tiwari-ji walked into the rented room to inspect it');
+  for (let i = 0; i < 240 && (await api('agent', 'tiwari'))?.scene !== 'street'; i++) await t.wait(250);
+  check((await api('agent', 'tiwari')).scene === 'street', 'and walked back out to his chair');
+
+  // 3. a goon follows Pakya through the shop door; hiding behind the door works
+  await api('jumpTo', 'zikomo');
+  await t.wait(2500);
+  await api('switchFriend', 'pakya');
+  await t.wait(2600);
+  for (let i = 0; i < 80 && (await api('agent', 'spanner')).mode !== 'route'; i++) await t.wait(250);
+  // Pakya steps out of the barber's chair; Spanner sees him and gives chase
+  await page.keyboard.down('KeyW');
+  await t.wait(400);
+  await page.keyboard.up('KeyW');
+  for (let i = 0; i < 80 && (await api('agent', 'spanner')).mode !== 'route'; i++) await t.wait(250);
+  await api('speed', 1);
+  await inFrontOf(t, 'spanner', 'pakya', 2.4);
+  // the moment he gives chase, the chase is on the shop frontage: Pakya at the door, Spanner a few steps off
+  const chased = await page.evaluate(
+    () =>
+      new Promise((res) => {
+        const t0 = performance.now();
+        const f = () => {
+          if (window.__dhol.api.agent('spanner').mode === 'chase') {
+            const r = window.__dhol.runtime.entities;
+            Object.assign(r.get('pakya'), { x: 13.5, z: -6.4 });
+            Object.assign(r.get('spanner'), { x: 18.6, z: -5.6 });
+            return res(true);
+          }
+          if (performance.now() - t0 > 8000) return res(false);
+          requestAnimationFrame(f);
+        };
+        f();
+      }),
+  );
+  check(chased, 'Spanner spotted Pakya and gives chase');
+  await key('KeyE', 2400);
+  s = await st();
+  check(s.scene === 'shop', 'Pakya ducked into Lalaji’s shop');
+  // hide behind the door
+  const door = await page.evaluate(() => window.__dhol.api.hideSpotOf?.('shop'));
+  await api('tp', door.x, door.z);
+  await t.wait(700);
+  await key('KeyE', 700);
+  s = await st();
+  check(s.hidden.pakya, 'Pakya is hiding behind the door');
+  await api('speed', 3);
+  for (let i = 0; i < 80 && (await api('agent', 'spanner')).scene !== 'shop'; i++) await t.wait(250);
+  check((await api('agent', 'spanner')).scene === 'shop', 'Spanner followed him in through the door');
+  await t.shot('goon-follows');
+  for (let i = 0; i < 200 && (await api('agent', 'spanner')).scene !== 'street'; i++) await t.wait(250);
+  s = await st();
+  check((await api('agent', 'spanner')).scene === 'street', 'found nobody, and went back out to his patrol');
+  check(s.where.pakya === 'shop' && s.hidden.pakya, 'Pakya, behind the door, was never seen (anyone else standing in the shop is fair game)');
+}
+npcTravel.options = { ambient: true };

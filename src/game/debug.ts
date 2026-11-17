@@ -1,3 +1,4 @@
+import { setAmbient } from './sim/sim';
 /** Dev-only hooks used by the browser tests (tests/e2e). Not shipped in production builds. */
 import { useGame, activateMission, completeObjective, freshProgress, retryMission } from './store';
 import { MISSIONS } from './data/missions';
@@ -7,7 +8,8 @@ import { agents } from './sim/agents';
 import { simClock, simSpeed } from './sim/clock';
 import { answerQuestion } from './sim/tasks';
 import { startDialogue } from './effects';
-import type { CharId } from './types';
+import type { CharId, SceneId } from './types';
+import { SCENES } from './data/scenes';
 
 export const debugApi = {
   /** Start a fresh game positioned at the beginning of a given mission. */
@@ -55,6 +57,15 @@ export const debugApi = {
   now: () => simClock.t,
   speed(k: number) {
     simSpeed.k = k;
+  },
+  /** where a room's "behind the door" hiding place is */
+  hideSpotOf(scene: SceneId) {
+    const it = SCENES[scene].interactables.find((i) => i.id === `hide_${scene}`);
+    return it ? { x: it.x, z: it.z } : null;
+  },
+  /** everyday life (the postman's round) on or off; scripted tests switch it off */
+  ambient(on: boolean) {
+    setAmbient(on);
   },
   /** fast-forward the world clock (as if time passed) */
   skip(seconds: number) {

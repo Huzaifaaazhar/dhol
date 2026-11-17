@@ -629,3 +629,44 @@ DIALOGUES_2.chaos_end = {
     end3: { speaker: 'sam', text: 'We bought one night. Tomorrow, Zikomo opens that drum, and finds nothing inside.', effects: [{ complete: 'chaos.survive' }, { endPart: 'part2' }] },
   },
 };
+
+/* Ramesh the postman: everyday life between the missions. He knows everybody's post. */
+DIALOGUES_2.postman = {
+  start: (s) =>
+    s.missionStatus('epilogue') !== 'locked' ? 'after' : s.missionStatus('reveal') === 'done' || s.missionStatus('finale') === 'active' ? 'zikomo' : f(s, 'ritu.in') ? 'ritu' : 'rent',
+  nodes: {
+    rent: {
+      speaker: 'postman',
+      text: 'You four again. Your post this month: one rent reminder, one rent reminder written angrily, and one rent reminder drawn as a picture.',
+      choices: [
+        { who: 'sam', tag: 'Negotiate', text: 'Could the reminders maybe… get lost? For a small consideration?', next: 'sam' },
+        { who: 'pakya', tag: 'Bluff', text: '“Those are for a different Pakya. A poorer one.”', next: 'pakya' },
+        { who: 'goti', tag: 'Something weird', text: 'Ask if he can post Goti to Goa.', next: 'goti' },
+        { who: 'maru', tag: 'Make a scene', text: 'Faint at the word “reminder”.', next: 'maru' },
+        { text: 'Thanks, Ramesh-ji.', next: 'bye' },
+      ],
+    },
+    ritu: {
+      speaker: 'postman',
+      text: 'The yellow bungalow gets letters on paper so thick it does not bend. Somebody in your room keeps asking me what Ritu-ji’s handwriting looks like.',
+      effects: [{ emote: 'maru', kind: '!' }],
+      next: 'bye',
+    },
+    zikomo: {
+      speaker: 'postman',
+      text: 'A man in white shoes asked me which house the drummers live in. I told him I only know houses by their bills. Yours is the one with the most.',
+      next: 'bye',
+    },
+    after: {
+      speaker: 'postman',
+      text: 'Ten years delivering on this road, and today, for the first time, a parcel for you four that is NOT a rent reminder. It is… a bill for a drum skin.',
+      effects: [{ emote: 'postman', kind: '♪' }],
+      next: 'bye',
+    },
+    sam: { speaker: 'postman', text: 'The post does not get lost, Sam-babu. The post gets delayed. Tiwari-ji has already paid me to un-delay it.', next: 'bye' },
+    pakya: { speaker: 'postman', text: 'Same address, same name, same face, same unpaid rent. Very poor disguise.', effects: [{ emote: 'postman', kind: '?' }], next: 'bye' },
+    goti: { speaker: 'postman', text: 'Stamps for a whole Goti would cost… *counts on fingers* …more than the rent. Stay.', next: 'bye' },
+    maru: { speaker: 'postman', text: '*fans Maru with a letter* It is only paper, Maru-babu. Very angry paper, but only paper.', effects: [{ emote: 'maru', kind: '…' }], next: 'bye' },
+    bye: { speaker: 'postman', text: 'Right. Lalaji next, then your room, then the long road. The post never stops. Unlike you four.' },
+  },
+};

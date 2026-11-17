@@ -1,4 +1,4 @@
-import type { CharId } from '../types';
+import type { CharId, SceneId } from '../types';
 /**
  * The world clock. Everything that should keep happening while you switch friends lives here:
  * NPC patrols, friend tasks, gossip, suspicion fading, lookout alarms and mission directors.
@@ -11,7 +11,8 @@ import { useGame, bark, emote, toast, onMissionStart, activeMission, activateMis
 import { ent, runtime } from '../runtime';
 import { decay, gossip, GOSSIP_NET, ZIKOMO_NET } from '../lies';
 import { sfx } from '../audio';
-import { agents, spotted, tickAgents } from './agents';
+import { agents, spotted, tickAgents, agentTravel, doorOf, spawnAgent, despawnAgent, type Agent } from './agents';
+import { POSTMAN_TOUR } from './ambient';
 import { simClock, simSpeed } from './clock';
 import { drainTaskEvents, taskOf, tickTasks, cancelTask } from './tasks';
 import { onGameEvent } from './bus';
@@ -98,7 +99,15 @@ export function simTick(rawDt: number) {
 
   for (const ev of tickAgents(dt, now)) {
     if (ev.kind === 'arrive') director()?.event?.(`arrive:${ev.name}`, ev.id);
+    if (ev.kind === 'door') {
+      // you hear the door when someone comes in or goes out where you are
+      if (s.scene === ev.from || s.scene === ev.to) sfx('door');
+      if (s.scene === ev.to && ev.to !== 'street' && !ev.id.startsWith('postman')) emote(ev.id, '!', 1.2);
+      director()?.event?.(`door:${ev.id}:${ev.to}`, ev.id);
+    }
+    if (ev.kind === 'stop' && ev.stop.say && agents.get(ev.id)?.scene === s.scene) bark(ev.id, ev.stop.say, 3);
   }
+  ambient(dt);
 
   tickTasks(dt, now, applyEffects);
   for (const ev of drainTaskEvents()) {
@@ -108,6 +117,7 @@ export function simTick(rawDt: number) {
 
   lookout(dt, now);
   stealth(now);
+  peeks(now);
 
   // suspicion fades and gossip spreads, once a second / every 25 seconds
   secondAcc += dt;
@@ -219,6 +229,7 @@ function stealth(now: number) {
     if (a.mode !== 'chase' || !a.chase) continue;
     const e = ent(a.id);
     const f = ent(a.chase);
+    if (s.where[a.chase] !== a.scene && followThroughDoor(a, s.where[a.chase], now)) continue;
     if (s.where[a.chase] !== a.scene || get().hidden[a.chase]) {
       // lost him
       if (now > a.until - 4) {
@@ -238,6 +249,83 @@ function stealth(now: number) {
       director()?.caught?.(who, a.id);
     }
   }
+}
+
+/** Doors you can no longer slam in a goon's face. The gang's own hideout stays secret. */
+const FOLLOW_INTO: SceneId[] = ['house', 'shop', 'cinema'];
+
+/**
+ * A chaser who saw his target go through a door, and is close to it, goes in after him:
+ * a few steps inside, a long look round, then back out to his patrol. Hiding, or standing
+ * beside the door out of his line of sight, still works.
+ */
+function followThroughDoor(a: Agent, to: SceneId, now: number) {
+  if (!a.hostile || a.legs.length || !a.route.length) return false;
+  const inside = a.scene === 'street' ? to : a.scene;
+  if (!FOLLOW_INTO.includes(inside) || (a.scene !== 'street' && to !== 'street')) return false;
+  const d = doorOf(inside);
+  if (!d) return false;
+  const e = ent(a.id);
+  const near = a.scene === 'street' ? d.outside : d.inside;
+  if (Math.hypot(e.x - near.x, e.z - near.z) > 7) return false;
+  const who = a.chase;
+  a.chase = null;
+  if (to === 'street') {
+    // he ran back outside: give up and go back to the patrol
+    a.mode = a.route.length ? 'route' : 'idle';
+    return true;
+  }
+  agentTravel(a.id, to, d.inside.x, d.inside.z - 0.7, `peek:${a.id}`);
+  a.until = now + 12;
+  bark(a.id, ['He went in here! I saw him!', 'Hiding indoors? Coming in!', 'Knock knock. It is me. The goon.'][Math.floor(Math.random() * 3)], 2.2);
+  peeking.set(a.id, { who: who!, scene: to });
+  return true;
+}
+
+/** goons currently peeking into a room, and whom they followed */
+const peeking = new Map<string, { who: CharId; scene: SceneId }>();
+
+function peeks(now: number) {
+  for (const [id, p] of peeking) {
+    const a = agents.get(id);
+    if (!a) {
+      peeking.delete(id);
+      continue;
+    }
+    // arrived inside: stand and look around the room for a few seconds
+    if (a.mode === 'idle' && a.scene === p.scene && !a.legs.length && a.until > now) {
+      a.mode = 'investigate';
+      const e = ent(id);
+      a.target = { x: e.x, z: e.z - 0.4 };
+      a.until = now + 4;
+      emote(id, '?', 1.5);
+    } else if (a.mode !== 'chase' && a.mode !== 'investigate' && a.mode !== 'goto') {
+      // done looking (or the trip ended oddly): walk back out to the patrol
+      peeking.delete(id);
+      if (a.scene === p.scene) {
+        if (get().scene === p.scene) bark(id, ['Nobody here. Just smells of socks.', 'Empty. Boss will not like this.', 'Hmph. Wrong door.'][Math.floor(Math.random() * 3)], 2.2);
+        a.mode = 'route';
+      }
+    }
+  }
+}
+
+/* ───────── everyday life: the postman's rounds, outside the timed missions ───────── */
+let ambientAcc = 0;
+let ambientOn = true;
+export function setAmbient(on: boolean) {
+  ambientOn = on;
+  if (!on) despawnAgent('postman');
+}
+
+function ambient(dt: number) {
+  ambientAcc += dt;
+  if (ambientAcc < 1) return;
+  ambientAcc = 0;
+  const busy = !!activeMission()?.live;
+  const here = agents.has('postman');
+  if ((busy || !ambientOn) && here) despawnAgent('postman');
+  else if (!busy && ambientOn && !here) spawnAgent('postman', 'street', POSTMAN_TOUR[0].x, POSTMAN_TOUR[0].z, { tour: POSTMAN_TOUR, speed: 1.5, face: 0.6 });
 }
 
 export { director as currentDirector };

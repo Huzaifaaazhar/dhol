@@ -1,5 +1,5 @@
 import type { Box, SceneDef, SceneId } from '../../types';
-import { has, talk, searchSpot, smooth, stall } from './helpers';
+import { has, talk, searchSpot, smooth, stall, hideSpot } from './helpers';
 import type { StateView } from '../../types';
 
 const act = (m: string) => (s: StateView) => s.missionStatus(m) === 'active';
@@ -117,6 +117,10 @@ function interior(
         radius: 1.3,
         actions: [{ id: 'exit', verb: 'Leave', effects: [{ goto: 'street', spawn: rest.exitTo }, { sfx: 'door' }] }],
       },
+      // the postman delivers indoors too
+      talk('postman', 'Ramesh the postman', 'postman', [], 1.6),
+      // goons may follow you in here: the corner beside the door is out of their sight
+      ...(['house', 'shop', 'cinema'].includes(id) ? [hideSpot(`hide_${id}`, 'Behind the door', room.doorX + (room.doorX > 0 ? -1.9 : 1.9), hd - 0.8)] : []),
       ...rest.interactables,
     ],
   };

@@ -73,6 +73,9 @@ searching keeps searching, and a question for Pakya will not wait.
   is, whether Jai and Ritu trust you, how well the gang got on.
 - **Four endings, none random:** the plan works; the lies collapse; one friend’s mess lands on
   everyone; or chaos that somehow turns out fine. The epilogue names what you actually did.
+- **People move between buildings.** Tiwari-ji walks into your room to inspect it; a goon chasing
+  you through a door may follow you in and look round (hide behind the door); Ramesh the postman
+  delivers to the shop and your room between the missions.
 - **Presentation:** faces that blink, talk and react; speaker portraits; afternoon, sunset, morning and
   dusk lighting that follows the story; street lamps; footsteps and a tension rhythm in live missions;
   NPCs with routines; iris transitions between places.

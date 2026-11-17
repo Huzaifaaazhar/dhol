@@ -170,6 +170,15 @@ export const NPCS: Record<string, NpcDef> = {
     look: p({ shirt: '#c1121f', pants: '#14213d', hairStyle: 'flat', skin: '#a8714b', girth: 0.78, height: 1.04, extras: ['moustache', 'stick'] }),
     barks: ['Tick tock, idiots.', 'I can smell fear. And samosa.', 'Boss wants the drum.'],
   },
+  postman: {
+    id: 'postman',
+    name: 'Ramesh the postman',
+    voice: 270,
+    color: '#e0b84f',
+    dialogue: 'postman',
+    look: p({ shirt: '#b8a06a', pants: '#8a7550', hairStyle: 'cap', skin: '#a8714c', extras: ['moustache', 'glasses'] }),
+    barks: ['Daak! Post!', 'Registered letter, sign here, no, the other here.', 'Rain, sun, dog. The post goes on.'],
+  },
   shambhu: {
     id: 'shambhu',
     name: 'Shambhu the kabadiwala',

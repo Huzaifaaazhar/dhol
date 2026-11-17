@@ -7,7 +7,7 @@ import { CHAR_IDS } from '../types';
 import { SCENES } from '../data/scenes';
 import { ent } from '../runtime';
 import { resolve } from '../collision';
-import { useGame } from '../store';
+import { useGame, bark } from '../store';
 
 export type AgentMode = 'route' | 'goto' | 'investigate' | 'distracted' | 'chase' | 'stalled' | 'idle';
 
@@ -29,6 +29,33 @@ export interface Agent {
   arrive: string | null;
   anim: 'idle' | 'read' | 'sit';
   face: number;
+  /** waypoints of a trip that may pass through doors into other scenes */
+  legs: Leg[];
+  /** the scene the patrol route belongs to; agents who wander off walk back to it */
+  routeScene: SceneId;
+  /** heading back to the route after leaving its scene */
+  backToRoute: boolean;
+  /** an everyday round of stops, possibly in several buildings */
+  tour: TourStop[] | null;
+  ti: number;
+  dwell: number;
+}
+
+export interface Leg {
+  x: number;
+  z: number;
+  /** reaching this point means stepping through a door into another scene */
+  cross?: { scene: SceneId; x: number; z: number; face: number };
+}
+
+export interface TourStop {
+  scene: SceneId;
+  x: number;
+  z: number;
+  face?: number;
+  stay: number;
+  anim?: Agent['anim'];
+  say?: string;
 }
 
 export const agents = new Map<string, Agent>();
@@ -38,7 +65,7 @@ export function spawnAgent(
   scene: SceneId,
   x: number,
   z: number,
-  opts: Partial<Pick<Agent, 'speed' | 'route' | 'vision' | 'hostile' | 'anim' | 'face' | 'mode'>> = {},
+  opts: Partial<Pick<Agent, 'speed' | 'route' | 'vision' | 'hostile' | 'anim' | 'face' | 'mode' | 'tour'>> = {},
 ) {
   const e = ent(id);
   e.x = x;
@@ -61,6 +88,12 @@ export function spawnAgent(
     arrive: null,
     anim: opts.anim ?? 'idle',
     face: opts.face ?? 0,
+    legs: [],
+    routeScene: scene,
+    backToRoute: false,
+    tour: opts.tour ?? null,
+    ti: 0,
+    dwell: opts.tour?.[0]?.stay ?? 0,
   };
   agents.set(id, a);
   bump();
@@ -92,6 +125,57 @@ export function agentGoto(id: string, x: number, z: number, arrive: string | nul
   a.mode = 'goto';
   a.target = { x, z };
   a.arrive = arrive;
+  a.legs = [];
+}
+
+/* ───────── doors: walking between the street and the buildings ───────── */
+
+/** Where an interior's door is, seen from inside and from the street. */
+export function doorOf(scene: SceneId) {
+  const sc = SCENES[scene] as (typeof SCENES)[SceneId] & { exitTo?: string };
+  const inside = sc.spawns.door;
+  const outside = sc.exitTo ? SCENES.street.spawns[sc.exitTo] : null;
+  if (!inside || !outside) return null;
+  return { inside, outside };
+}
+
+/** Waypoints from one place to another, through whichever doors are in the way. */
+export function planTrip(from: SceneId, to: SceneId, x: number, z: number): Leg[] {
+  const legs: Leg[] = [];
+  if (from !== to) {
+    if (from !== 'street') {
+      const d = doorOf(from);
+      if (!d) return [];
+      legs.push({ x: d.inside.x, z: d.inside.z + 0.6, cross: { scene: 'street', x: d.outside.x, z: d.outside.z, face: d.outside.face } });
+    }
+    if (to !== 'street') {
+      const d = doorOf(to);
+      if (!d) return [];
+      legs.push({ x: d.outside.x, z: d.outside.z, cross: { scene: to, x: d.inside.x, z: d.inside.z, face: Math.PI } });
+    }
+  }
+  legs.push({ x, z });
+  return legs;
+}
+
+/** Walk somewhere, in any scene: out of one door and into another if need be. */
+export function agentTravel(id: string, scene: SceneId, x: number, z: number, arrive: string | null = null) {
+  const a = agents.get(id);
+  if (!a) return;
+  const legs = planTrip(a.scene, scene, x, z);
+  if (!legs.length) return;
+  a.mode = 'goto';
+  a.legs = legs;
+  a.target = { x: legs[0].x, z: legs[0].z };
+  a.arrive = arrive;
+}
+
+/** After a distraction or a chase, pick an interrupted trip back up. */
+function resume(a: Agent) {
+  if (a.legs.length) {
+    a.mode = 'goto';
+    a.target = { x: a.legs[0].x, z: a.legs[0].z };
+  } else a.mode = a.route.length ? 'route' : 'idle';
 }
 
 /** Walk over to look at something (a noise, a scream) for a while, then resume the route. */
@@ -129,7 +213,34 @@ function stepTowards(a: Agent, tx: number, tz: number, speed: number, dt: number
   return moved < speed * dt * 0.1 && d < 2.5;
 }
 
-export type AgentEvent = { kind: 'arrive'; id: string; name: string } | { kind: 'resume'; id: string };
+export type AgentEvent =
+  | { kind: 'arrive'; id: string; name: string }
+  | { kind: 'resume'; id: string }
+  | { kind: 'door'; id: string; from: SceneId; to: SceneId }
+  | { kind: 'stop'; id: string; stop: TourStop };
+
+/**
+ * Friendly people stop walking when you come up to them, so you can actually talk.
+ * If you just stand in their way, they wait a few seconds, then excuse themselves past you.
+ */
+const waited = new Map<string, number>();
+function waitsForYou(a: Agent, st: ReturnType<typeof useGame.getState>, dt: number) {
+  if (a.hostile || a.scene !== st.scene) return false;
+  const me = ent(st.active);
+  const e = ent(a.id);
+  const d = Math.hypot(me.x - e.x, me.z - e.z);
+  const w = waited.get(a.id) ?? 0;
+  if (d >= 1.9) {
+    if (d > 3) waited.delete(a.id);
+    return false;
+  }
+  if (w > 4) return false;
+  waited.set(a.id, w + dt);
+  if (w + dt > 4) bark(a.id, a.id === 'postman' ? 'Excuse me! Post coming through!' : 'Excuse me, beta. Some of us have work.', 2);
+  e.speed = 0;
+  e.face = Math.atan2(me.x - e.x, me.z - e.z);
+  return true;
+}
 
 /** Advance all agents. Returns arrival events for the mission director. */
 export function tickAgents(dt: number, now: number): AgentEvent[] {
@@ -137,7 +248,23 @@ export function tickAgents(dt: number, now: number): AgentEvent[] {
   const st = useGame.getState();
   for (const a of agents.values()) {
     const e = ent(a.id);
-    if (a.mode === 'stalled' || a.mode === 'idle' || (st.dialogue && st.talkingTo === a.id)) {
+    if (st.dialogue && st.talkingTo === a.id) {
+      e.speed = 0;
+      continue;
+    }
+    // an everyday round: linger at a stop, then walk to the next one, wherever it is
+    if (a.tour && a.mode === 'idle') {
+      e.speed = 0;
+      a.dwell -= dt;
+      if (a.dwell <= 0) {
+        a.ti = (a.ti + 1) % a.tour.length;
+        const stop = a.tour[a.ti];
+        a.anim = 'idle';
+        agentTravel(a.id, stop.scene, stop.x, stop.z, null);
+      }
+      continue;
+    }
+    if (a.mode === 'stalled' || a.mode === 'idle') {
       e.speed = 0;
       continue;
     }
@@ -145,8 +272,8 @@ export function tickAgents(dt: number, now: number): AgentEvent[] {
       const f = ent(a.chase);
       stepTowards(a, f.x, f.z, a.speed * 1.9, dt, 0.6);
       if (now > a.until) {
-        a.mode = a.route.length ? 'route' : 'idle';
         a.chase = null;
+        resume(a);
       }
       continue;
     }
@@ -154,32 +281,60 @@ export function tickAgents(dt: number, now: number): AgentEvent[] {
       const there = stepTowards(a, a.target.x, a.target.z, a.speed * 1.3, dt, a.mode === 'distracted' ? 2.2 : 0.8);
       if (there && a.mode === 'distracted') e.face = Math.atan2(a.target.x - e.x, a.target.z - e.z);
       if (now > a.until) {
-        a.mode = a.route.length ? 'route' : 'idle';
         a.target = null;
+        resume(a);
         events.push({ kind: 'resume', id: a.id });
       }
       continue;
     }
     if (a.mode === 'goto' && a.target) {
-      if (stepTowards(a, a.target.x, a.target.z, a.speed, dt)) {
-        const name = a.arrive;
-        a.mode = 'idle';
-        a.target = null;
-        a.arrive = null;
-        if (name) events.push({ kind: 'arrive', id: a.id, name });
-      }
-      continue;
-    }
-    if (a.mode === 'route' && a.route.length) {
-      // friendly walkers stop when you come up to them, so you can actually talk
-      if (!a.hostile && a.scene === st.scene) {
-        const me = ent(st.active);
-        if (Math.hypot(me.x - e.x, me.z - e.z) < 1.9) {
+      if (a.tour && waitsForYou(a, st, dt)) continue;
+      if (!stepTowards(a, a.target.x, a.target.z, a.speed, dt)) continue;
+      // a leg of a longer trip: maybe step through a door, then carry on
+      if (a.legs.length) {
+        const leg = a.legs.shift()!;
+        if (leg.cross) {
+          const from = a.scene;
+          a.scene = leg.cross.scene;
+          e.x = leg.cross.x;
+          e.z = leg.cross.z;
+          e.face = leg.cross.face;
           e.speed = 0;
-          e.face = Math.atan2(me.x - e.x, me.z - e.z);
+          bump();
+          events.push({ kind: 'door', id: a.id, from, to: a.scene });
+        }
+        if (a.legs.length) {
+          a.target = { x: a.legs[0].x, z: a.legs[0].z };
           continue;
         }
       }
+      const name = a.arrive;
+      a.mode = 'idle';
+      a.target = null;
+      a.arrive = null;
+      if (a.backToRoute) {
+        a.backToRoute = false;
+        a.mode = 'route';
+      }
+      if (a.tour) {
+        const stop = a.tour[a.ti];
+        a.dwell = stop.stay;
+        a.anim = stop.anim ?? 'idle';
+        if (stop.face !== undefined) e.face = stop.face;
+        events.push({ kind: 'stop', id: a.id, stop });
+      }
+      if (name) events.push({ kind: 'arrive', id: a.id, name });
+      continue;
+    }
+    if (a.mode === 'route' && a.route.length) {
+      // wandered into a building (following someone): walk back out to the patrol
+      if (a.scene !== a.routeScene) {
+        const [x, z] = a.route[a.ri];
+        agentTravel(a.id, a.routeScene, x, z, null);
+        a.backToRoute = true;
+        continue;
+      }
+      if (waitsForYou(a, st, dt)) continue;
       if (a.wait > 0) {
         a.wait -= dt;
         e.speed = 0;

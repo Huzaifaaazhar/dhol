@@ -8,7 +8,7 @@ const { chromium } = require('playwright');
 
 export const URL = process.env.DHOL_URL ?? 'http://localhost:5173/';
 
-export async function launch({ width = 1280, height = 720, shots = null, mobile = false } = {}) {
+export async function launch({ width = 1280, height = 720, shots = null, mobile = false, ambient = false } = {}) {
   const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
   const page = await browser.newPage(mobile ? { viewport: { width, height }, isMobile: true, hasTouch: true, deviceScaleFactor: 1 } : { viewport: { width, height } });
   const errors = [];
@@ -21,6 +21,8 @@ export async function launch({ width = 1280, height = 720, shots = null, mobile 
   await page.reload();
   await page.waitForFunction(() => window.__dhol?.api, null, { timeout: 20000 });
   await page.evaluate(() => window.__dhol.api.speed(3));
+  // scripted playthroughs run without the postman wandering into them, unless a spec wants him
+  await page.evaluate((on) => window.__dhol.api.ambient(on), ambient);
   const t = makeHelpers(page, shots);
   return { browser, page, errors, ...t };
 }

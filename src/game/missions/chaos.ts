@@ -14,8 +14,8 @@ import { CHAR_IDS } from '../types';
 import { completeObjective, failMission, setFlag, emote, addStat } from '../store';
 import { startDialogue } from '../effects';
 import { moveActive } from '../party';
-import { ent } from '../runtime';
-import { agentGoto, agents, investigate } from '../sim/agents';
+import { ent, playOneShot } from '../runtime';
+import { agentTravel, agents, investigate } from '../sim/agents';
 import { cancelTask, startTask, taskOf } from '../sim/tasks';
 import { noise } from '../sim/noise';
 import { tell } from '../lies';
@@ -23,7 +23,8 @@ import { sfx } from '../audio';
 import { type Director, get, set, setM, getM, clearAgents, spawnAgent, toast, bark, placeFriend, carrier, GOON_VISION } from './common';
 
 export const TIWARI_CHAIR = { x: -10.6, z: -7.1 };
-const HOUSE_DOOR = { x: -14, z: -6.6 };
+/** beside Maru's charpai, inside the rented room */
+const ROOM_CHECK = { x: -3.5, z: -1.6 };
 const SHUTTER = { x: -20, z: 17.4 };
 const SPANNER_ROUTE: Array<[number, number, number?]> = [
   [4.6, 6.9, 4],
@@ -112,6 +113,7 @@ export const chaos: Director = {
       if (s.dhol === 'house') {
         set({ dhol: 'tiwari' });
         bark('tiwari', 'What is this under the charpai? A DRUM? Confiscated! Rent first!', 3.2);
+        playOneShot('tiwari', 'panic', 0.8);
         toast('Tiwari-ji found the real dhol in your room and took it', 'fail', 'Complication');
       } else bark('tiwari', 'Hmm. Clean. Suspiciously clean.', 2.4);
       tiwariBack = now + 12;
@@ -164,12 +166,13 @@ export const chaos: Director = {
     if (end && t && !stalling && t.mode === 'idle' && inspectAt && now >= inspectAt) {
       inspectAt = 0;
       bark('tiwari', 'Inspection time! Nobody has paid rent, so everybody gets inspected!', 2.6);
-      agentGoto('tiwari', HOUSE_DOOR.x, HOUSE_DOOR.z, 'tiwariDoor');
+      // he really walks in: through the front door and over to Maru's charpai
+      agentTravel('tiwari', 'house', ROOM_CHECK.x, ROOM_CHECK.z, 'tiwariDoor');
       t.anim = 'idle';
     }
     if (tiwariBack && now > tiwariBack && t && t.mode === 'idle') {
       tiwariBack = 0;
-      agentGoto('tiwari', TIWARI_CHAIR.x, TIWARI_CHAIR.z, 'tiwariChair');
+      agentTravel('tiwari', 'street', TIWARI_CHAIR.x, TIWARI_CHAIR.z, 'tiwariChair');
     }
 
     // Tiwari-ji spots a drum being carried past him
