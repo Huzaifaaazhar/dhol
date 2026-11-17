@@ -9,6 +9,14 @@ a small, crowded neighbourhood: Shanti Nagar, Lane 4.
 All writing, characters, art and sound are original and generated in code. There is no
 film footage, film music or film dialogue in the game.
 
+## Play online
+
+**https://huzaifaaazhar.github.io/dhol/**
+
+Every push to the default branch rebuilds and republishes the game through GitHub Actions
+(`.github/workflows/pages.yml`, which runs the unit tests first). One-time setup in the repository:
+**Settings → Pages → Source: GitHub Actions**.
+
 ## Run it
 
 ```bash
