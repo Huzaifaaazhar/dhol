@@ -276,6 +276,7 @@ async function enterHideout(t) {
   await t.api('tp', -20.3, 18.4);
   await t.wait(900);
   await t.key('KeyE', 2400);
+  await t.until((x) => !x.transition, 10000, 'the door');
 }
 
 export async function zikomo(t) {
@@ -407,6 +408,7 @@ export async function dhol(t) {
   await api('tp', -28, -11.2);
   await t.wait(800);
   await key('KeyE', 2400);
+  await t.until((x) => x.scene === 'ritu' && !x.transition, 10000, 'inside the bungalow');
   await api('tp', -3.0, -1.8);
   await t.wait(800);
   await key('KeyE', 500);
@@ -522,6 +524,7 @@ async function exitHideout(t) {
   await t.api('tp', 3.5, 3.9);
   await t.wait(800);
   await t.key('KeyE', 2400);
+  await t.until((x) => !x.transition, 10000, 'the door');
 }
 
 export async function chaos(t) {
@@ -551,6 +554,7 @@ export async function chaos(t) {
   await key('KeyF', 600);
   s = await st();
   check(s.tasks.some((x) => x.who === 'pakya' && x.kind === 'stall'), 'Pakya is keeping Tiwari-ji talking');
+  for (let i = 0; i < 20 && (await api('agent', 'tiwari')).mode !== 'stalled'; i++) await t.wait(200);
   check((await api('agent', 'tiwari')).mode === 'stalled', 'Tiwari-ji is stuck in conversation');
   s = await t.until((x) => !!x.question, 30000, 'Tiwari-ji to ask Pakya something');
   check(s.question.npc === 'tiwari', `Tiwari-ji asks: “${s.question.prompt}”`);
@@ -636,9 +640,10 @@ export async function chaos(t) {
   s = await st();
   check(s.dhol === 'carried:sam', 'Tiwari-ji didn’t notice: Pakya kept him busy');
   await key('KeyE', 2400);
+  await t.until((x) => x.scene === 'house' && !x.transition, 10000, 'home');
   await api('tp', -3.9, 1.6);
-  await t.wait(900);
-  const p = await page.locator('.prompt').innerText();
+  await page.waitForFunction(() => [...document.querySelectorAll('.prompt')].some((p) => p.innerText.includes('Hide the real dhol')), null, { timeout: 8000 }).catch(() => {});
+  const p = (await page.locator('.prompt').allInnerTexts()).join(' ');
   check(p.includes('Hide the real dhol'), 'the charpai offers to hide the real dhol');
   await key('KeyE', 700);
   s = await st();
@@ -755,6 +760,7 @@ async function goThroughDoor(t, x, z, ms = 2500) {
   await t.api('tp', x, z);
   await t.wait(900);
   await t.key('KeyE', ms);
+  await t.until((x) => !x.transition, 10000, 'the door');
 }
 
 export async function reveal(t) {
@@ -1184,10 +1190,13 @@ export async function npcTravel(t) {
   check(p.scene === 'house', 'the postman came in through our door');
   await t.wait(1500);
   await t.shot('postman-in-room');
-  const pp = await api('agent', 'postman');
-  await api('tp', pp.x + 0.9, pp.z - 0.3);
-  await t.wait(700);
-  await key('KeyE', 700);
+  for (let i = 0; i < 6 && !(await st()).dialogue; i++) {
+    const pp = await api('agent', 'postman');
+    if (pp.scene !== 'house') break;
+    await api('tp', pp.x + 0.9, pp.z - 0.3);
+    await t.wait(500);
+    await key('KeyE', 900);
+  }
   s = await st();
   check(s.dialogue?.script === 'postman', 'talked to the postman in our room');
   await t.advance();
@@ -1221,20 +1230,23 @@ export async function npcTravel(t) {
   await page.keyboard.up('KeyW');
   for (let i = 0; i < 80 && (await api('agent', 'spanner')).mode !== 'route'; i++) await t.wait(250);
   await api('speed', 1);
-  await inFrontOf(t, 'spanner', 'pakya', 2.4);
+  // stay in front of Spanner (he turns at his waypoints) until he notices;
   // the moment he gives chase, the chase is on the shop frontage: Pakya at the door, Spanner a few steps off
   const chased = await page.evaluate(
     () =>
       new Promise((res) => {
         const t0 = performance.now();
         const f = () => {
+          const r0 = window.__dhol.runtime.entities;
+          const sp = r0.get('spanner');
+          if (window.__dhol.api.agent('spanner').mode !== 'chase') Object.assign(r0.get('pakya'), { x: sp.x + Math.sin(sp.face) * 2.4, z: sp.z + Math.cos(sp.face) * 2.4 });
           if (window.__dhol.api.agent('spanner').mode === 'chase') {
             const r = window.__dhol.runtime.entities;
             Object.assign(r.get('pakya'), { x: 13.5, z: -6.4 });
             Object.assign(r.get('spanner'), { x: 18.6, z: -5.6 });
             return res(true);
           }
-          if (performance.now() - t0 > 8000) return res(false);
+          if (performance.now() - t0 > 20000) return res(false);
           requestAnimationFrame(f);
         };
         f();

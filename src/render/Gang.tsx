@@ -226,8 +226,10 @@ export function Gang({ scene }: { scene: SceneDef }) {
     }
 
     /* ── interaction focus ── */
-    frame.current++;
-    if (frame.current % 5 === 0) {
+    // time-based, not frame-based: on a slow device the prompt must not lag a second behind
+    frame.current += dt;
+    if (frame.current >= 0.08) {
+      frame.current = 0;
       const present = new Set<string>([...npcs.map((n) => n.id), ...sceneAgents.map((a) => a.id)]);
       const it = blocked ? null : findFocus(scene, lead.x, lead.z, present);
       const id = it?.id ?? null;
