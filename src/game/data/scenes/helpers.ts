@@ -15,7 +15,7 @@ export const door = (
   z,
   y: 2.4,
   radius: 1.6,
-  actions: [{ id: 'enter', verb: 'Enter', effects: to }],
+  actions: [{ id: 'enter', verb: 'Andar jao', effects: to }],
   ...extra,
 });
 
@@ -27,7 +27,7 @@ export const talk = (npc: string, label: string, dialogue: string, specials: Act
   z: 0,
   y: 2.6,
   radius,
-  actions: [{ id: 'talk', verb: 'Talk', dialogue }, ...specials],
+  actions: [{ id: 'talk', verb: 'Baat karo', dialogue }, ...specials],
 });
 
 export const has = (k: string) => (s: StateView) => !!s.flags[k];
@@ -48,7 +48,7 @@ export const searchSpot = (
   spec: Omit<TaskSpec, 'kind'>,
   showIf?: (s: StateView) => boolean,
 ): Interactable => {
-  const task: TaskSpec = { kind: 'search', label: `Searching: ${label}`, ...spec };
+  const task: TaskSpec = { kind: 'search', label: `Dhoondh rahe: ${label}`, ...spec };
   return {
     id,
     label,
@@ -58,8 +58,8 @@ export const searchSpot = (
     radius: 1.7,
     showIf,
     actions: [
-      { id: 'search', verb: 'Search', task },
-      { id: 'gsearch', verb: 'Search properly', who: 'goti', task },
+      { id: 'search', verb: 'Dhoondho', task },
+      { id: 'gsearch', verb: 'Theek se dhoondho', who: 'goti', task },
     ],
   };
 };
@@ -73,7 +73,7 @@ export const hideSpot = (id: string, label: string, x: number, z: number): Inter
   radius: 1.4,
   hide: true,
   showIf: live,
-  actions: [{ id: 'hide', verb: 'Hide here' }],
+  actions: [{ id: 'hide', verb: 'Yahaan chhupo' }],
 });
 
 export const watchSpot = (id: string, label: string, x: number, z: number): Interactable => ({
@@ -86,25 +86,25 @@ export const watchSpot = (id: string, label: string, x: number, z: number): Inte
   watch: true,
   showIf: live,
   actions: [
-    { id: 'look', verb: 'Look around', say: 'Good view from here. Maru could keep watch.' },
-    { id: 'watch', verb: 'Keep watch here', who: 'maru', task: { kind: 'watch', label: 'Keeping watch' } },
+    { id: 'look', verb: 'Idhar udhar dekho', say: 'Yahaan se achha dikhta hai. Maru nazar rakh sakta hai.' },
+    { id: 'watch', verb: 'Yahaan se nazar rakho', who: 'maru', task: { kind: 'watch', label: 'Nigraani' } },
   ],
 });
 
 /** Sam patches things up with someone who has stopped believing the gang. */
 export const smooth = (npc: string): Action => ({
   id: 'smooth',
-  verb: 'Smooth things over',
+  verb: 'Baat sambhaalo',
   who: 'sam',
   showIf: (s) => s.suspicion(npc) >= 30 && !s.m(`smooth.${npc}`),
-  say: 'A misunderstanding! Entirely my fault. Let me explain, calmly, from the beginning.',
+  say: 'Galatfehmi ho gayi! Poori meri galti. Main shuru se, aaram se samjhaata hoon.',
   effects: [{ suspicion: npc, delta: -30 }, { event: `smooth:${npc}` }],
 });
 
 /** Pakya parks himself next to someone and keeps them talking. They will ask questions. */
 export const stall = (npc: string): Action => ({
   id: 'stall',
-  verb: `Keep ${NPCS[npc]?.name ?? npc} talking`,
+  verb: `${NPCS[npc]?.name ?? npc} ko baaton mein uljhaao`,
   who: 'pakya',
   showIf: live,
   task: { kind: 'stall', target: npc, label: `Keeping ${NPCS[npc]?.name ?? npc} busy` },

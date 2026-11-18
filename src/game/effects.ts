@@ -1,4 +1,5 @@
 import type { Action, CharId, Effect, Interactable } from './types';
+import { filmi } from './filmi';
 import { NPCS } from './data/npcs';
 import { checkLine, recordStory, tell, TOPICS } from './lies';
 import { emitGameEvent } from './sim/bus';
@@ -46,7 +47,7 @@ export function applyEffects(effects: Effect[] | undefined) {
         set((s) => ({ secrets: [...s.secrets, e.secret] }));
         sfx('secret');
         const n = get().secrets.length;
-        toast(SECRETS[e.secret] ?? 'Secret found', 'secret', `Secret ${n} of ${Object.keys(SECRETS).length}`);
+        toast(SECRETS[e.secret] ?? 'Raaz mila', 'secret', `Raaz ${n} / ${Object.keys(SECRETS).length}`);
       }
     } else if ('goto' in e) {
       const go = () => beginTransition(e.goto, e.spawn);
@@ -56,7 +57,8 @@ export function applyEffects(effects: Effect[] | undefined) {
     else if ('bark' in e) bark(e.bark === 'me' ? get().active : e.bark, e.text);
     else if ('toast' in e) toast(e.toast, 'info');
     else if ('dialogue' in e) set((s) => ({ dialogueQueue: [...s.dialogueQueue, e.dialogue] }));
-    else if ('sfx' in e) sfx(e.sfx);
+    // a thud in a scene is slapstick: give it the filmi punch
+    else if ('sfx' in e) (e.sfx === 'thud' ? filmi('dhishoom') : sfx(e.sfx));
     else if ('endPart' in e) {
       const which = e.endPart === true ? 'part1' : (e.endPart as 'part1' | 'part2');
       later(() => set({ partEnded: which }));
@@ -65,12 +67,12 @@ export function applyEffects(effects: Effect[] | undefined) {
       claim(e.by ?? s.active, e.to ?? s.talkingTo ?? '', e.claim, e.value, e.truth);
     } else if ('stat' in e) {
       addStat(e.stat, e.delta);
-      if (e.stat === 'ritu.trust') toast(`${e.delta > 0 ? '+' : ''}${e.delta} Ritu’s trust`, e.delta > 0 ? 'objective' : 'fail');
-      if (e.stat === 'gang.harmony' && e.delta < 0) toast('The gang is getting on each other’s nerves', 'fail');
+      if (e.stat === 'ritu.trust') toast(`${e.delta > 0 ? '+' : ''}${e.delta} Ritu ka bharosa`, e.delta > 0 ? 'objective' : 'fail');
+      if (e.stat === 'gang.harmony' && e.delta < 0) toast('Gang ek doosre ke dimaag pe chadh rahi hai', 'fail');
     } else if ('setStat' in e) setStat(e.setStat, e.value);
     else if ('give' in e) {
       giveItem(e.give);
-      toast(ITEM_NAMES[e.give] ?? e.give, 'objective', 'Got');
+      toast(ITEM_NAMES[e.give] ?? e.give, 'objective', 'Mila');
       sfx('coin');
     } else if ('take' in e) takeItem(e.take);
     else if ('suspicion' in e) {
@@ -89,7 +91,7 @@ export function applyEffects(effects: Effect[] | undefined) {
       set({ dhol: to });
       if (e.dholTo === 'carry') {
         sfx('thud');
-        bark(get().active, ['Heavy. Like responsibility.', 'Nobody look at me. I am carrying nothing.', 'It’s heavier than it looks! Like me!', 'If I drop it, I’m moving to another city.'][['sam', 'pakya', 'goti', 'maru'].indexOf(get().active)], 2.4);
+        bark(get().active, ['Bhaari. Zimmedaari ki tarah.', 'Koi mujhe mat dekho. Main kuch nahi utha raha.', 'Jitna dikhta hai usse bhaari hai! Meri tarah!', 'Gira diya toh main shehar chhod doonga.'][['sam', 'pakya', 'goti', 'maru'].indexOf(get().active)], 2.4);
       }
       emitGameEvent('dhol', to);
     }
@@ -102,27 +104,27 @@ function later(fn: () => void) {
 }
 
 export const ITEM_NAMES: Record<string, string> = {
-  jalebi: 'A paper cone of hot jalebi',
-  marigolds: 'A marigold garland (slightly used)',
-  photo: 'Photo: Jai and Rahul, holding a dhol',
-  lockerkey: 'A rusty key: “Shree Talkies, 47”',
-  halfnote: 'Half of a ₹500 note',
-  cinemakey: 'The old cinema’s key (from Pappu)',
+  jalebi: 'Garam jalebi ka kaagazi kon',
+  marigolds: 'Gende ki maala (thodi istemaal ki hui)',
+  photo: 'Tasveer: Jai aur Rahul, dhol ke saath',
+  lockerkey: 'Zang lagi chaabi: “Shree Talkies, 47”',
+  halfnote: '₹500 ka aadha note',
+  cinemakey: 'Purane cinema ki chaabi (Pappu se)',
   ticket: 'Lottery ticket #4444',
-  register: 'Zikomo’s lottery book',
-  crackers: 'A packet of crackers',
-  tin: 'An empty biscuit tin',
-  rope: 'A length of laundry rope',
-  skin: 'An old tabla skin',
-  fakedhol: 'A fake dhol (very fake)',
-  packet: 'A sealed packet, sewn inside the dhol',
+  register: 'Zikomo ki lottery ka bahi-khaata',
+  crackers: 'Pataakhon ka packet',
+  tin: 'Biscuit ka khaali dabba',
+  rope: 'Kapde sukhaane ki rassi',
+  skin: 'Purani tabla ki khaal',
+  fakedhol: 'Nakli dhol (bahut nakli)',
+  packet: 'Dhol ke andar sila hua band packet',
 };
 
 const BLAME: Record<CharId, string[]> = {
-  sam: ['I had a PLAN. The plan did not include you talking.', 'Pakya. We discussed this. Consistency.'],
-  pakya: ['Who told him THAT? I had a perfectly good story going!', 'Never improvise. Leave the lying to the professional.'],
-  goti: ['Ohhh. Were we lying? Nobody tells me anything.', 'Which story is it? Write it on my hand.'],
-  maru: ['We’re finished. We are completely finished.', 'Why does nobody check with each other?!'],
+  sam: ['Mera PLAN tha. Plan mein tumhara bolna nahi tha.', 'Pakya. Baat hui thi. Consistency.'],
+  pakya: ['Usko YE kisne bataaya? Meri achhi khaasi kahaani chal rahi thi!', 'Kabhi improvise mat karo. Jhooth professional pe chhodo.'],
+  goti: ['Ohhh. Hum jhooth bol rahe the? Mujhe koi kuch nahi batata.', 'Kaunsi kahaani hai? Mere haath pe likh do.'],
+  maru: ['Hum khatam. Poori tarah khatam.', 'Koi ek doosre se poochhta kyun nahi?!'],
 };
 
 /** A friend tells an NPC something. Contradictions are remembered, and somebody gets blamed. */
@@ -136,14 +138,14 @@ export function claim(by: CharId, to: string, topic: string, value: string, trut
     const c = result.contradiction;
     sfx('fail');
     emote(to, '💢', 2.4);
-    toast(`${name} remembers “${c.believed}”, not “${c.heard}”`, 'lie', 'Contradiction');
+    toast(`${name} ko “${c.believed}” yaad hai, “${c.heard}” nahi`, 'lie', 'Takraav');
     if (c.earlierBy !== by) {
       window.setTimeout(() => bark(c.earlierBy, BLAME[c.earlierBy][Math.floor(Math.random() * 2)], 3), 400);
       addStat('gang.harmony', -6);
     }
   } else if (result.kind === 'confessed') {
     emote(to, '♥', 1.6);
-    toast(`${name} now knows the truth: not “${result.replaced}”, just “${value}”`, 'objective', 'Came clean');
+    toast(`${name} ko ab sach pata hai: “${result.replaced}” nahi, bas “${value}”`, 'objective', 'Sach kabool kiya');
   } else if (result.kind === 'consistent' && result.corroboratedBy) {
     emote(to, '♪', 1.4);
   }
@@ -216,14 +218,14 @@ export function chooseDialogue(i: number) {
     if (st.where[c.who] !== st.scene) {
       // split up: the friend you need is somewhere else
       sfx('fail');
-      toast(`${FRIENDS[c.who].name} isn’t here`, 'fail', 'You split the gang up');
+      toast(`${FRIENDS[c.who].name} yahaan nahi hai`, 'fail', 'Tumne gang ko alag kar diya');
       return;
     }
     // the right friend steps forward; pick the line again to commit
     switchTo(c.who);
     st.posted[active] = false;
     sfx('switch');
-    bark(c.who, ['Leave this to me.', 'Step aside. Professional at work.', 'My turn.', 'Okay okay, I’ll do it.'][idx(c.who) - 1], 2);
+    bark(c.who, ['Ye mujh pe chhodo.', 'Hato. Professional kaam kar raha hai.', 'Meri baari.', 'Achha achha, main karta hoon.'][idx(c.who) - 1], 2);
     return;
   }
   sfx('select');
@@ -257,7 +259,7 @@ export function runAction(it: Interactable, a: Action) {
   const s = get();
   if (a.who && a.who !== s.active) {
     sfx('fail');
-    bark(s.active, `That is a ${FRIENDS[a.who].name} job. (Press ${idx(a.who)})`);
+    bark(s.active, `Ye ${FRIENDS[a.who].name} ka kaam hai. (${idx(a.who)} dabao)`);
     return;
   }
   if (!s.hints.interacted) set({ hints: { ...s.hints, interacted: true } });
@@ -267,7 +269,7 @@ export function runAction(it: Interactable, a: Action) {
     const me = ent(s.active);
     const d = Math.hypot(me.x - t.x, me.z - t.z);
     if (d > 2.8) {
-      bark(s.active, 'I need to be standing next to him for this.', 2);
+      bark(s.active, 'Iske liye uske paas khada hona padega.', 2);
       return;
     }
   }

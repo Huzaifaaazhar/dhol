@@ -32,8 +32,10 @@ export function CameraRig() {
     pos.current.z += (g.z - pos.current.z) * k;
     pos.current.y = g.height;
     const fit = THREE.MathUtils.clamp(Math.min(size.width / 1.6, size.height) / 820, 0.55, 1.5);
-    const zoom = g.zoom * fit;
-    c.zoom += (zoom - c.zoom) * Math.min(1, dt * 3);
+    // filmi punch-in: snap in fast, ease back out
+    if (runtime.zoomPunch > 0) runtime.zoomPunch = Math.max(0, runtime.zoomPunch - dt * 0.5);
+    const zoom = g.zoom * fit * (1 + runtime.zoomPunch);
+    c.zoom += (zoom - c.zoom) * Math.min(1, dt * (runtime.zoomPunch > 0.05 ? 12 : 3));
     let sx = 0,
       sy = 0;
     if (runtime.shake > 0) {

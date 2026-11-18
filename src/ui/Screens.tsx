@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useGame, startNewGame, continueGame } from '../game/store';
-import { initAudio, setMuted, sfx, startRhythm, stopRhythm, dhol, startAmbience, stopAmbience } from '../game/audio';
+import { initAudio, setMuted, sfx, startRhythm, startMelody, stopRhythm, dhol, startAmbience, stopAmbience } from '../game/audio';
 import { onInput } from '../game/input';
 import { INTRO, BROKE_BEATS, introClock, introTime } from '../intro/timeline';
 import { FRIENDS } from '../game/data/characters';
@@ -57,21 +57,40 @@ export function Boot() {
   return (
     <div className="boot">
       <Logo />
-      <p className="boot-tag">Four idiots. One big mess.</p>
+      <p className="boot-tag">Chaar yaar. Ek dhol. Bada lafda.</p>
       <p className="boot-cta">
-        <span className="pulse">{navigator.maxTouchPoints > 0 ? 'Tap anywhere to begin' : 'Press any key or click to begin'}</span>
-        <span className="boot-sub">Sound on, if your neighbours allow it</span>
+        <span className="pulse">{navigator.maxTouchPoints > 0 ? 'Shuru karne ke liye kahin bhi tap karo' : 'Shuru karne ke liye koi bhi button dabao ya click karo'}</span>
+        <span className="boot-sub">Awaaz chalu rakho, agar padosi ijaazat dein</span>
       </p>
     </div>
   );
 }
 
 /* ───────────── opening captions over the 3D intro ───────────── */
+/** Bollywood freeze-frame name card: a flash, a drum hit, a full name and a filmi line. */
+function FreezeCard({ id, color, fullName, tagline, role, first }: { id: string; color: string; fullName: string; tagline: string; role: string; first: boolean }) {
+  useEffect(() => {
+    dhol('both', 0, 1);
+    dhol('bass', 0.12, 0.9);
+  }, [id]);
+  return (
+    <div className="intro-friend freeze" style={{ ['--c' as string]: color }}>
+      <div className="freeze-flash" />
+      <div className="freeze-band" />
+      <div className="intro-friend-kicker">{first ? 'Pesh hai' : 'Aur'}</div>
+      <div className="intro-friend-name">{fullName}</div>
+      <div className="intro-friend-blurb">{tagline}</div>
+      <div className="intro-friend-role">{role}</div>
+    </div>
+  );
+}
+
 export function IntroOverlay() {
   const [t, setT] = useState(0);
   const ended = useRef(false);
   useEffect(() => {
     startRhythm(104, 0.55);
+    startMelody(104, 0.08);
     let raf = 0;
     const loop = () => {
       const now = introTime();
@@ -107,15 +126,14 @@ export function IntroOverlay() {
       {t < INTRO.titleEnd && (
         <div className="intro-title">
           <Logo beat />
-          {t > 1.6 && <p className="intro-tag">FOUR IDIOTS. ONE BIG MESS.</p>}
+          {t > 1.6 && (
+            <p className="intro-tag">
+              CHAAR YAAR. EK DHOL. BADA LAFDA.                          </p>
+          )}
         </div>
       )}
       {f && (
-        <div className="intro-friend" key={f.id} style={{ ['--c' as string]: f.color }}>
-          <div className="intro-friend-name">{f.name}</div>
-          <div className="intro-friend-role">{f.role}</div>
-          <div className="intro-friend-blurb">{f.blurb}</div>
-        </div>
+        <FreezeCard key={f.id} id={f.id} color={f.color} fullName={f.fullName} tagline={f.tagline} role={f.role} first={friendIdx === 0} />
       )}
       {brokeT >= 0 && t < INTRO.brokeEnd && (
         <div className="intro-beats">
@@ -128,12 +146,12 @@ export function IntroOverlay() {
       )}
       {hoodT >= 0.4 && (
         <div className="intro-hood">
-          <div className="intro-hood-name">Shanti Nagar, Lane 4</div>
-          <div className="intro-hood-sub">Where every get-rich plan comes home to die.</div>
+          <div className="intro-hood-name">Shanti Nagar, Gali No. 4, Pune</div>
+          <div className="intro-hood-sub">Jahaan har ameer banne ka plan ghar aake dum todta hai.</div>
         </div>
       )}
       <div className="skip">
-        <kbd>Esc</kbd> skip
+        <kbd>Esc</kbd> aage badho
       </div>
     </div>
   );
@@ -145,11 +163,11 @@ export function TitleScreen() {
   const muted = useGame((s) => s.muted);
   const save = useGame((s) => s.savedPos);
   const items = [
-    ...(hasSave ? [{ id: 'continue', label: 'Continue', sub: save ? SCENES[save.scene].name : '' }] : []),
-    { id: 'new', label: hasSave ? 'Start over' : 'Start the story', sub: hasSave ? 'Your saved progress will be replaced' : '' },
-    ...(listSlots().some((x) => x.slot) ? [{ id: 'load', label: 'Load a saved game', sub: '' }] : []),
-    { id: 'intro', label: 'Watch the opening', sub: '' },
-    { id: 'sound', label: muted ? 'Sound: off' : 'Sound: on', sub: '' },
+    ...(hasSave ? [{ id: 'continue', label: 'Jaari rakho', sub: save ? SCENES[save.scene].name : '' }] : []),
+    { id: 'new', label: hasSave ? 'Naye sire se' : 'Kahaani shuru karo', sub: hasSave ? 'Sambhaala hua khel mit jaayega' : '' },
+    ...(listSlots().some((x) => x.slot) ? [{ id: 'load', label: 'Sambhaala hua khel kholo', sub: '' }] : []),
+    { id: 'intro', label: 'Shuruaat phir dekho', sub: '' },
+    { id: 'sound', label: muted ? 'Awaaz: band' : 'Awaaz: chalu', sub: '' },
   ];
   const [loading, setLoading] = useState(false);
   const [sel, setSel] = useState(0);
@@ -159,6 +177,7 @@ export function TitleScreen() {
 
   useEffect(() => {
     startRhythm(92, 0.32);
+    startMelody(92, 0.07);
     return () => stopRhythm();
   }, []);
 
@@ -209,7 +228,7 @@ export function TitleScreen() {
     <div className="title">
       <div className="title-head">
         <Logo />
-        <p className="title-tag">Four idiots. One big mess.</p>
+        <p className="title-tag">Chaar yaar. Ek dhol. Bada lafda.</p>
       </div>
       {loading ? (
         <div className="title-load">
@@ -219,10 +238,10 @@ export function TitleScreen() {
           </button>
         </div>
       ) : (
-      <nav className="menu" aria-label="Main menu">
+      <nav className="menu" aria-label="Mukhya suchi">
         {items.map((it, i) => (
           <button key={it.id} className={`menu-item ${i === sel ? 'is-sel' : ''}`} onMouseEnter={() => setSel(i)} onClick={() => pick(it.id)}>
-            <span className="menu-label">{it.id === 'new' && confirmNew ? 'Press again to start over' : it.label}</span>
+            <span className="menu-label">{it.id === 'new' && confirmNew ? 'Naye sire se shuru karne ke liye phir dabao' : it.label}</span>
             {it.sub && <span className="menu-sub">{it.sub}</span>}
           </button>
         ))}
@@ -230,7 +249,7 @@ export function TitleScreen() {
       )}
       <p className="title-foot">
         <kbd>↑</kbd>
-        <kbd>↓</kbd> choose · <kbd>Enter</kbd> select · <kbd>M</kbd> mute
+        <kbd>↓</kbd> chuno · <kbd>Enter</kbd> pakka · <kbd>M</kbd> awaaz
       </p>
     </div>
   );
@@ -247,18 +266,18 @@ export function PauseMenu() {
   const [confirm, setConfirm] = useState(false);
   if (!paused) return null;
   return (
-    <div className="pause" role="dialog" aria-label="Paused">
+    <div className="pause" role="dialog" aria-label="Ruka hua">
       <div className="pause-card">
         <div className="pause-head">
           <Logo size="md" />
           <button className="btn" onClick={() => set({ paused: false })}>
-            Resume <kbd>Esc</kbd>
+            Wapas khelo <kbd>Esc</kbd>
           </button>
         </div>
         <div className="tabs" role="tablist">
           {(['missions', 'saves', 'controls', 'secrets'] as const).map((t) => (
             <button key={t} role="tab" aria-selected={tab === t} className={`tab ${tab === t ? 'is-on' : ''}`} onClick={() => setTab(t)}>
-              {t === 'missions' ? 'Missions' : t === 'saves' ? 'Save / Load' : t === 'controls' ? 'Controls' : `Secrets ${secrets.length}/${Object.keys(SECRETS).length}`}
+              {t === 'missions' ? 'Muhimein' : t === 'saves' ? 'Sambhaalo / Kholo' : t === 'controls' ? 'Kaise khelein' : `Raaz ${secrets.length}/${Object.keys(SECRETS).length}`}
             </button>
           ))}
         </div>
@@ -266,53 +285,53 @@ export function PauseMenu() {
           {tab === 'missions' && <MissionLog />}
           {tab === 'saves' && (
             <>
-              <p className="saves-note">Progress also saves automatically. Missions that run on a clock restart from their beginning when loaded.</p>
+              <p className="saves-note">Khel apne aap bhi sambhalta rehta hai. Ghadi waali muhimein kholne pe shuru se chalti hain.</p>
               <SlotList canSave />
             </>
           )}
           {tab === 'controls' && (
             <dl className="controls">
               <dt>
-                <kbd>WASD</kbd> / arrows
+                <kbd>WASD</kbd> / teer
               </dt>
-              <dd>Walk. Hold Shift to run (Maru may trip).</dd>
+              <dd>Chalo. Daudne ke liye Shift dabaaye rakho (Maru gir sakta hai).</dd>
               <dt>
                 <kbd>1</kbd>–<kbd>4</kbd>, <kbd>Tab</kbd>
               </dt>
-              <dd>Switch between Sam, Pakya, Goti and Maru. The others follow.</dd>
+              <dd>Sam, Pakya, Goti aur Maru mein badlo. Baaki peeche aate hain.</dd>
               <dt>
                 <kbd>E</kbd>
               </dt>
-              <dd>Talk, inspect, enter. Works on anything with a sign over it.</dd>
+              <dd>Baat karo, dekho, andar jao. Jis cheez ke upar nishaan ho, us pe chalta hai.</dd>
               <dt>
                 <kbd>F</kbd>
               </dt>
-              <dd>The active friend’s ability: on an object, or just to show off.</dd>
+              <dd>Chaalu dost ki khoobi: kisi cheez pe, ya bas dikhaane ke liye.</dd>
               <dt>
                 <kbd>Space</kbd> / <kbd>Enter</kbd>
               </dt>
-              <dd>Continue dialogue. Number keys pick a reply.</dd>
+              <dd>Baatcheet aage badhaao. Number dabaake jawaab chuno.</dd>
               <dt>
                 <kbd>Q</kbd>
               </dt>
-              <dd>Tell the nearest friend to wait here, or to come along again.</dd>
+              <dd>Paas wale dost ko yahin rukne, ya phir saath chalne ko bolo.</dd>
               <dt>
                 <kbd>L</kbd>
               </dt>
-              <dd>Pakya’s Lie Book: who was told what, and how suspicious they are.</dd>
+              <dd>Pakya ki Jhooth ki Diary: kisko kya bola, aur kise kitna shak hai.</dd>
               <dt>
                 <kbd>M</kbd>
               </dt>
-              <dd>Mute or unmute.</dd>
-              <dt>Touch</dt>
-              <dd>Left pad walks (push hard to run). E and F buttons show what they will do. Tap a friend’s circle to switch. Tap the dialogue to continue.</dd>
+              <dd>Awaaz band ya chalu.</dd>
+              <dt>Mobile pe</dt>
+              <dd>Baayein pad se chalo (zor se dabao toh daudo). E aur F button batate hain kya karenge. Dost badalne ke liye uske gole pe tap karo. Baatcheet aage badhaane ke liye us pe tap karo.</dd>
             </dl>
           )}
           {tab === 'secrets' && (
             <ul className="secrets">
               {Object.entries(SECRETS).map(([k, v]) => (
                 <li key={k} className={secrets.includes(k) ? 'is-found' : ''}>
-                  {secrets.includes(k) ? v : 'Not found yet'}
+                  {secrets.includes(k) ? v : 'Abhi tak nahi mila'}
                 </li>
               ))}
             </ul>
@@ -320,7 +339,7 @@ export function PauseMenu() {
         </div>
         <div className="pause-foot">
           <button className="btn ghost" onClick={() => set({ paused: false, lieBook: true })}>
-            Lie Book <kbd>L</kbd>
+            Jhooth ki Diary <kbd>L</kbd>
           </button>
           <button
             className="btn ghost"
@@ -330,7 +349,7 @@ export function PauseMenu() {
               setMuted(m);
             }}
           >
-            {muted ? 'Sound: off' : 'Sound: on'}
+            {muted ? 'Awaaz: band' : 'Awaaz: chalu'}
           </button>
           <button
             className="btn ghost"
@@ -339,7 +358,7 @@ export function PauseMenu() {
               set({ paused: false, mode: 'title' });
             }}
           >
-            Save and quit to title
+            Sambhaalo aur shuru ke screen pe jao
           </button>
           {hasCheckpoint && activeMission() && (
             <button
@@ -351,7 +370,7 @@ export function PauseMenu() {
                 retryMission();
               }}
             >
-              {confirmRetry ? 'Click again to restart this mission' : 'Restart this mission'}
+              {confirmRetry ? 'Muhim shuru se karne ke liye phir dabao' : 'Ye muhim shuru se karo'}
             </button>
           )}
           <button
@@ -362,7 +381,7 @@ export function PauseMenu() {
               startNewGame();
             }}
           >
-            {confirm ? 'Click again to erase progress' : 'Restart from the beginning'}
+            {confirm ? 'Sab mitaane ke liye phir dabao' : 'Bilkul shuru se khelo'}
           </button>
         </div>
       </div>
@@ -401,33 +420,33 @@ export function PartEnd() {
   const part2 = ended === 'part2';
   const worst = Object.entries(lies.suspicion).sort((a, b) => b[1] - a[1])[0];
   return (
-    <div className="partend" role="dialog" aria-label={part2 ? 'End of part two' : 'Interval'}>
+    <div className="partend" role="dialog" aria-label={part2 ? 'Doosra hissa khatam' : 'Interval'}>
       <div className="partend-inner">
-        <div className="partend-kicker">{part2 ? 'End of Part 2' : 'Interval'}</div>
+        <div className="partend-kicker">{part2 ? 'Picture Abhi Baaki Hai' : 'INTERVAL'}</div>
         <Logo size="md" />
         {part2 ? (
           <>
-            <p className="partend-line">{flags['end.fake'] ? 'Zikomo drove off with a drum full of nothing.' : 'Zikomo left empty-handed, and angrier.'} Tomorrow, he finds out.</p>
+            <p className="partend-line">{flags['end.fake'] ? 'Zikomo khaali dhol leke chala gaya.' : 'Zikomo khaali haath gaya, aur gusse mein.'} Aur Ritu ko sach pata chal gaya: Jai nahi, Pakya.</p>
             <p className="partend-stats">
-              Ritu’s trust {Math.round(stats['ritu.trust'] ?? 0)} · Gang harmony {Math.round(stats['gang.harmony'] ?? 0)} · {lies.contradictions.length} lies caught
-              {worst && worst[1] > 0 ? ` · Most suspicious: ${NPCS[worst[0]]?.name ?? worst[0]}` : ''}
+              Ritu ka bharosa {Math.round(stats['ritu.trust'] ?? 0)} · Yaari {Math.round(stats['gang.harmony'] ?? 0)} · {lies.contradictions.length} jhooth pakde gaye
+              {worst && worst[1] > 0 ? ` · Sabse zyaada shak: ${NPCS[worst[0]]?.name ?? worst[0]}` : ''}
             </p>
             <p className="partend-next">
-              {flags['end.tiwari'] ? 'The real dhol is sitting next to Tiwari-ji’s chair, held hostage for rent. ' : 'The real dhol is safe under Maru’s charpai. Maru has not slept. '}
-              Tomorrow the colony finds out what was really inside that drum.
+              {flags['end.tiwari'] ? 'Asli dhol Dongre Mama ki kursi ke paas pada hai, karze ke badle bandhak. ' : 'Asli dhol Maru ki charpai ke neeche mehfooz hai. Maru soya nahi hai. '}
+              Kal pata chalega ki us dhol mein asal mein kya tha.
             </p>
           </>
         ) : (
           <>
-            <p className="partend-line">Four friends. One neighbour. Each of them sure she liked him.</p>
+            <p className="partend-line">Chaar dost. Ek padosan. Har ek ko yakeen ki woh usi ko pasand karti hai.</p>
             <p className="partend-stats">
-              ₹{money} saved of ₹6,000 · {secrets.length} of {Object.keys(SECRETS).length} secrets found
+              ₹{money} jama / ₹6,000 · {secrets.length} / {Object.keys(SECRETS).length} raaz mile
             </p>
-            <p className="partend-next">Samosa break. After this: the four of them start competing for Ritu, and everything gets worse.</p>
+            <p className="partend-next">Samosa break. Iske baad: chaaron Ritu ke liye aapas mein ladenge, aur sab kuch aur bigdega.</p>
           </>
         )}
         <button className="btn" onClick={closePartEnd}>
-          {part2 ? 'Start Part 3' : 'Start Part 2'} <kbd>Enter</kbd>
+          {part2 ? 'Teesra hissa shuru karo' : 'Doosra hissa shuru karo'} <kbd>Enter</kbd>
         </button>
       </div>
     </div>
@@ -442,7 +461,7 @@ function closePartEnd() {
   // the end of Part 2 leads straight into Part 3
   if (s.partEnded === 'part2' && s.missions.reveal?.status === 'locked') {
     activateMission('reveal');
-    toast(MISSION_MAP.reveal.title, 'mission', 'Part 3');
+    toast(MISSION_MAP.reveal.title, 'mission', 'Teesra hissa');
     return;
   }
   const part2Started = ['rich', 'jai', 'zikomo', 'dhol', 'chaos'].some((m) => s.missions[m]?.status !== 'locked');
@@ -450,7 +469,7 @@ function closePartEnd() {
     if (s.missions.ritu?.status === 'active') set({ missions: { ...s.missions, ritu: { status: 'done', done: s.missions.ritu.done } } });
     set({ mstate: { ...s.mstate, 'pending.rich': false } });
     activateMission('rich');
-    toast(MISSION_MAP.rich.title, 'mission', 'Part 2');
+    toast(MISSION_MAP.rich.title, 'mission', 'Doosra hissa');
   }
 }
 

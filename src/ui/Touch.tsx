@@ -49,7 +49,7 @@ function Joystick() {
     <div
       ref={base}
       className="stick"
-      aria-label="Move"
+      aria-label="Chalo"
       onPointerDown={(e) => {
         id.current = e.pointerId;
         (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
@@ -62,7 +62,7 @@ function Joystick() {
       onPointerCancel={end}
     >
       <div ref={knob} className="stick-knob" />
-      <span className="stick-hint">Push hard to run</span>
+      <span className="stick-hint">Daudne ke liye zor se dabao</span>
     </div>
   );
 }
@@ -96,19 +96,19 @@ export function TouchControls() {
     <div className="touch">
       <Joystick />
       <div className="tbuttons">
-        <button className="tbtn tbtn-e" onPointerDown={press('interact')} aria-label={main?.verb ?? 'Interact'}>
+        <button className="tbtn tbtn-e" onPointerDown={press('interact')} aria-label={main?.verb ?? 'Baat / kaam'}>
           <span className="tbtn-key">E</span>
-          <span className="tbtn-label">{it?.hide ? 'Hide' : (main?.verb ?? 'Interact')}</span>
+          <span className="tbtn-label">{it?.hide ? 'Chhupo' : (main?.verb ?? 'Baat / kaam')}</span>
         </button>
         <button className="tbtn tbtn-f" style={{ ['--c' as string]: f.color }} onPointerDown={press('ability')} aria-label={mine?.verb ?? f.ability}>
           <span className="tbtn-key">F</span>
           <span className="tbtn-label">{mine?.verb ?? f.ability}</span>
         </button>
-        <button className="tbtn tbtn-small" onPointerDown={press('order')} aria-label="Tell the nearest friend to wait or follow">
-          <span className="tbtn-label">Wait / Follow</span>
+        <button className="tbtn tbtn-small" onPointerDown={press('order')} aria-label="Paas wale dost ko ruko ya chalo bolo">
+          <span className="tbtn-label">Ruko / Chalo</span>
         </button>
-        <button className="tbtn tbtn-small" onPointerDown={press('book')} aria-label="Lie Book">
-          <span className="tbtn-label">Lie Book</span>
+        <button className="tbtn tbtn-small" onPointerDown={press('book')} aria-label="Jhooth ki Diary">
+          <span className="tbtn-label">Jhooth ki Diary</span>
         </button>
       </div>
     </div>

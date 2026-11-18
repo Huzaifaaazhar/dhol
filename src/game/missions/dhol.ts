@@ -55,7 +55,7 @@ export const dhol: Director = {
     if (get().dhol === 'unknown') set({ dhol: 'junk' });
     setM('caught', 0);
     setM('picked', false);
-    if (get().flags.deal) toast('Zikomo’s men are watching you, as promised. Stay out of their sight.', 'alert');
+    if (get().flags.deal) toast('Waade ke mutaabik Zikomo ke aadmi nazar rakhe hain. Unki nazar se bacho.', 'alert');
   },
   resume() {
     setup();
@@ -65,14 +65,14 @@ export const dhol: Director = {
     if (name === 'clue') {
       const chain = ['clue.daadi', 'clue.shambhu', 'clue.lalaji', 'clue.kids'];
       const n = chain.filter((c) => s.flags[c]).length;
-      const next = ['Ask Daadi where it went', 'Find Shambhu the kabadiwala on the main road', 'Ask Lalaji at his store', 'Ask the cricket kids', 'Follow the paw prints'][n];
-      toast(next, 'objective', `Clue ${n} of 4`);
+      const next = ['Daadi se poochho dhol kahaan gaya', 'Badi sadak pe Shambhu kabaadiwaale ko dhoondho', 'Lalaji se unki dukaan pe poochho', 'Cricket waale bachchon se poochho', 'Panje ke nishaan ka peechha karo'][n];
+      toast(next, 'objective', `Suraag ${n} / 4`);
       if (n >= 4) completeObjective('dhol.trail');
     }
     if (name === 'found') {
       set({ dhol: 'lane' });
       completeObjective('dhol.find');
-      toast('Rahul’s dhol! Pick it up (E). It’s heavy.', 'objective');
+      toast('Rahul ka dhol! Uthaao (E). Bhaari hai.', 'objective');
     }
     if (name === 'pickup') {
       if (!getM('picked', false)) {
@@ -81,7 +81,7 @@ export const dhol: Director = {
           spawnAgent('spanner', 'street', 2, 7, { route: [[2, 7, 1], [20.4, 7.2, 1], [20.4, 15, 2], [2, 7, 1], [-24, 7, 2]], speed: 2.0, vision: { range: 7, fov: 1.9 }, hostile: true });
           spawnAgent('bhaloo', 'street', -26, 7.2, { route: [[-26, 7.2, 2], [-8, 7.2, 2]], speed: 1.7, vision: { range: 6.5, fov: 1.8 }, hostile: true });
         }
-        toast('Spanner is walking this way. Get the dhol to the hideout unseen.', 'alert');
+        toast('Spanner isi taraf aa raha hai. Bina dikhe dhol adde tak pahunchaao.', 'alert');
       }
     }
     if (name === 'opened') startDialogue('dhol_open');
@@ -96,7 +96,7 @@ export const dhol: Director = {
     if (c && s.where[c] === 'hideout' && !s.missions.dhol.done.includes('dhol.bring')) {
       set({ dhol: 'hideout' });
       completeObjective('dhol.bring');
-      toast('The dhol is safe in the hideout. Examine it.', 'objective');
+      toast('Dhol adde mein safe hai. Iski jaanch karo.', 'objective');
     }
     // Goti can’t help himself
     if (c === 'goti') {
@@ -106,7 +106,7 @@ export const dhol: Director = {
         if (Math.random() < 0.45) {
           drum('both', 0, 1);
           drum('treble', 0.18, 0.8);
-          bark('goti', ['BOOM-chik! Sorry. My hands did it.', 'Dhinak dhin! …I didn’t do that.', 'It wanted to be played!'][Math.floor(Math.random() * 3)], 2.4);
+          bark('goti', ['DHUM-chik! Sorry. Haathon ne kiya.', 'Dhinak dhin! …Maine nahi kiya.', 'Ye bajna chahta tha!'][Math.floor(Math.random() * 3)], 2.4);
           const e = ent('goti');
           noise('goti', e.x, e.z);
         }
@@ -118,21 +118,21 @@ export const dhol: Director = {
       cancelTask(ledger.who, true);
       set({ lies: { ...s.lies, suspicion: { ...s.lies.suspicion, lalaji: Math.min(100, (s.lies.suspicion.lalaji ?? 0) + 15) } } });
       emote('lalaji', '💢', 2);
-      bark('lalaji', 'OYE! That is my ledger! Hands off!', 2.4);
-      toast('Lalaji saw that. Have Maru distract him first (F as Maru near him).', 'fail');
+      bark('lalaji', 'OYE! Woh mera bahi-khaata hai! Haath hatao!', 2.4);
+      toast('Lalaji ne dekh liya. Pehle Maru se unka dhyaan bhatkaao (unke paas Maru ban ke F).', 'fail');
     }
   },
   caught(who: CharId) {
     if (carrier() === who) {
       set({ dhol: 'zikomo' });
-      failMission('Spanner caught the friend carrying the dhol. Zikomo now has Rahul’s drum, and Rahul’s secret.');
+      failMission('Spanner ne dhol uthaane waale dost ko pakad liya. Ab Zikomo ke paas Rahul ka dhol hai, aur Rahul ka raaz bhi.');
       return;
     }
     const n = getM<number>('caught', 0) + 1;
     setM('caught', n);
     setFlag('warned', true);
-    bark('spanner', 'Where is the drum, idiot? …Tch. Get lost. Next time, the boss.', 2.6);
-    toast(`Caught and searched. Nothing on him, so they let him go.`, 'fail', `Caught ${n} of 3`);
-    if (n >= 3) failMission('Zikomo’s men have caught you three times. They have stopped letting you go.');
+    bark('spanner', 'Dhol kahaan hai, gadhe? …Chh. Nikal. Agli baar, boss.', 2.6);
+    toast(`Pakda gaya, talaashi hui. Kuch nahi mila, toh chhod diya.`, 'fail', `Pakde gaye: ${n} / 3`);
+    if (n >= 3) failMission('Zikomo ke aadmiyon ne tumhe teen baar pakda. Ab woh chhodte nahi.');
   },
 };

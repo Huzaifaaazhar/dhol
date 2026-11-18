@@ -21,6 +21,10 @@ export const runtime = {
   /** camera focus point */
   cam: { x: 0, z: 0 },
   shake: 0,
+  /** the closing car chase, while it plays */
+  chase: null as null | { t0: number },
+  /** a quick dramatic zoom-in that decays (filmi moments) */
+  zoomPunch: 0,
   /** current interaction focus world position (for prompt) */
   time: 0,
   /** set when the gang should be placed at a spawn on next frame */

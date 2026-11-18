@@ -103,14 +103,14 @@ export function toggleWait() {
     }
   }
   if (!best) {
-    toast('Nobody close enough to give orders to', 'info');
+    toast('Hukum dene ke liye koi paas nahi', 'info');
     return;
   }
   const waiting = s.posted[best];
   if (waiting && taskOf(best)) cancelTask(best);
   set({ posted: { ...s.posted, [best]: !waiting }, hidden: { ...s.hidden, [best]: waiting ? undefined : s.hidden[best] } });
   sfx('select');
-  bark(best, waiting ? ['Coming!', 'Wait for me!', 'Finally.', 'Okay okay.'][CHAR_IDS.indexOf(best)] : ['I’ll wait here. Strategically.', 'I’ll be here, looking good.', 'I’ll guard this spot. From what?', 'Alone? Here? …Fine.'][CHAR_IDS.indexOf(best)], 2.2);
+  bark(best, waiting ? ['Aa raha hoon!', 'Mera intezaar karo!', 'Aakhir.', 'Achha achha.'][CHAR_IDS.indexOf(best)] : ['Main yahin rukta hoon. Strategy ke saath.', 'Main yahin hoon, achha dikhte hue.', 'Main is jagah ki raksha karunga. Kisse?', 'Akela? Yahaan? …Theek hai.'][CHAR_IDS.indexOf(best)], 2.2);
 }
 
 /** Sam’s rally: every friend in this scene who isn’t busy falls in behind him. */
@@ -136,7 +136,7 @@ export function hideAt(spot: string, x: number, z: number) {
   e.speed = 0;
   set({ hidden: { ...s.hidden, [s.active]: spot } });
   sfx('whoosh');
-  bark(s.active, ['Invisible. Like a plan.', 'Nobody sees Pakya unless Pakya wants.', 'I am a cart now.', 'Don’t breathe, Maru. Don’t breathe.'][CHAR_IDS.indexOf(s.active)], 2);
+  bark(s.active, ['Gaayab. Plan ki tarah.', 'Pakya ko koi nahi dekhta, jab tak Pakya na chaahe.', 'Ab main thela hoon.', 'Saans mat le, Maru. Saans mat le.'][CHAR_IDS.indexOf(s.active)], 2);
 }
 
 export function friendName(c: CharId) {

@@ -211,13 +211,14 @@ export const ZIKOMO_NET: Array<[string, string]> = [
 ];
 
 export const TOPICS: Record<string, string> = {
-  'pakya.job': 'What Pakya does for a living',
-  'gang.who': 'Who the four of them are',
-  'gang.lastnight': 'Where the gang was last night',
-  'gang.dhol': 'What the gang knows about the dhol',
-  'room.state': 'What is happening in the rented room',
-  'rent.when': 'When the rent will be paid',
-  'maru.health': 'How Maru is feeling',
-  'gang.money': 'What the gang knows about Zikomo’s money',
-  'dhol.fake': 'Who gave Zikomo the fake dhol',
+  'pakya.job': 'Pakya kya kaam karta hai',
+  'gang.who': 'Ye chaar asal mein kaun hain',
+  'gang.lastnight': 'Kal raat gang kahaan thi',
+  'gang.dhol': 'Gang ko dhol ke baare mein kya pata hai',
+  'room.state': 'Kiraaye ke kamre mein kya chal raha hai',
+  'rent.when': 'Karza kab chukega',
+  'maru.health': 'Maru ki tabiyat kaisi hai',
+  'gang.money': 'Gang ko Zikomo ke paise ke baare mein kya pata hai',
+  'dhol.fake': 'Zikomo ko nakli dhol kisne diya',
+  'pakya.who': 'Pakya asal mein kaun hai',
 };

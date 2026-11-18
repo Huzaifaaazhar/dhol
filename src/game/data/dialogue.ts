@@ -6,85 +6,89 @@ const f = (s: StateView, k: string) => !!s.flags[k];
 const pick = <T,>(arr: T[]) => arr[Math.floor(Math.random() * arr.length)];
 
 /**
- * All writing is original. Speakers: friend id, npc id, 'me' (whoever is active) or 'narrator'.
+ * All writing is original, in Hindi (Roman script). Speakers: friend id, npc id,
+ * 'me' (whoever is active) or 'narrator'. Choice tags and toasts are UI and stay in English.
+ *
+ * Internal ids are kept from earlier versions: 'tiwari' is Dongre Mama (Maru's miser uncle,
+ * an Assistant Sub-Inspector who lent the four ₹6,000), 'daadi' is Elizabeth Daadi.
  */
 export const DIALOGUES: Record<string, DialogueScript> = {
-  /* ───────────── Mission 1: Rent Day ───────────── */
+  /* ───────────── Mission 1: Mama ka Karza ───────────── */
   tiwari: {
     start: (s) => (f(s, 'landlord.cleared') ? pick(['after1', 'after2', 'after3']) : 'block'),
     nodes: {
       block: {
         speaker: 'tiwari',
-        text: 'Aha! Four tenants. One door. One landlord. Where is my six thousand rupees?',
+        text: 'Aha! Chaar bhaanje. Ek darwaaza. Ek Mama. Mera chhe hazaar kahaan hai? Byaaj ke saath, beta. Byaaj ke saath!',
         effects: [{ emote: 'tiwari', kind: '💢' }],
         next: 'block2',
       },
       block2: {
         speaker: 'tiwari',
-        text: 'Nobody leaves this building until I hear something that sounds like money.',
+        text: 'Jab tak paise ki khushboo nahi aayegi, koi is ghar se bahar nahi jaayega. Main police mein hoon, bhool gaye?',
         choices: [
-          { who: 'sam', tag: 'Negotiate', text: 'Propose a flexible payment structure.', next: 'sam1' },
-          { who: 'pakya', tag: 'Bluff', text: 'Become somebody important. Quickly.', next: 'pakya1' },
-          { who: 'maru', tag: 'Make a scene', text: 'Clutch chest. Collapse dramatically.', next: 'maru1' },
-          { who: 'goti', tag: 'Something weird', text: 'Offer him a shiny rock as collateral.', next: 'goti1' },
-          { text: 'Run for it.', next: 'run1' },
+          { who: 'sam', tag: 'Sauda', text: 'Ek flexible payment plan pesh karo.', next: 'sam1' },
+          { who: 'pakya', tag: 'Jhaansa', text: 'Jaldi se koi bada aadmi ban jao.', next: 'pakya1' },
+          { who: 'maru', tag: 'Tamaasha', text: 'Seena pakdo. Filmi style mein gir jao.', next: 'maru1' },
+          { who: 'goti', tag: 'Ajeeb Harkat', text: 'Girvi mein ek chamakta patthar do.', next: 'goti1' },
+          { text: 'Bhaago!', next: 'run1' },
         ],
       },
-      sam1: { speaker: 'sam', text: 'Tiwari-ji. Let us discuss a flexible, long-term, mutually beneficial payment structure.', next: 'sam2' },
-      sam2: { speaker: 'tiwari', text: 'Flexible? My stomach is flexible. My rent is not. Pay something today. Even one rupee.', next: 'sam3' },
-      sam3: { speaker: 'sam', text: '…Would you accept a payment in confidence?', next: 'pushback' },
+      sam1: { speaker: 'sam', text: 'Mama-ji. Ek flexible, long-term, dono taraf faayde wala payment structure discuss karte hain.', next: 'sam2' },
+      sam2: { speaker: 'tiwari', text: 'Flexible? Mera pet flexible hai. Mera byaaj nahi. Aaj kuch toh do. Ek rupaya bhi chalega.', next: 'sam3' },
+      sam3: { speaker: 'sam', text: '…Aatmavishvas mein payment chalega?', next: 'pushback' },
       pakya1: {
         speaker: 'pakya',
-        text: '*adjusts collar* Tiwari-ji, you are speaking to a very busy man. I am actually…',
+        text: '*collar theek karta hai* Mama-ji, aap ek bahut busy aadmi se baat kar rahe ho. Main asal mein…',
         choices: [
-          { who: 'pakya', tag: 'Bluff', text: '“…a bank officer. Salary credits on Monday.”', effects: [{ claim: 'pakya.job', value: 'bank officer', to: 'tiwari' }], next: 'bank1' },
-          { who: 'pakya', tag: 'Bluff', text: '“…from the Income Tax department. Undercover.”', effects: [{ claim: 'pakya.job', value: 'income tax officer', to: 'tiwari' }], next: 'tax1' },
-          { who: 'pakya', tag: 'Bluff', text: '“…a film producer. Scouting your terrace.”', effects: [{ claim: 'pakya.job', value: 'film producer', to: 'tiwari' }], next: 'film1' },
+          { who: 'pakya', tag: 'Jhaansa', text: '“…bank officer hoon. Somvaar ko salary aayegi.”', effects: [{ claim: 'pakya.job', value: 'bank mein afsar', to: 'tiwari' }], next: 'bank1' },
+          { who: 'pakya', tag: 'Jhaansa', text: '“…Income Tax department se hoon. Undercover.”', effects: [{ claim: 'pakya.job', value: 'income tax ka afsar', to: 'tiwari' }], next: 'tax1' },
+          { who: 'pakya', tag: 'Jhaansa', text: '“…film producer hoon. Aapki chhat pe shooting karni hai.”', effects: [{ claim: 'pakya.job', value: 'filmon ka producer', to: 'tiwari' }], next: 'film1' },
         ],
       },
-      bank1: { speaker: 'tiwari', text: 'A bank? You? *squints* Which bank?', next: 'bank2' },
-      bank2: { speaker: 'pakya', text: 'The big one. With the logo. And the building.', next: 'bank3' },
-      bank3: { speaker: 'tiwari', text: 'Monday. MONDAY. If not, I am renting your room to the pigeons.', next: 'cleared' },
+      bank1: { speaker: 'tiwari', text: 'Bank? Tu? *aankhein sikodta hai* Kaunsa bank?', next: 'bank2' },
+      bank2: { speaker: 'pakya', text: 'Woh bada wala. Logo wala. Building wala.', next: 'bank3' },
+      bank3: { speaker: 'tiwari', text: 'Somvaar. SOMVAAR. Warna tum chaaron ko havalaat mein byaaj bharna padega.', next: 'cleared' },
       tax1: {
         speaker: 'tiwari',
-        text: 'Income tax?! I— I have no extra income! That second flat belongs to my wife’s cousin! Go, go, take your time, sir!',
+        text: 'Income tax?! M-mera koi extra income nahi hai! Woh byaaj ka dhanda… woh toh samaaj seva hai! Jaao, jaao, aaram se jaao, sahab!',
         effects: [{ emote: 'tiwari', kind: '!' }],
         next: 'cleared',
       },
-      film1: { speaker: 'tiwari', text: 'My terrace? In a film? *fixes vest* Fine. Monday. And put my name in the credits. In big letters.', next: 'cleared' },
-      maru1: { speaker: 'maru', text: 'Aaah! My heart! The pressure… of… rent… everything is going… beige…', effects: [{ sfx: 'thud' }], next: 'maru2' },
+      film1: { speaker: 'tiwari', text: 'Meri chhat? Film mein? *topi theek karta hai* Theek hai. Somvaar. Aur credits mein mera naam. Bade bade akshar mein. “Inspector Dongre.”', next: 'cleared' },
+      maru1: { speaker: 'maru', text: 'Aaah! Mera dil! Byaaj ka… pressure… sab kuch… dhundhla ho raha hai… Mama… meri wasiyat mein… kuch nahi hai…', effects: [{ sfx: 'thud' }], next: 'maru2' },
       maru2: {
         speaker: 'tiwari',
-        text: 'Arre arre arre! Don’t die on my property, the paperwork is terrible! Water! Somebody get water!',
+        text: 'Arre arre arre! Bhaanje, mar mat! Tera loan kaun chukaayega?! Paani! Koi paani lao!',
         effects: [{ emote: 'tiwari', kind: '!' }],
         next: 'maru3',
       },
-      maru3: { speaker: 'narrator', text: 'Tiwari-ji waddles off to find water. The gang slips out. Maru recovers suspiciously fast.', next: 'cleared' },
-      goti1: { speaker: 'goti', text: 'Tiwari-ji. This rock. Very lucky. Very shiny. You keep it until Monday.', next: 'goti2' },
-      goti2: { speaker: 'tiwari', text: '…Is that from my garden?', next: 'goti3' },
-      goti3: { speaker: 'goti', text: '…No.', next: 'pushback' },
-      run1: { speaker: 'tiwari', text: 'Ah-ah-ah. My knees are old, but my hands are very fast.', next: 'pushback' },
+      maru3: { speaker: 'narrator', text: 'Mama paani dhoondhne bhaagte hain. Gang chupke se nikal leti hai. Maru kuch zyaada hi jaldi theek ho jaata hai.', next: 'cleared' },
+      goti1: { speaker: 'goti', text: 'Mama-ji. Ye patthar. Bahut lucky hai. Bahut chamakdaar. Somvaar tak aap rakh lo.', next: 'goti2' },
+      goti2: { speaker: 'tiwari', text: '…Ye mere gamle se uthaaya hai na?', next: 'goti3' },
+      goti3: { speaker: 'goti', text: '…Nahi.', next: 'pushback' },
+      run1: { speaker: 'tiwari', text: 'Aa-ha-ha. Ghutne boodhe hain, beta. Haath police wale hain.', next: 'pushback' },
       pushback: {
         speaker: 'tiwari',
-        text: 'INSIDE. All of you. Come back when you have money or a better story.',
+        text: 'ANDAR. Saare ke saare. Paisa lao, ya phir koi achhi kahaani.',
         effects: [
           { emote: 'tiwari', kind: '💢' },
           { goto: 'house', spawn: 'door' },
-          { toast: 'Tiwari-ji wants a story he can’t argue with. Or a medical emergency.' },
+          { toast: 'Mama ko aisi kahaani chahiye jise woh kaat na sakein. Ya koi beemari ka naatak.' },
         ],
       },
       cleared: {
         speaker: 'narrator',
-        text: 'You are free. For now. Tiwari-ji retreats to his chair with the newspaper and a deep sense of betrayal.',
+        text: 'Aap azaad ho. Filhaal. Mama apni kursi pe akhbaar aur gehre dhokhe ke ehsaas ke saath baith jaate hain.',
         effects: [{ flag: 'landlord.cleared' }, { complete: 'rent.leave' }, { sfx: 'success' }],
       },
-      after1: { speaker: 'tiwari', text: 'Monday! I have written it in my diary. In pen!' },
-      after2: { speaker: 'tiwari', text: 'I am watching you four. I have nothing else to do, so I am watching you very closely.' },
-      after3: { speaker: 'tiwari', text: 'In my day, young men had jobs. And moustaches. Proper ones.' },
+      after1: { speaker: 'tiwari', text: 'Somvaar! Diary mein likh liya hai. Pen se! Pencil se nahi!' },
+      after2: { speaker: 'tiwari', text: 'Main tum chaaron pe nazar rakh raha hoon. Mere paas aur koi kaam nahi, isliye bahut dhyaan se rakh raha hoon.' },
+      after3: { speaker: 'tiwari', text: 'Hamare zamaane mein ladkon ke paas naukri hoti thi. Aur moonchh. Asli wali.' },
     },
   },
 
-  /* ───────────── Mission 2: Chai on Credit ───────────── */
+  /* ───────────── Mission 2: Udhaar ki Chai ───────────── */
   bablu: {
     start: (s) => {
       if (s.missionStatus('chai') === 'active') return 'ask';
@@ -92,49 +96,49 @@ export const DIALOGUES: Record<string, DialogueScript> = {
       return pick(['gossip_ritu', 'gossip_tiwari', 'gossip_lalaji']);
     },
     nodes: {
-      early: { speaker: 'bablu', text: 'Chai? First go and sort out your landlord. He was here at six, practising his shouting.' },
+      early: { speaker: 'bablu', text: 'Chai? Pehle apne Mama ko sambhaalo. Subah chhe baje yahaan aake chillaane ki practice kar rahe the.' },
       ask: {
         speaker: 'bablu',
-        text: 'Four chai? Your tab is three hundred and forty rupees. My stall has a wall of shame, and you four ARE the wall.',
+        text: 'Chaar chai? Tumhara khaata teen sau chaalis rupaye ka hai. Meri dukaan pe sharam ki deewaar hai, aur woh deewaar TUM chaaron ho.',
         choices: [
-          { who: 'sam', tag: 'Negotiate', text: 'Pitch a partnership: free advertising.', next: 'sam1' },
-          { who: 'pakya', tag: 'Bluff', text: 'Reveal yourself as a famous food critic.', effects: [{ claim: 'pakya.job', value: 'food critic', to: 'bablu' }], next: 'pakya1' },
-          { who: 'maru', tag: 'Make a scene', text: 'Faint from hunger.', next: 'maru1' },
-          { who: 'goti', tag: 'Something weird', text: 'Offer to taste-test the biscuits. All of them.', next: 'goti1' },
-          { text: 'Never mind.', next: 'bye' },
+          { who: 'sam', tag: 'Sauda', text: 'Partnership offer karo: free advertising.', next: 'sam1' },
+          { who: 'pakya', tag: 'Jhaansa', text: 'Batao ki tum famous food critic ho.', effects: [{ claim: 'pakya.job', value: 'khaane ka aalochak', to: 'bablu' }], next: 'pakya1' },
+          { who: 'maru', tag: 'Tamaasha', text: 'Bhookh se behosh ho jao.', next: 'maru1' },
+          { who: 'goti', tag: 'Ajeeb Harkat', text: 'Saare biscuit taste-test karne ka offer do.', next: 'goti1' },
+          { text: 'Rehne do.', next: 'bye' },
         ],
       },
-      sam1: { speaker: 'sam', text: 'Bablu bhai, picture this. Four handsome young men, drinking your chai, in public. That is advertising.', next: 'sam2' },
+      sam1: { speaker: 'sam', text: 'Bablu bhai, socho. Chaar handsome jawaan, tumhari chai peete hue, sabke saamne. Isse kehte hain advertising.', next: 'sam2' },
       sam2: { speaker: 'bablu', text: 'Handsome?', next: 'sam3' },
-      sam3: { speaker: 'sam', text: 'Relatively. Compared to the cow.', next: 'sam4' },
+      sam3: { speaker: 'sam', text: 'Relatively. Gaay ke muqaable.', next: 'sam4' },
       sam4: {
         speaker: 'bablu',
-        text: '…Fine. Four cutting chai. But you slurp LOUD. Like it is the best chai in the city. Because it is.',
+        text: '…Chalo theek hai. Chaar cutting. Lekin ZOR se surrrrp karna. Jaise shehar ki sabse achhi chai ho. Kyunki hai.',
         effects: [{ flag: 'chai.got' }, { complete: 'chai.get' }, { emote: 'bablu', kind: '♥' }],
         next: 'tip',
       },
       tip: {
         speaker: 'bablu',
-        text: 'And since you need money: Lalaji’s soda fridge has been dead a week. He says it is cursed. He pays for miracles.',
+        text: 'Aur paise chahiye toh suno: Lalaji ka soda fridge hafte bhar se band hai. Kehta hai bhoot hai. Chamatkaar ke paise deta hai.',
       },
-      pakya1: { speaker: 'bablu', text: 'Last month you were a cricket selector. Before that, a film producer. Before that, my long-lost cousin.', next: 'pakya2' },
-      pakya2: { speaker: 'pakya', text: 'I have range.', next: 'no' },
-      maru1: { speaker: 'maru', text: 'Bablu bhai… so… hungry… I can see… my ancestors…', next: 'maru2' },
-      maru2: { speaker: 'bablu', text: 'It is nine in the morning. You fainted here yesterday. And on Tuesday. Same spot.', next: 'no' },
-      goti1: { speaker: 'bablu', text: 'Last time you “taste-tested” half a jar and gave the jar a five-star review.', next: 'no' },
-      no: { speaker: 'bablu', text: 'No chai. Come back with a real offer.' },
-      bye: { speaker: 'bablu', text: 'Garam chai! Cash only!' },
+      pakya1: { speaker: 'bablu', text: 'Pichhle mahine tu cricket selector tha. Usse pehle film producer. Usse pehle mera bichhda hua bhai.', next: 'pakya2' },
+      pakya2: { speaker: 'pakya', text: 'Range hai meri.', next: 'no' },
+      maru1: { speaker: 'maru', text: 'Bablu bhai… itni… bhookh… mujhe… apne purvaj dikh rahe hain…', next: 'maru2' },
+      maru2: { speaker: 'bablu', text: 'Subah ke nau baje hain. Kal bhi yahin behosh hua tha. Mangalvaar ko bhi. Isi jagah.', next: 'no' },
+      goti1: { speaker: 'bablu', text: 'Pichhli baar tune aadha dabba “taste-test” kiya aur dabbe ko paanch star de diye.', next: 'no' },
+      no: { speaker: 'bablu', text: 'Chai nahi milegi. Asli offer leke aao.' },
+      bye: { speaker: 'bablu', text: 'Garam chai! Sirf nakad!' },
       gossip_ritu: {
         speaker: 'bablu',
-        text: 'Big news: a grandmother and her granddaughter moved into the yellow bungalow. Big house, big gate. People say big money.',
+        text: 'Badi khabar: peele bungalow mein ek ladki apne dada-dadi ke saath aayi hai. Bada ghar, bada gate. Log kehte hain bada paisa.',
         effects: [{ flag: 'gossip.ritu' }],
       },
-      gossip_tiwari: { speaker: 'bablu', text: 'Tiwari-ji fears only two things in life: the income tax department, and his wife. In that order.' },
-      gossip_lalaji: { speaker: 'bablu', text: 'Lalaji counts his coins twice a day. Once to count them, once to say goodnight.' },
+      gossip_tiwari: { speaker: 'bablu', text: 'Tumhare Dongre Mama sirf do cheezon se darte hain: income tax department aur Mami. Isi order mein.' },
+      gossip_lalaji: { speaker: 'bablu', text: 'Lalaji din mein do baar sikke ginte hain. Ek baar ginne ke liye, ek baar shubh raatri kehne ke liye.' },
     },
   },
 
-  /* ───────────── Mission 3: The First Honest Rupee ───────────── */
+  /* ───────────── Mission 3: Pehli Imaandaar Kamaai ───────────── */
   lalaji: {
     start: (s) => {
       if (f(s, 'fridge.fixed')) return 'after';
@@ -142,40 +146,40 @@ export const DIALOGUES: Record<string, DialogueScript> = {
       return 'shop';
     },
     nodes: {
-      shop: { speaker: 'lalaji', text: 'Ram Ram. No credit. Not today, not tomorrow, not in the next life.' },
-      job1: { speaker: 'lalaji', text: 'Ram Ram. You four. Buying, or loitering?', next: 'job2' },
-      job2: { speaker: 'me', text: 'Lalaji, we heard there is a cursed fridge that needs fixing.', next: 'job3' },
+      shop: { speaker: 'lalaji', text: 'Ram Ram. Udhaar nahi. Na aaj, na kal, na agle janam mein.' },
+      job1: { speaker: 'lalaji', text: 'Ram Ram. Tum chaaron. Khareedne aaye ho, ya waqt kaatne?', next: 'job2' },
+      job2: { speaker: 'me', text: 'Lalaji, suna hai ek bhootiya fridge hai jise theek karna hai.', next: 'job3' },
       job3: {
         speaker: 'lalaji',
-        text: 'Cursed! Cola goes in warm, comes out warm. A mechanic, an electrician and my brother-in-law have all failed.',
+        text: 'Bhootiya! Cola garam jaata hai, garam nikalta hai. Mechanic, electrician aur mera saala, teeno haar gaye.',
         next: 'job4',
       },
       job4: {
         speaker: 'lalaji',
-        text: 'Two hundred rupees to whoever fixes it. It is in the corner. Don’t make it worse. It is already very sad.',
+        text: 'Jo theek karega, do sau rupaye. Kone mein rakha hai. Aur bigaadna mat. Bechaara pehle se dukhi hai.',
         effects: [{ complete: 'job.ask' }],
       },
-      waiting: { speaker: 'lalaji', text: 'The fridge is in the corner. It is still cursed. I am still paying.' },
-      after: { speaker: 'lalaji', text: 'Since your round friend slapped my fridge, it makes ice. ICE. In a cola fridge. Best two hundred I ever spent.' },
+      waiting: { speaker: 'lalaji', text: 'Fridge kone mein hai. Abhi bhi bhootiya hai. Main abhi bhi paise de raha hoon.' },
+      after: { speaker: 'lalaji', text: 'Jab se tumhare gol-matol dost ne fridge ko thappad maara, barf bana raha hai. BARF. Cola fridge mein. Zindagi ke sabse achhe do sau rupaye.' },
     },
   },
   fridge_look: {
     start: (s) => (f(s, 'fridge.fixed') ? 'fixed' : 'look'),
     nodes: {
-      look: { speaker: 'me', text: 'It hums. It sulks. It is definitely cursed. A sensible person would never hit it.', next: 'look2' },
-      look2: { speaker: 'narrator', text: 'Goti is not a sensible person.' },
-      fixed: { speaker: 'narrator', text: 'The fridge purrs happily. A small icicle has formed on the label. Lalaji visits it hourly.' },
+      look: { speaker: 'me', text: 'Gungunaata hai. Muh phulaata hai. Pakka bhootiya hai. Koi samajhdaar aadmi isko kabhi nahi maarega.', next: 'look2' },
+      look2: { speaker: 'narrator', text: 'Goti samajhdaar aadmi nahi hai.' },
+      fixed: { speaker: 'narrator', text: 'Fridge khushi se ghurr-ghurr karta hai. Label pe chhota sa barf ka tukda jam gaya hai. Lalaji har ghante milne aate hain.' },
     },
   },
   fridge_goti: {
     start: 'a',
     nodes: {
-      a: { speaker: 'goti', text: 'Fridges are like uncles. They respond to respect… and a firm smack on the left side.', next: 'b' },
-      b: { speaker: 'narrator', text: '*THUNK*', effects: [{ sfx: 'thud' }], next: 'c' },
-      c: { speaker: 'narrator', text: 'The fridge shudders, coughs, and roars to life. A single ice cube falls out and slides across the floor.', next: 'd' },
+      a: { speaker: 'goti', text: 'Fridge bhi chachaon jaise hote hain. Izzat se maante hain… aur baayi taraf ek zordaar thappad se.', next: 'b' },
+      b: { speaker: 'narrator', text: '*DHADAAM*', effects: [{ sfx: 'thud' }], next: 'c' },
+      c: { speaker: 'narrator', text: 'Fridge kaanpta hai, khaansta hai, aur garajke chalu ho jaata hai. Ek barf ka tukda gir ke farsh pe phisalta hai.', next: 'd' },
       d: {
         speaker: 'lalaji',
-        text: 'MIRACLE! Take your two hundred rupees and go, before you touch something else.',
+        text: 'CHAMATKAAR! Lo apne do sau rupaye aur niklo, isse pehle ki kuch aur chhoo lo.',
         effects: [{ flag: 'fridge.fixed' }, { money: 200 }, { complete: 'job.fix' }, { emote: 'lalaji', kind: '!' }],
       },
     },
@@ -183,41 +187,41 @@ export const DIALOGUES: Record<string, DialogueScript> = {
   hairoil: {
     start: 'a',
     nodes: {
-      a: { speaker: 'sam', text: '“Lalaji’s Miracle Hair Oil. Results in seven days or seven years. Results not guaranteed. Smells nice.”', next: 'b' },
-      b: { speaker: 'sam', text: 'That is not a product. That is a business plan. I respect it.', effects: [{ secret: 'hairoil' }] },
+      a: { speaker: 'sam', text: '“Lalaji ka Chamatkaari Tel. Saat din mein asar, ya saat saal mein. Guarantee nahi. Khushboo achhi hai.”', next: 'b' },
+      b: { speaker: 'sam', text: 'Ye product nahi hai. Ye business plan hai. Main izzat karta hoon.', effects: [{ secret: 'hairoil' }] },
     },
   },
 
-  /* ───────────── Mission 4: The Grand Plan ───────────── */
+  /* ───────────── Mission 4: Master Plan ───────────── */
   plan_board: {
     start: (s) => (s.missionStatus('plan') === 'active' && s.objectiveDone('plan.go') ? 'm1' : f(s, 'plan.made') ? 'after' : 'idle'),
     nodes: {
-      idle: { speaker: 'narrator', text: 'The plan board reads: “1. Get rich. 2. ??? 3. Stay rich.” Step 2 has been erased many times.' },
-      after: { speaker: 'narrator', text: 'The board now reads: “OPERATION HELLO NEIGHBOUR. Rule 1: Nobody does anything stupid.” Goti has added: “define stupid”.' },
-      m1: { speaker: 'sam', text: 'Gentlemen. Facts. Rent: six thousand. Our total money: two hundred.', next: 'm2' },
-      m2: { speaker: 'goti', text: 'And one ice cube. I kept it. It is in my pocket.', next: 'm3' },
-      m3: { speaker: 'sam', text: 'Option one: we get jobs.', next: 'm4' },
-      m4: { speaker: 'narrator', text: 'A long, respectful silence.', next: 'm5' },
-      m5: { speaker: 'sam', text: 'Option two: the lottery.', next: 'm6' },
-      m6: { speaker: 'maru', text: 'We bought a ticket last year. Then we lost the ticket. Then I think we won. I don’t want to talk about it.', next: 'm7' },
-      m7: { speaker: 'pakya', text: 'Option three. *leans back* We marry rich.', next: 'm8' },
-      m8: { speaker: 'sam', text: 'That is… *flips the board* …actually already on my list.', next: 'm9' },
-      m9: { speaker: 'pakya', text: 'The new girl in the yellow bungalow. Bablu says the house has two floors and a swing. INDOORS.', next: 'm10' },
-      m10: { speaker: 'maru', text: 'Her grandmother carries a stick. I have seen the stick. The stick has seen me.', next: 'm11' },
+      idle: { speaker: 'narrator', text: 'Plan board pe likha hai: “1. Ameer bano. 2. ??? 3. Ameer raho.” Step 2 kayi baar mitaaya gaya hai.' },
+      after: { speaker: 'narrator', text: 'Board pe ab likha hai: “OPERATION NAYE PADOSI. Rule 1: Koi bewakoofi nahi karega.” Goti ne neeche joda hai: “bewakoofi matlab?”' },
+      m1: { speaker: 'sam', text: 'Gentlemen. Facts. Mama ka karza: chhe hazaar, plus byaaj. Hamare paas: do sau.', next: 'm2' },
+      m2: { speaker: 'goti', text: 'Aur ek barf ka tukda. Maine rakh liya. Jeb mein hai.', next: 'm3' },
+      m3: { speaker: 'sam', text: 'Option ek: naukri dhoondhein.', next: 'm4' },
+      m4: { speaker: 'narrator', text: 'Ek lambi, izzatdaar khaamoshi.', next: 'm5' },
+      m5: { speaker: 'sam', text: 'Option do: lottery.', next: 'm6' },
+      m6: { speaker: 'maru', text: 'Pichhle saal ticket liya tha. Phir ticket kho gaya. Phir shayad hum jeet gaye. Main is baare mein baat nahi karna chahta.', next: 'm7' },
+      m7: { speaker: 'pakya', text: 'Option teen. *peeche jhukta hai* Ameer ladki se shaadi.', next: 'm8' },
+      m8: { speaker: 'sam', text: 'Ye toh… *board palat-ta hai* …pehle se meri list mein hai.', next: 'm9' },
+      m9: { speaker: 'pakya', text: 'Peele bungalow wali nayi ladki. Ritu. Bablu kehta hai ghar do manzil ka hai aur andar jhoola hai. ANDAR.', next: 'm10' },
+      m10: { speaker: 'maru', text: 'Uski dadi ke paas lathi hai. Maine lathi dekhi hai. Lathi ne mujhe dekha hai.', next: 'm11' },
       m11: {
         speaker: 'sam',
-        text: 'Then it is decided. Operation Hello Neighbour. We go together, we make a good impression, and nobody does anything stupid.',
+        text: 'Toh tay raha. Operation Naye Padosi. Saath jaayenge, achha impression daalenge, aur koi bewakoofi nahi karega.',
         next: 'm12',
       },
       m12: {
         speaker: 'goti',
-        text: 'Define stupid.',
+        text: 'Bewakoofi matlab?',
         effects: [{ flag: 'plan.made' }, { complete: 'plan.board' }],
       },
     },
   },
 
-  /* ───────────── Mission 5: Hello, Neighbour ───────────── */
+  /* ───────────── Mission 5: Naye Padosi ───────────── */
   ritu_gate: {
     start: (s) => {
       if (f(s, 'ritu.in')) return 'open';
@@ -225,52 +229,52 @@ export const DIALOGUES: Record<string, DialogueScript> = {
       return 'closed';
     },
     nodes: {
-      closed: { speaker: 'narrator', text: 'A big yellow bungalow with a very shiny gate. A small sign says: “Salesmen will be chased.”' },
-      open: { speaker: 'narrator', text: 'Daadi left the door open. That is either trust, or a trap.' },
-      d1: { speaker: 'daadi', text: 'Who is it? If you are selling water purifiers, I already have three. One of them talks.', next: 'd2' },
+      closed: { speaker: 'narrator', text: 'Bada sa peela bungalow, bahut chamakta gate. Chhoti si takhti: “Salesman ko daudaaya jaayega.”' },
+      open: { speaker: 'narrator', text: 'Daadi ne darwaaza khula chhoda hai. Ya toh bharosa hai, ya phir jaal.' },
+      d1: { speaker: 'daadi', text: 'Kaun hai? Water purifier bechne aaye ho toh mere paas teen hain. Ek toh baat bhi karta hai.', next: 'd2' },
       d2: {
         speaker: 'daadi',
-        text: 'Well? Speak. I am old, not patient.',
+        text: 'Hmm? Bolo. Main boodhi hoon, sabr waali nahi.',
         choices: [
-          { who: 'sam', tag: 'Negotiate', text: 'Introduce yourselves as the official welcome committee.', effects: [{ claim: 'gang.who', value: 'the Lane Four Welcome Committee', to: 'daadi' }], next: 'sam1' },
-          { who: 'pakya', tag: 'Bluff', text: 'Claim to be here on official business.', next: 'pakya1' },
-          { who: 'maru', tag: 'Make a scene', text: 'Wilt dramatically on her doorstep.', next: 'maru1' },
-          { who: 'goti', tag: 'Something weird', text: 'Ask if she has any spare biscuits.', next: 'goti1' },
-          { text: 'Back away slowly.', next: 'leave' },
+          { who: 'sam', tag: 'Sauda', text: 'Khud ko official welcome committee batao.', effects: [{ claim: 'gang.who', value: 'Gali Chaar Swagat Samiti', to: 'daadi' }], next: 'sam1' },
+          { who: 'pakya', tag: 'Jhaansa', text: 'Kaho ki sarkari kaam se aaye ho.', next: 'pakya1' },
+          { who: 'maru', tag: 'Tamaasha', text: 'Unke darwaaze pe murjha jao.', next: 'maru1' },
+          { who: 'goti', tag: 'Ajeeb Harkat', text: 'Poochho ki extra biscuit hain kya.', next: 'goti1' },
+          { text: 'Dheere dheere peeche hato.', next: 'leave' },
         ],
       },
-      sam1: { speaker: 'sam', text: 'Namaste, Daadi. We are the Lane Four Welcome Committee. Official. We welcome.', next: 'sam2' },
-      sam2: { speaker: 'daadi', text: 'There is no welcome committee.', next: 'sam3' },
-      sam3: { speaker: 'sam', text: 'There is now. We formed it this morning. You are our first and most important member.', next: 'sam4' },
-      sam4: { speaker: 'daadi', text: '…Hmph. At least you are organised. Come in. Wipe your feet. All eight of them.', next: 'in' },
+      sam1: { speaker: 'sam', text: 'Namaste Daadi. Hum Lane Chaar Swagat Samiti hain. Official. Hum swagat karte hain.', next: 'sam2' },
+      sam2: { speaker: 'daadi', text: 'Aisi koi samiti nahi hai.', next: 'sam3' },
+      sam3: { speaker: 'sam', text: 'Ab hai. Aaj subah banaayi. Aap hamari pehli aur sabse important member ho.', next: 'sam4' },
+      sam4: { speaker: 'daadi', text: '…Hmph. Kam se kam organised toh ho. Andar aao. Pair ponchh ke. Aathon.', next: 'in' },
       pakya1: {
         speaker: 'pakya',
-        text: 'Madam, we are from the…',
+        text: 'Madam, hum…',
         choices: [
-          { who: 'pakya', tag: 'Bluff', text: '“…Cable TV company. Routine inspection.”', effects: [{ claim: 'pakya.job', value: 'cable TV inspector', to: 'daadi' }], next: 'cable1' },
-          { who: 'pakya', tag: 'Bluff', text: '“…Census department. Counting people.”', effects: [{ claim: 'gang.who', value: 'census officers', to: 'daadi' }], next: 'census1' },
+          { who: 'pakya', tag: 'Jhaansa', text: '“…Cable TV company se hain. Routine inspection.”', effects: [{ claim: 'pakya.job', value: 'cable TV ka jaanchkarta', to: 'daadi' }], next: 'cable1' },
+          { who: 'pakya', tag: 'Jhaansa', text: '“…Census department se hain. Log gin rahe hain.”', effects: [{ claim: 'gang.who', value: 'janganana waale', to: 'daadi' }], next: 'census1' },
         ],
       },
       cable1: {
         speaker: 'daadi',
-        text: 'FINALLY. My serial has been gone for two days! The mother-in-law was about to reveal everything! Come in, come in, fix it!',
+        text: 'AAKHIR! Do din se mera serial band hai! Saas sab kuch bataane hi waali thi! Andar aao, andar aao, theek karo!',
         effects: [{ flag: 'ritu.cable' }],
         next: 'in',
       },
-      census1: { speaker: 'daadi', text: 'Census? The last census man had a uniform and a clipboard. Where is your uniform?', next: 'census2' },
+      census1: { speaker: 'daadi', text: 'Census? Pichhle census wale ke paas uniform tha aur clipboard. Tumhari uniform kahaan hai?', next: 'census2' },
       census2: { speaker: 'pakya', text: '…Casual Friday.', next: 'census3' },
-      census3: { speaker: 'daadi', text: 'It is Wednesday. Goodbye.', effects: [{ emote: 'daadi', kind: '💢' }] },
-      maru1: { speaker: 'maru', text: 'Ohhh… the sun… the heat… my legs are… made of… dal…', effects: [{ sfx: 'thud' }], next: 'maru2' },
+      census3: { speaker: 'daadi', text: 'Aaj Budhvaar hai. Namaste.', effects: [{ emote: 'daadi', kind: '💢' }] },
+      maru1: { speaker: 'maru', text: 'Ohhh… dhoop… garmi… meri taangein… daal ki bani hain…', effects: [{ sfx: 'thud' }], next: 'maru2' },
       maru2: {
         speaker: 'daadi',
-        text: 'Arre, the poor thin one! Bring him inside, give him water! Not you three. …Fine. You three also. Don’t touch anything.',
+        text: 'Arre, bechaara patla wala! Andar lao, paani do! Tum teeno nahi. …Achha, tum teeno bhi. Kuch chhoona mat.',
         next: 'in',
       },
-      goti1: { speaker: 'daadi', text: 'I have no spare biscuits. I do have a spare stick. Would you like to meet it?', effects: [{ emote: 'daadi', kind: '💢' }] },
-      leave: { speaker: 'daadi', text: 'Hmph. Young men these days. No conversation.' },
+      goti1: { speaker: 'daadi', text: 'Extra biscuit nahi hain. Extra lathi hai. Milna chahoge?', effects: [{ emote: 'daadi', kind: '💢' }] },
+      leave: { speaker: 'daadi', text: 'Hmph. Aaj kal ke ladke. Baat karna bhi nahi aata.' },
       in: {
         speaker: 'narrator',
-        text: 'The door creaks open. You are in. Nobody is sure how.',
+        text: 'Darwaaza charr-charr karke khulta hai. Aap andar ho. Kaise, kisi ko nahi pata.',
         effects: [{ flag: 'ritu.in' }, { complete: 'ritu.in' }, { goto: 'ritu', spawn: 'door' }],
       },
     },
@@ -282,69 +286,74 @@ export const DIALOGUES: Record<string, DialogueScript> = {
       return `try_${s.active}`;
     },
     nodes: {
-      default: { speaker: 'ritu', text: 'Oh. Hello again. Daadi is watching you, by the way. She is always watching.' },
-      done_me: { speaker: 'ritu', text: 'You already had your turn. Let your friends embarrass themselves too.' },
+      default: { speaker: 'ritu', text: 'Oh. Phir se hello. Waise Daadi tumhe dekh rahi hain. Woh hamesha dekhti rehti hain.' },
+      done_me: { speaker: 'ritu', text: 'Tumhari baari ho gayi. Apne doston ko bhi apni beizzati karne do.' },
       try_sam: {
         speaker: 'sam',
-        text: 'Hello. I am Sam. I have a five-year plan, a ten-year plan, and a backup plan for both.',
+        text: 'Hello. Main Sam. Mere paas paanch saal ka plan hai, das saal ka plan hai, aur dono ka backup plan.',
         next: 'sam2',
       },
-      sam2: { speaker: 'ritu', text: 'Impressive. And what is the plan for today?', next: 'sam3' },
-      sam3: { speaker: 'sam', text: '…Talking to you was the whole plan. I did not plan past this point.', next: 'sam4' },
-      sam4: { speaker: 'ritu', text: 'Bold opening. Weak follow-through.', effects: [{ flag: 'impress.sam' }, { emote: 'ritu', kind: '…' }], branch: check },
-      try_pakya: { speaker: 'pakya', text: '*leans on the cupboard* They call me Pakya. Some people call me “The Voice”.', next: 'pakya2' },
-      pakya2: { speaker: 'ritu', text: 'Which people?', next: 'pakya3' },
-      pakya3: { speaker: 'pakya', text: '…People. Many people. Internationally.', next: 'pakya4' },
+      sam2: { speaker: 'ritu', text: 'Impressive. Aur aaj ka plan kya hai?', next: 'sam3' },
+      sam3: { speaker: 'sam', text: '…Aapse baat karna hi poora plan tha. Iske aage maine socha nahi.', next: 'sam4' },
+      sam4: { speaker: 'ritu', text: 'Shuruaat dhaansu. Aage ka kuch nahi.', effects: [{ flag: 'impress.sam' }, { emote: 'ritu', kind: '…' }], branch: check },
+      try_pakya: { speaker: 'pakya', text: '*almaari pe tik ke* Log mujhe Pakya kehte hain. Kuch log “The Voice” bhi.', next: 'pakya2' },
+      pakya2: { speaker: 'ritu', text: 'Kaunse log?', next: 'pakya3' },
+      pakya3: { speaker: 'pakya', text: '…Log. Bahut saare log. International.', next: 'pakya4' },
       pakya4: {
         speaker: 'narrator',
-        text: 'The cupboard door swings open behind him. Pakya does not move. He has decided this is cool.',
+        text: 'Peeche almaari ka darwaaza khul jaata hai. Pakya hilta nahi. Usne tay kar liya hai ki ye cool hai.',
         effects: [{ flag: 'impress.pakya' }, { emote: 'ritu', kind: '?' }],
         branch: check,
       },
-      try_goti: { speaker: 'goti', text: 'Hi! Do you like tamarind? I have some in my pocket. It has been there since Holi.', next: 'goti2' },
-      goti2: { speaker: 'ritu', text: 'Since… Holi?', next: 'goti3' },
-      goti3: { speaker: 'goti', text: 'It is aged. Like a fine wine. Or a cheese. Or Daadi.', next: 'goti4' },
+      try_goti: { speaker: 'goti', text: 'Hi! Imli pasand hai? Meri jeb mein hai. Holi se.', next: 'goti2' },
+      goti2: { speaker: 'ritu', text: 'Holi… se?', next: 'goti3' },
+      goti3: { speaker: 'goti', text: 'Puraani hai. Achhi wine ki tarah. Ya cheese. Ya Daadi.', next: 'goti4' },
       goti4: {
         speaker: 'ritu',
-        text: '*laughs despite herself* You are very strange.',
+        text: '*hasi rok nahi paati* Tum bahut ajeeb ho.',
         effects: [{ flag: 'impress.goti' }, { emote: 'ritu', kind: '♥' }],
         next: 'goti5',
       },
-      goti5: { speaker: 'goti', text: 'Thank you!', branch: check },
-      try_maru: { speaker: 'maru', text: 'H-hello. I am Maru. I am normally very calm and very—', next: 'maru2' },
+      goti5: { speaker: 'goti', text: 'Shukriya!', branch: check },
+      try_maru: { speaker: 'maru', text: 'H-hello. Main Maru. Main normally bahut shaant aur bahut—', next: 'maru2' },
       maru2: {
         speaker: 'narrator',
-        text: 'Maru’s elbow meets Daadi’s prized brass vase. The vase meets the floor. The floor wins, loudly.',
+        text: 'Maru ki kohni Daadi ke pyaare peetal ke guldaan se milti hai. Guldaan farsh se milta hai. Farsh jeet-ta hai, zor se.',
         effects: [{ sfx: 'thud' }, { emote: 'daadi', kind: '💢' }, { flag: 'vase.broken' }],
         next: 'maru3',
       },
-      maru3: { speaker: 'daadi', text: 'MY VASE!', next: 'maru4' },
-      maru4: { speaker: 'maru', text: 'IT WAS LIKE THAT WHEN I— it was not. I am so sorry. I will marry it. I mean fix it.', next: 'maru5' },
+      maru3: { speaker: 'daadi', text: 'MERA GULDAAN!', next: 'maru4' },
+      maru4: { speaker: 'maru', text: 'YE PEHLE SE AISA— nahi tha. Maaf kijiye. Main isse shaadi kar loonga. Matlab theek kar doonga.', next: 'maru5' },
       maru5: {
         speaker: 'ritu',
-        text: '*trying very hard not to laugh* It is brass. It bounces. Daadi, it bounced.',
+        text: '*hasi dabaate hue* Peetal ka hai. Uchhalta hai. Daadi, uchhal gaya.',
         effects: [{ flag: 'impress.maru' }, { emote: 'ritu', kind: '♥' }],
         branch: check,
       },
       more: {
         speaker: 'ritu',
-        text: 'Anyone else? Or is that the whole show?',
-        effects: [{ toast: 'Switch friends and talk to Ritu again. Everyone gets one try.' }],
+        text: 'Aur koi? Ya bas itna hi show tha?',
+        effects: [{ toast: 'Dost badlo aur Ritu se phir baat karo. Har ek ko ek mauka.' }],
       },
       finale1: {
         speaker: 'ritu',
-        text: 'Well. You four are… definitely something. Daadi, I like them. They are funnier than the TV.',
+        text: 'Waah. Tum chaaron toh… kuch alag hi ho. Daadi, mujhe ye pasand aaye. TV se zyaada funny hain.',
+        next: 'finale1b',
+      },
+      finale1b: {
+        speaker: 'dadaji',
+        text: '*chashma utaarke* Ek ka kurta polyester. Ek ka nylon. Ek ka pata nahi kya. Aur ek ne guldaan toda. PhD in Textiles, beta. Mujhse kuch nahi chhupta.',
         next: 'finale2',
       },
-      finale2: { speaker: 'daadi', text: 'The TV is working now. Out. All of you.', next: 'finale3' },
+      finale2: { speaker: 'daadi', text: 'TV ab chal raha hai. Bahar. Saare.', next: 'finale3' },
       finale3: {
         speaker: 'narrator',
-        text: 'Four friends walk home in perfect silence. Each one is absolutely certain that she liked HIM.',
+        text: 'Chaar dost bilkul chup-chaap ghar laut-te hain. Har ek ko pakka yakeen hai ki Ritu ko WOH pasand aaya.',
         next: 'finale4',
       },
       finale4: {
         speaker: 'narrator',
-        text: 'This is going to be a problem.',
+        text: 'Ye problem banne waali hai.',
         effects: [{ complete: 'ritu.impress' }, { endPart: true }, { goto: 'street', spawn: 'rituGate' }],
       },
     },
@@ -352,9 +361,18 @@ export const DIALOGUES: Record<string, DialogueScript> = {
   daadi: {
     start: (s) => (f(s, 'vase.broken') ? 'vase' : f(s, 'ritu.cable') ? 'cable' : 'warn'),
     nodes: {
-      warn: { speaker: 'daadi', text: 'Sit properly. Don’t touch the vase. Don’t look at the vase. The vase is not for you.' },
-      cable: { speaker: 'daadi', text: 'You fixed my TV by pushing the plug back in. Such a clever boy. Your friends are less clever.' },
-      vase: { speaker: 'daadi', text: 'That vase came from my wedding. It survived three floods, two earthquakes and one Maru.' },
+      warn: { speaker: 'daadi', text: 'Seedhe baitho. Guldaan ko haath mat lagao. Guldaan ko dekho bhi mat. Guldaan tumhare liye nahi hai.' },
+      cable: { speaker: 'daadi', text: 'Tumne plug wapas laga ke mera TV theek kar diya. Kitna hoshiyaar ladka. Tumhare dost kam hoshiyaar hain.' },
+      vase: { speaker: 'daadi', text: 'Woh guldaan meri shaadi ka tha. Teen baadh, do bhookamp aur ek Maru jhel chuka hai.' },
+    },
+  },
+  /* Ritu's grandfather: PhD in Textiles, judges everyone by their fabric */
+  dadaji: {
+    start: () => pick(['a', 'b', 'c']),
+    nodes: {
+      a: { speaker: 'dadaji', text: '*tumhari kameez ko chhoota hai* Hmm. Sixty percent polyester. Forty percent jhooth. Baitho.' },
+      b: { speaker: 'dadaji', text: 'Chaalis saal kapde ki research ki. Aadmi ko uske dhaage se pehchaanta hoon. Tumhara dhaaga… dheela hai.' },
+      c: { speaker: 'dadaji', text: 'Ritu bahut ziddi hai. Apni Dadi pe gayi hai. Main toh shaant aadmi hoon. Cotton ki tarah. Saans leta hoon.' },
     },
   },
 
@@ -362,18 +380,18 @@ export const DIALOGUES: Record<string, DialogueScript> = {
   pappu: {
     start: () => pick(['a', 'b']),
     nodes: {
-      a: { speaker: 'pappu', text: 'Cut, shave and today’s gossip: fifty rupees. Gossip alone is free. Tiwari-ji is afraid of the tax office. You didn’t hear it from me.' },
-      b: { speaker: 'pappu', text: 'Kamla says Lalaji has been buying her bhindi every day. Nobody eats that much bhindi. Nobody.' },
+      a: { speaker: 'pappu', text: 'Baal, daadhi aur aaj ki gossip: pachaas rupaye. Sirf gossip free. Tumhare Mama income tax office se darte hain. Maine nahi bataaya.' },
+      b: { speaker: 'pappu', text: 'Kamla kehti hai Lalaji roz uski bhindi khareedte hain. Itni bhindi koi nahi khaata. Koi nahi.' },
     },
   },
   pappu_pakya: {
     start: 'a',
     nodes: {
-      a: { speaker: 'pakya', text: 'Pappu bhai. Imagine it. My hair. Your scissors. Walking around the colony all day. A moving advertisement.', next: 'b' },
-      b: { speaker: 'pappu', text: '…You know what? That is actually smart. Sit.', next: 'c' },
+      a: { speaker: 'pakya', text: 'Pappu bhai. Socho. Mere baal. Tumhari kainchi. Din bhar colony mein ghoomte hue. Chalta-phirta advertisement.', next: 'b' },
+      b: { speaker: 'pappu', text: '…Pata hai? Ye toh sach mein smart hai. Baith.', next: 'c' },
       c: {
         speaker: 'narrator',
-        text: 'Twenty minutes later, Pakya’s hair is twelve centimetres taller and legally a landmark.',
+        text: 'Bees minute baad, Pakya ke baal baarah centimeter oonche hain aur kanoonan ek landmark hain.',
         effects: [{ secret: 'barber' }, { emote: 'pappu', kind: '♥' }],
       },
     },
@@ -381,12 +399,12 @@ export const DIALOGUES: Record<string, DialogueScript> = {
   carrom: {
     start: () => pick(['a', 'b', 'c']),
     nodes: {
-      a: { speaker: 'sharma', text: 'In 1984 I pocketed the queen with my eyes closed.', next: 'a2' },
-      a2: { speaker: 'verma', text: 'And you have not opened them since. That is why you keep losing.' },
-      b: { speaker: 'verma', text: 'You boys should get jobs. In my day we had jobs. Terrible jobs. We loved them.', next: 'b2' },
-      b2: { speaker: 'sharma', text: 'He hated his job.', next: 'b3' },
-      b3: { speaker: 'verma', text: 'I loved hating it. That is character.' },
-      c: { speaker: 'sharma', text: 'Shh. Shh! The striker is choosing its path. Do not breathe on the board.' },
+      a: { speaker: 'sharma', text: 'Unnees sau chauraasi mein maine aankh band karke queen daali thi.', next: 'a2' },
+      a2: { speaker: 'verma', text: 'Aur tab se kholi nahi. Isiliye haarte ho.' },
+      b: { speaker: 'verma', text: 'Tum ladkon ko naukri kar leni chahiye. Hamare zamaane mein naukri hoti thi. Bekaar naukri. Hum usse pyaar karte the.', next: 'b2' },
+      b2: { speaker: 'sharma', text: 'Isko apni naukri se nafrat thi.', next: 'b3' },
+      b3: { speaker: 'verma', text: 'Nafrat karne mein mazaa aata tha. Isse character banta hai.' },
+      c: { speaker: 'sharma', text: 'Shhh. Shhh! Striker apna raasta chun raha hai. Board pe saans mat lo.' },
     },
   },
   kids: {
@@ -394,16 +412,16 @@ export const DIALOGUES: Record<string, DialogueScript> = {
     nodes: {
       a: {
         speaker: 'chintu',
-        text: 'Bhaiya! Bowl one over. Just one! Pinky says nobody can get her out.',
+        text: 'Bhaiya! Ek over daalo na. Bas ek! Pinky kehti hai usko koi out nahi kar sakta.',
         choices: [
-          { who: 'goti', tag: 'Something weird', text: 'Bowl underarm. Backwards. While spinning.', next: 'goti1' },
-          { who: 'sam', tag: 'Negotiate', text: 'Negotiate the rules first.', next: 'sam1' },
-          { text: 'Not now, we are busy being broke.', next: 'no' },
+          { who: 'goti', tag: 'Ajeeb Harkat', text: 'Underarm daalo. Ulta. Ghoomte hue.', next: 'goti1' },
+          { who: 'sam', tag: 'Sauda', text: 'Pehle rules tay karo.', next: 'sam1' },
+          { text: 'Abhi nahi, hum gareeb hone mein busy hain.', next: 'no' },
         ],
       },
-      goti1: { speaker: 'pinky', text: 'That is NOT allowed! …Do it again! Do it again!', effects: [{ emote: 'pinky', kind: '♥' }, { emote: 'chintu', kind: '!' }] },
-      sam1: { speaker: 'pinky', text: 'Rules? The rule is: if it hits the scooter, it is a six. If it hits Tiwari-ji, we run.' },
-      no: { speaker: 'chintu', text: 'You are always busy being broke.' },
+      goti1: { speaker: 'pinky', text: 'Ye ALLOWED nahi hai! …Phir se karo! Phir se!', effects: [{ emote: 'pinky', kind: '♥' }, { emote: 'chintu', kind: '!' }] },
+      sam1: { speaker: 'pinky', text: 'Rules? Rule ye hai: scooter ko lagi toh chhakka. Dongre Mama ko lagi toh bhaago.' },
+      no: { speaker: 'chintu', text: 'Tum log hamesha gareeb hone mein busy rehte ho.' },
     },
   },
   sabzi: {
@@ -411,37 +429,37 @@ export const DIALOGUES: Record<string, DialogueScript> = {
     nodes: {
       a: {
         speaker: 'sabziwali',
-        text: 'Tomatoes forty, onions thirty, advice free: get a job.',
+        text: 'Tamatar chaalis, pyaaz tees, salaah free: naukri dhoondho.',
         choices: [
-          { who: 'sam', tag: 'Negotiate', text: 'Haggle. Just for practice.', next: 'sam1' },
-          { text: 'Just looking.', next: 'bye' },
+          { who: 'sam', tag: 'Sauda', text: 'Mol-bhaav karo. Bas practice ke liye.', next: 'sam1' },
+          { text: 'Bas dekh raha hoon.', next: 'bye' },
         ],
       },
-      sam1: { speaker: 'sam', text: 'Twenty for the onions. Final offer.', next: 'sam2' },
-      sam2: { speaker: 'sabziwali', text: 'You have no money. You are haggling for sport?', next: 'sam3' },
-      sam3: { speaker: 'sam', text: 'Practice. For when I am rich.', next: 'sam4' },
-      sam4: { speaker: 'sabziwali', text: '…Respect. Twenty-five. When you are rich.', effects: [{ emote: 'sabziwali', kind: '♥' }] },
-      bye: { speaker: 'sabziwali', text: 'Looking is also forty rupees. Joking. Mostly.' },
+      sam1: { speaker: 'sam', text: 'Pyaaz bees mein. Final offer.', next: 'sam2' },
+      sam2: { speaker: 'sabziwali', text: 'Paise toh hain nahi. Shauk se mol-bhaav kar raha hai?', next: 'sam3' },
+      sam3: { speaker: 'sam', text: 'Practice. Jab ameer ho jaaunga tab ke liye.', next: 'sam4' },
+      sam4: { speaker: 'sabziwali', text: '…Izzat hai. Pachchees. Jab ameer ho jaaoge.', effects: [{ emote: 'sabziwali', kind: '♥' }] },
+      bye: { speaker: 'sabziwali', text: 'Dekhne ke bhi chaalis rupaye. Mazaak. Zyaadatar.' },
     },
   },
   cow: {
     start: 'a',
     nodes: {
-      a: { speaker: 'me', text: 'Gauri the cow. She has lived at this crossing longer than the traffic signal, and she is better at it.' },
+      a: { speaker: 'me', text: 'Gauri gaay. Traffic signal se zyaada saal se is chauraahe pe hai, aur usse behtar kaam karti hai.' },
     },
   },
   cow_goti: {
     start: 'a',
     nodes: {
-      a: { speaker: 'goti', text: 'Gauri. Be honest with me. Are we going to be rich?', next: 'b' },
-      b: { speaker: 'narrator', text: 'Gauri chews thoughtfully. Then she slowly nods. Or a fly landed on her head.', effects: [{ sfx: 'moo' }], next: 'c' },
-      c: { speaker: 'goti', text: 'She said yes! Guys! The cow said yes!', effects: [{ secret: 'cow' }, { emote: 'gauri', kind: '♥' }] },
+      a: { speaker: 'goti', text: 'Gauri. Sach batana. Hum ameer banenge?', next: 'b' },
+      b: { speaker: 'narrator', text: 'Gauri soch-samajh ke jugaali karti hai. Phir dheere se sar hilaati hai. Ya phir sar pe makkhi baith gayi.', effects: [{ sfx: 'moo' }], next: 'c' },
+      c: { speaker: 'goti', text: 'Usne haan bola! Doston! Gaay ne haan bola!', effects: [{ secret: 'cow' }, { emote: 'gauri', kind: '♥' }] },
     },
   },
   dog: {
     start: 'a',
     nodes: {
-      a: { speaker: 'narrator', text: 'Moti wags his tail. Moti has never had a single problem in his entire life.', effects: [{ sfx: 'bark' }] },
+      a: { speaker: 'narrator', text: 'Moti poonchh hilaata hai. Moti ki zindagi mein aaj tak ek bhi problem nahi aayi.', effects: [{ sfx: 'bark' }] },
     },
   },
   posters: {
@@ -449,13 +467,13 @@ export const DIALOGUES: Record<string, DialogueScript> = {
     nodes: {
       a: {
         speaker: 'narrator',
-        text: 'Posters, layered ten deep: “KHATARNAK KHILADI 3: Revenge Again”. “Love in Ludhiana”. “Pinto Sir Tuitions: Results Guaranteed*”.',
+        text: 'Das parat poster: “KHATARNAK KHILADI 3: Phir Se Badla”. “Ludhiana Waala Pyaar”. “Pinto Sir Tuition: Result Guaranteed*”.',
         next: 'b',
       },
-      b: { speaker: 'me', text: 'One day, our faces will be on this wall.', next: 'c' },
+      b: { speaker: 'me', text: 'Ek din hamare chehre bhi is deewaar pe honge.', next: 'c' },
       c: {
         speaker: 'narrator',
-        text: 'Underneath, a faded notice: “WANTED: four boys, for stealing Tiwari-ji’s mangoes.” It has your faces on it.',
+        text: 'Neeche, ek purana notice: “WANTED: chaar ladke, Dongre Mama ke aam churaane ke liye.” Tasveer mein tumhare chehre hain.',
         effects: [{ secret: 'poster' }],
       },
     },
@@ -463,14 +481,14 @@ export const DIALOGUES: Record<string, DialogueScript> = {
   drum: {
     start: 'a',
     nodes: {
-      a: { speaker: 'narrator', text: 'Inside the blue drum, wrapped in plastic: a letter. “Dear Kamla, your bhindi is fresh, like my love. — L.”', next: 'b' },
-      b: { speaker: 'me', text: 'We never saw this. We never saw this. Put it back.', effects: [{ secret: 'tank' }] },
+      a: { speaker: 'narrator', text: 'Neele drum ke andar, plastic mein lipta: ek khat. “Priya Kamla, tumhari bhindi taazi hai, mere pyaar ki tarah. — L.”', next: 'b' },
+      b: { speaker: 'me', text: 'Humne ye nahi dekha. Humne ye nahi dekha. Wapas rakh do.', effects: [{ secret: 'tank' }] },
     },
   },
   lane_sign: {
     start: 'a',
     nodes: {
-      a: { speaker: 'narrator', text: 'Shanti Nagar, Lane No. 4. “Shanti” means peace. Nobody has checked in years.' },
+      a: { speaker: 'narrator', text: 'Shanti Nagar, Gali No. 4, Pune. “Shanti” matlab sukoon. Saalon se kisi ne check nahi kiya.' },
     },
   },
 };

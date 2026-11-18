@@ -61,8 +61,10 @@ describe('epilogue', () => {
   it('reflects the ticket, Ritu and the lies', () => {
     const lines = epilogueLines({ ending: { id: 'triumph', cause: 'clean' }, hasTicket: true, rituTrust: 70, harmony: 70, scores: { sam: 1, pakya: 0, goti: 5, maru: 2 }, liesCaught: 3, secrets: ['tank'] });
     expect(lines.join(' ')).toContain('Ticket #4444');
-    expect(lines.join(' ')).toContain('chai with Goti');
-    expect(lines.join(' ')).toContain('3 lies');
+    expect(lines.join(' ')).toContain('Ritu ne Goti ki taraf');
+    expect(lines.join(' ')).toContain('3 jhooth');
     expect(lines.join(' ')).toContain('Kamla');
+    // every ending closes the film's way: the four run after Ritu's car
+    expect(lines[lines.length - 1]).toContain('peechhe daud pade');
   });
 });

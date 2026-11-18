@@ -63,7 +63,7 @@ export function cancelTask(who: CharId, silent = false) {
     tasks: st.tasks.filter((x) => x.id !== t.id),
     question: st.question && t.kind === 'stall' && st.question.npc === t.spec.target ? null : st.question,
   }));
-  if (!silent) bark(who, t.kind === 'watch' ? 'Okay, okay, I’m off watch.' : t.kind === 'stall' ? 'Excuse me, one minute…' : 'Fine, I’ll stop.', 1.8);
+  if (!silent) bark(who, t.kind === 'watch' ? 'Achha achha, nigraani khatam.' : t.kind === 'stall' ? 'Ek minute, maaf kijiye…' : 'Theek hai, ruk gaya.', 1.8);
   emitTask({ kind: 'cancel', task: t });
 }
 
@@ -84,10 +84,10 @@ export function drainTaskEvents() {
 }
 
 const FOUND_LINE: Record<CharId, string> = {
-  goti: 'Found it! I always find things. Except my keys.',
-  sam: 'Found something. Methodically.',
-  pakya: 'Found it. Obviously.',
-  maru: 'I found it and it didn’t bite me!',
+  goti: 'Mil gaya! Mujhe hamesha sab milta hai. Apni chaabi chhod ke.',
+  sam: 'Kuch mila. Tareeke se.',
+  pakya: 'Mil gaya. Obviously.',
+  maru: 'Mil gaya aur isne kaata bhi nahi!',
 };
 
 /** Advance tasks. `applyEffects` is injected to avoid an import cycle with effects.ts. */
@@ -135,9 +135,9 @@ export function tickTasks(dt: number, now: number, applyEffects: (e: Effect[] | 
         applyEffects(t.spec.onDone);
       } else {
         sfx('fail');
-        bark(t.who, t.spec.empty ?? 'Nothing here. Goti might see something I can’t.', 3);
+        bark(t.who, t.spec.empty ?? 'Yahaan kuch nahi. Shayad Goti ko kuch dikhe.', 3);
       }
-      if (get().active !== t.who) toast(`${FRIENDS[t.who].name} finished searching: ${found ? 'found something!' : 'nothing.'}`, found ? 'objective' : 'info');
+      if (get().active !== t.who) toast(`${FRIENDS[t.who].name} ne dhoondh liya: ${found ? 'kuch mila!' : 'kuch nahi.'}`, found ? 'objective' : 'info');
     } else applyEffects(t.spec.onDone);
     emitTask({ kind: 'done', task: t, found });
   }
@@ -145,7 +145,7 @@ export function tickTasks(dt: number, now: number, applyEffects: (e: Effect[] | 
   const q = get().question;
   if (q && now > q.deadline) {
     const pick = Math.floor(Math.random() * q.options.length);
-    bark('pakya', `Uh… ${q.options[pick]}! Yes. Definitely.`, 2.6);
+    bark('pakya', `Uh… ${q.options[pick]}! Haan. Bilkul.`, 2.6);
     answerQuestion(pick, true);
   }
 }
@@ -163,7 +163,7 @@ function ask(t: Task, now: number) {
   }));
   emote(npc, '?', 2);
   sfx('select');
-  if (get().active !== 'pakya') toast(`${ASKER[npc] ?? NPCS[npc]?.name}: a question for Pakya!`, 'alert', 'Press 2 to answer');
+  if (get().active !== 'pakya') toast(`${ASKER[npc] ?? NPCS[npc]?.name}: Pakya ke liye sawaal!`, 'alert', 'Jawaab ke liye 2 dabao');
 }
 
 /** Pakya answers the pending question (by the player, or improvised when time runs out). */
@@ -179,11 +179,11 @@ export function answerQuestion(i: number, improvised = false) {
     sfx('fail');
     emote(q.npc, '💢', 2.4);
     const name = NPCS[q.npc]?.name ?? q.npc;
-    bark(q.npc, `“${value}”? You told me “${result.contradiction.believed}”!`, 3.2);
-    toast(`${name} caught a contradiction`, 'lie', improvised ? 'Pakya improvised badly' : 'Lie Book updated');
+    bark(q.npc, `“${value}”? Tumne toh “${result.contradiction.believed}” bola tha!`, 3.2);
+    toast(`${name} ne jhooth pakad liya`, 'lie', improvised ? 'Pakya improvised badly' : 'Jhooth ki Diary mein darj');
   } else {
     emote(q.npc, result.kind === 'consistent' ? '♪' : '…', 1.4);
-    if (!improvised) bark('pakya', 'Exactly as I said before. I never forget a lie. Or a fact.', 2);
+    if (!improvised) bark('pakya', 'Bilkul jaisa pehle bola tha. Main jhooth kabhi nahi bhoolta. Na sach.', 2);
   }
   emitTask({ kind: 'answered', npc: q.npc, topic: q.topic, value, contradiction });
 }

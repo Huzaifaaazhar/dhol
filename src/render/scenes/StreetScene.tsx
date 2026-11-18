@@ -255,7 +255,7 @@ function HideoutShutter() {
 
 /** Rooftop hoarding on the old cinema, angled at the street so it can be read. */
 function CinemaHoarding() {
-  const sign = useMemo(() => texMat(signTexture('SHREE TALKIES', 'Closed for renovation since 1999', '#3d405b', '#f2cc8f')), []);
+  const sign = useMemo(() => texMat(signTexture('SHREE TALKIES', '1999 se marammat ke liye band', '#3d405b', '#f2cc8f')), []);
   const poster = useMemo(() => texMat(posterTexture(3)), []);
   return (
     <group position={[29, 9.6, 15]} rotation={[0, Math.PI / 4, 0]}>

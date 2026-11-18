@@ -1,17 +1,16 @@
 /**
- * THE MISSING DRUM MYSTERY
- * A chain of discoveries in different places: Rahul's packet (hideout), the cinema (a key from Pappu,
- * or Goti through the vent), locker 47 (Zikomo's lottery book), knocking the real drum (Goti hears
- * the hollow side; Daadi's memory narrows it down), and finally the projection booth (Rahul).
- * Where the real dhol starts depends on Part 2: under Maru's charpai, or held by Tiwari-ji.
+ * SACH (the truth)
+ * Ritu knows Pakya is not Jai and will not speak to the gang. A chain of discoveries in different
+ * places: Rahul's packet (hideout), the cinema (a key from Pappu, or Goti through the vent),
+ * locker 47 (Zikomo's lottery book), knocking the real drum (Goti hears the hollow side; Daadi's
+ * memory narrows it down), and finally the projection booth: Rahul's last tape, naming Zikomo.
+ * Where the real dhol starts depends on Part 2: under Maru's charpai, or held by Dongre Mama.
  */
 import { completeObjective } from '../store';
-import { type Director, get, clearAgents, spawnAgent, toast } from './common';
+import { type Director, get, clearAgents, toast } from './common';
 
 function setup() {
   clearAgents();
-  // Jai keeps a quieter watch now, by the shrine
-  spawnAgent('jai', 'street', -33.5, 7.6, { face: 0.6 });
 }
 
 export const reveal: Director = {
@@ -19,11 +18,11 @@ export const reveal: Director = {
     setup();
     const s = get();
     toast(
-      s.flags['end.fake'] ? 'Word on the street: Zikomo opened his dhol and found a biscuit tin. He is not laughing.' : 'Word on the street: Zikomo turned the hideout upside down and found only a rubber chicken.',
+      s.flags['end.fake'] ? 'Gali ki khabar: Zikomo ne dhol khola toh biscuit ka dabba nikla. Woh has nahi raha.' : 'Gali ki khabar: Zikomo ne adda ulta kar diya aur sirf ek rubber ki murgi mili.',
       'alert',
-      'Morning',
+      'Subah',
     );
-    if (s.dhol === 'tiwari') window.setTimeout(() => toast('The real dhol is still beside Tiwari-ji’s chair. You will need it back.', 'info'), 4500);
+    if (s.dhol === 'tiwari') window.setTimeout(() => toast('Asli dhol abhi bhi Dongre Mama ki kursi ke paas hai. Wapas laana padega.', 'info'), 4500);
   },
   resume() {
     setup();
@@ -33,6 +32,7 @@ export const reveal: Director = {
     if (s.scene === 'cinema' && !s.missions.reveal.done.includes('reveal.cinema')) completeObjective('reveal.cinema');
   },
   event(name) {
-    if (name === 'drumOpen') toast('₹4,44,444, hidden in the drum’s false wall', 'objective', 'The music is in the drum');
+    if (name === 'drumOpen') toast('₹4,44,444, dhol ki nakli deewaar mein chhupe', 'objective', 'Sangeet dhol mein hai');
+    if (name === 'kidnap') toast('Pinky bhaagti aati hai: ek safed gaadi Ritu aur uske Dada-Dadi ko le gayi. Zikomo ko aaj raat dhol chahiye.', 'fail', 'Agwa');
   },
 };

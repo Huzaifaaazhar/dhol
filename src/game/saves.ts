@@ -59,8 +59,8 @@ export function deleteSlot(n: number) {
 
 export function timeAgo(t: number) {
   const s = Math.round((Date.now() - t) / 1000);
-  if (s < 60) return 'just now';
-  if (s < 3600) return `${Math.round(s / 60)} min ago`;
-  if (s < 86400) return `${Math.round(s / 3600)} h ago`;
+  if (s < 60) return 'abhi abhi';
+  if (s < 3600) return `${Math.round(s / 60)} minute pehle`;
+  if (s < 86400) return `${Math.round(s / 3600)} ghante pehle`;
   return new Date(t).toLocaleDateString();
 }

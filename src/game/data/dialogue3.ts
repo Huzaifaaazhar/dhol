@@ -1,6 +1,10 @@
 /**
- * Part 3 writing: the reveal, the finale and the endings. All original.
+ * Part 3 writing: the truth, the kidnapping and the endings. All original, in Hindi (Roman script).
  * Discoveries are spread across places and people; no single scene explains everything.
+ *
+ * Rahul and Jai are dead. Rahul was Zikomo's accountant; Zikomo's "lucky draw" took lakhs from the
+ * colony and paid nothing. Rahul and Jai took the money back and hid it in Rahul's dhol, the ledger
+ * in the old cinema, and Rahul's last words on a cassette. Zikomo killed them for it.
  */
 import type { DialogueNode, DialogueScript, StateView } from '../types';
 
@@ -19,14 +23,14 @@ const extend = (id: string, start: Start, nodes: Nodes) => EXTENSIONS_3.push({ i
 DIALOGUES_3.packet = {
   start: 'a',
   nodes: {
-    a: { speaker: 'narrator', text: 'Sam unpicks the wedding thread. Inside: a rusty key on a tag, half of a ₹500 note, and a folded letter.', next: 'b' },
-    b: { speaker: 'goti', text: 'Half a note. HALF. Who pays with half a note?', next: 'c' },
-    c: { speaker: 'sam', text: '“If you are reading this, you are not Zikomo. Good. The key opens what the cinema keeps. The music is in the drum. —R.”', next: 'd' },
-    d: { speaker: 'pakya', text: '“The music is in the drum.” Poetic. Useless, but poetic.', next: 'e' },
-    e: { speaker: 'maru', text: 'The key tag says “Shree Talkies, 47”. The old cinema. It has been closed since 1999. It is haunted. Everybody knows it is haunted.', next: 'f' },
+    a: { speaker: 'narrator', text: 'Sam laal dhaaga kholta hai. Andar: ek zang lagi chaabi, ₹500 ka aadha note, aur ek tah kiya hua khat.', next: 'b' },
+    b: { speaker: 'goti', text: 'Aadha note. AADHA. Aadhe note se kaun payment karta hai?', next: 'c' },
+    c: { speaker: 'sam', text: '“Agar ye padh rahe ho, toh tum Zikomo nahi ho. Achha hai. Aur shayad main zinda nahi hoon. Chaabi cinema ki hai. Sangeet dhol mein hai. —R.”', next: 'd' },
+    d: { speaker: 'pakya', text: '“Sangeet dhol mein hai.” Shaayaraana. Bekaar, par shaayaraana.', next: 'e' },
+    e: { speaker: 'maru', text: 'Chaabi pe likha hai “Shree Talkies, 47”. Purana cinema. Unnees sau ninyaanve se band hai. Bhootiya hai. Sabko pata hai ki bhootiya hai.', next: 'f' },
     f: {
       speaker: 'sam',
-      text: 'Then we go in daylight. And we go in together. Mostly together. Some of us.',
+      text: 'Toh din mein jaayenge. Aur saath jaayenge. Zyaadatar saath. Kuch log.',
       effects: [{ take: 'packet' }, { give: 'lockerkey' }, { give: 'halfnote' }, { flag: 'packet.open' }, { complete: 'reveal.packet' }],
     },
   },
@@ -39,21 +43,21 @@ extend(
   {
     p3_key: {
       speaker: 'pappu',
-      text: 'Shree Talkies? My uncle ran the projector there. I still have his key. Nobody has been inside for twenty years. …Except last month I saw a light in the projection booth.',
+      text: 'Shree Talkies? Mere chacha wahaan projector chalaate the. Unki chaabi abhi bhi mere paas hai. Bees saal se koi andar nahi gaya. …Bas pichhle saal, kuch raaton tak, booth mein roshni dikhi thi.',
       choices: [
-        { who: 'sam', tag: 'Negotiate', text: 'Ask for the key honestly, and tell him why.', next: 'p3_key_sam' },
-        { who: 'pakya', tag: 'Bluff', text: '“We are municipal inspectors. The building is being condemned.”', effects: [{ claim: 'gang.who', value: 'municipal inspectors' }], next: 'p3_key_pak' },
-        { who: 'goti', tag: 'Something weird', text: 'Ask if the cinema has any holes a round man could fit through.', next: 'p3_key_goti' },
-        { text: 'Never mind.', next: 'p3_bye' },
+        { who: 'sam', tag: 'Sauda', text: 'Imaandaari se chaabi maango, aur kyun chahiye ye batao.', next: 'p3_key_sam' },
+        { who: 'pakya', tag: 'Jhaansa', text: '“Hum municipal inspector hain. Building girne waali hai.”', effects: [{ claim: 'gang.who', value: 'nagar nigam ke jaanchkarta' }], next: 'p3_key_pak' },
+        { who: 'goti', tag: 'Ajeeb Harkat', text: 'Poochho ki cinema mein koi aisa chhed hai jisme gol aadmi ghus sake.', next: 'p3_key_goti' },
+        { text: 'Rehne do.', next: 'p3_bye' },
       ],
     },
-    p3_key_sam: { speaker: 'sam', text: 'Pappu bhai, someone hid something there that belongs to this whole colony. We want to give it back. That is the truth.', branch: (s) => (susp(s, 'pappu') < 50 ? 'p3_key_yes' : 'p3_key_no') },
-    p3_key_yes: { speaker: 'pappu', text: 'The truth? From you four? …Take it. Bring it back. And if there is a ghost, I want a haircut appointment with it.', effects: [{ flag: 'cinema.open' }, { give: 'cinemakey' }, { toast: 'Pappu gave you the cinema key. The back door is behind the cinema.' }] },
-    p3_key_no: { speaker: 'pappu', text: 'Your friends have told me five different jobs this month. Today you want truth? No key.', effects: [{ toast: 'Pappu doesn’t trust you. Smooth things over, or find another way in.' }] },
-    p3_key_pak: { speaker: 'pappu', text: 'Municipal inspectors.', branch: (s) => (s.flags['tell.contra'] ? 'p3_key_caught' : 'p3_key_yes') },
-    p3_key_caught: { speaker: 'pappu', text: 'Last month census officers. Today municipal inspectors. Tomorrow astronauts? Get out of my chair.', effects: [{ suspicion: 'pappu', delta: 15 }] },
-    p3_key_goti: { speaker: 'pappu', text: '*looks at Goti for a long time* There is a broken vent at the back. Too small for a grown man. You would fit perfectly.', effects: [{ toast: 'There is a vent at the cinema’s back door. Goti could squeeze through it.' }] },
-    p3_bye: { speaker: 'pappu', text: 'Fifty for a haircut.' },
+    p3_key_sam: { speaker: 'sam', text: 'Pappu bhai, wahaan kisi ne kuch chhupaaya hai jo poori colony ka hai. Hum lautaana chahte hain. Ye sach hai.', branch: (s) => (susp(s, 'pappu') < 50 ? 'p3_key_yes' : 'p3_key_no') },
+    p3_key_yes: { speaker: 'pappu', text: 'Sach? Tum chaaron se? …Le jao. Wapas laana. Aur agar bhoot mile, toh uska haircut appointment mere saath.', effects: [{ flag: 'cinema.open' }, { give: 'cinemakey' }, { toast: 'Pappu ne cinema ki chaabi de di. Pichhla darwaaza cinema ke peeche hai.' }] },
+    p3_key_no: { speaker: 'pappu', text: 'Tumhare doston ne is mahine paanch alag naukriyaan bataayi hain. Aaj sach chahiye? Chaabi nahi.', effects: [{ toast: 'Pappu ko tum pe bharosa nahi. Baat sambhaalo, ya andar jaane ka koi aur raasta dhoondho.' }] },
+    p3_key_pak: { speaker: 'pappu', text: 'Municipal inspector.', branch: (s) => (s.flags['tell.contra'] ? 'p3_key_caught' : 'p3_key_yes') },
+    p3_key_caught: { speaker: 'pappu', text: 'Pichhle mahine census officer. Aaj municipal inspector. Kal astronaut? Meri kursi se utro.', effects: [{ suspicion: 'pappu', delta: 15 }] },
+    p3_key_goti: { speaker: 'pappu', text: '*Goti ko der tak dekhta hai* Peeche ek toota vent hai. Bade aadmi ke liye chhota. Tum ekdum fit ho jaaoge.', effects: [{ toast: 'Cinema ke pichhle darwaaze pe ek vent hai. Goti usme se ghus sakta hai.' }] },
+    p3_bye: { speaker: 'pappu', text: 'Baal pachaas rupaye.' },
   },
 );
 
@@ -61,18 +65,19 @@ extend(
 DIALOGUES_3.locker = {
   start: 'a',
   nodes: {
-    a: { speaker: 'narrator', text: 'The key turns with a groan. Inside locker 47: a fat cloth-bound book and a stack of printed lottery tickets.', next: 'b' },
-    b: { speaker: 'sam', text: '“GOLDEN RUPEE LUCKY DRAW. Zikomo Enterprises.” Collected from Shanti Nagar: ₹4,44,444. Prizes paid: zero.', next: 'c' },
-    c: { speaker: 'pakya', text: 'Zikomo ran a lottery? HERE? I bought a ticket! Everybody bought a ticket!', next: 'd' },
-    d: { speaker: 'sam', text: 'Every name is in here. Lalaji, two thousand. Tiwari-ji, five thousand. Bablu, eight hundred. Kamla, twelve hundred. And the winning ticket was… number 4444.', next: 'e' },
-    e: { speaker: 'maru', text: 'Four four four four. That’s OURS. We bought it last year! We lost it! I SAID we won! Nobody listens to Maru!', next: 'f' },
-    f: { speaker: 'goti', text: 'We didn’t lose it. I kept it somewhere very safe. Inside my rubber chicken.', branch: (s) => (f(s, 'end.fake') ? 'g_home' : 'g_hostage') },
-    g_home: { speaker: 'goti', text: 'The chicken is in my trunk in the hideout. Squeeze it gently. It squeaks.', next: 'h' },
-    g_hostage: { speaker: 'goti', text: '…which Zikomo took as a hostage when he searched the hideout. So. Our ticket is in Zikomo’s car.', effects: [{ flag: 'chicken.zikomo' }], next: 'h' },
-    h: { speaker: 'sam', text: 'So Zikomo cheated the whole colony. Rahul found out and took the book that proves it. And the money?', next: 'i' },
+    a: { speaker: 'narrator', text: 'Chaabi karaahte hue ghoomti hai. Locker 47 ke andar: ek moti kapde ki jild wali kitaab aur chhape hue lottery ticketon ka dher.', next: 'b' },
+    b: { speaker: 'sam', text: '“SUNEHRA RUPAYA LUCKY DRAW. Zikomo Enterprises.” Shanti Nagar se jama: ₹4,44,444. Inaam diya: zero.', next: 'c' },
+    c: { speaker: 'pakya', text: 'Zikomo ki lottery? YAHAAN? Maine ticket liya tha! Sabne liya tha!', next: 'd' },
+    d: { speaker: 'sam', text: 'Har naam isme hai. Lalaji, do hazaar. Bablu, aath sau. Kamla, baarah sau. Aur… Dongre Mama, paanch hazaar. Byaaj ke paise se.', next: 'd2' },
+    d2: { speaker: 'sam', text: 'Aur last page pe, Rahul ki likhaawat: “Main aur Jai ye paisa colony ko wapas karenge. Zikomo ko pata chal gaya hai.”', next: 'e' },
+    e: { speaker: 'maru', text: 'Aur jeetne waala ticket… number 4444. Ye HAMARA hai! Pichhle saal liya tha! Kho gaya tha! Maine BOLA tha hum jeete! Maru ki koi nahi sunta!', next: 'f' },
+    f: { speaker: 'goti', text: 'Khoya nahi. Maine bahut safe jagah rakha. Apni rubber ki murgi ke andar.', branch: (s) => (f(s, 'end.fake') ? 'g_home' : 'g_hostage') },
+    g_home: { speaker: 'goti', text: 'Murgi hideout mein mere trunk mein hai. Dheere se dabaana. Pyaank karti hai.', next: 'h' },
+    g_hostage: { speaker: 'goti', text: '…jo Zikomo ne hideout ki talaashi mein bandhak bana li thi. Toh. Hamara ticket Zikomo ki gaadi mein hai.', effects: [{ flag: 'chicken.zikomo' }], next: 'h' },
+    h: { speaker: 'sam', text: 'Toh Zikomo ne poori colony ko loota. Rahul aur Jai ne paisa wapas chheena. Aur Zikomo ne… *ruk jaata hai* Aur paisa?', next: 'i' },
     i: {
       speaker: 'pakya',
-      text: '“The music is in the drum.”',
+      text: '“Sangeet dhol mein hai.”',
       effects: [{ give: 'register' }, { flag: 'locker.open' }, { complete: 'reveal.locker' }],
     },
   },
@@ -80,16 +85,16 @@ DIALOGUES_3.locker = {
 
 /* ═════════════ Discovery 4: knocking on the drum ═════════════ */
 const knockChoices = (prefix: string) => [
-  { text: 'Knock near the left skin.', effects: [{ sfx: 'knockDull' as const }], next: `${prefix}left` },
-  { text: 'Knock the middle of the barrel.', effects: [{ sfx: 'knockWood' as const }], next: `${prefix}mid` },
+  { text: 'Baayi khaal ke paas thok.', effects: [{ sfx: 'knockDull' as const }], next: `${prefix}left` },
+  { text: 'Beech mein lakdi pe thok.', effects: [{ sfx: 'knockWood' as const }], next: `${prefix}mid` },
   {
-    text: 'Knock beside the strap, on the right.',
+    text: 'Daayi taraf, patte ke paas thok.',
     showIf: (s: StateView) => !s.flags['daadi.skin'],
     effects: [{ sfx: 'knockHollow' as const }],
     next: 'hollow',
   },
   {
-    text: 'Knock where Rahul kept re-gluing it at midnight: the right side.',
+    text: 'Wahaan thok jahaan Rahul aadhi raat ko gond lagaata tha: daayi taraf.',
     showIf: (s: StateView) => !!s.flags['daadi.skin'],
     effects: [{ sfx: 'knockHollow' as const }],
     next: 'hollow',
@@ -99,18 +104,18 @@ const knockChoices = (prefix: string) => [
 DIALOGUES_3.knock = {
   start: (s) => (s.active === 'goti' ? 'a' : 'other'),
   nodes: {
-    other: { speaker: 'me', text: '*knock knock* …It sounds exactly like a drum. Goti says he can hear things in wood. Goti says a lot of things.' },
-    a: { speaker: 'narrator', text: 'Goti presses his ear to the barrel and knocks, very seriously, like a doctor.', choices: knockChoices('') },
-    left: { speaker: 'goti', text: 'Dhum. Normal. Healthy skin. Next.', choices: knockChoices('') },
-    mid: { speaker: 'goti', text: 'Thok. Solid wood. Very solid. Suspiciously solid? No. Just solid.', choices: knockChoices('') },
-    hollow: { speaker: 'narrator', text: 'Tok. Tok. TOK. Hollow. Goti prises a panel loose with a spoon.', effects: [{ sfx: 'cash' }], next: 'cash' },
-    cash: { speaker: 'narrator', text: 'Bundles of rupees slide out of the false wall, tied with wedding thread. A lot of bundles. An unreasonable number of bundles.', next: 'c2' },
-    c2: { speaker: 'goti', text: '…Guys. The music is in the drum.', next: 'c3' },
-    c3: { speaker: 'pakya', text: 'That is the most beautiful sentence anyone has ever said.', next: 'c4' },
-    c4: { speaker: 'sam', text: 'Nobody touches it. NOBODY. It is not ours. Maru, stop counting.', next: 'c5' },
+    other: { speaker: 'me', text: '*thak thak* …Bilkul dhol jaisa lagta hai. Goti kehta hai use lakdi ki awaaz samajh aati hai. Goti bahut kuch kehta hai.' },
+    a: { speaker: 'narrator', text: 'Goti dhol pe kaan lagaata hai aur bahut gambhirta se thokta hai, doctor ki tarah.', choices: knockChoices('') },
+    left: { speaker: 'goti', text: 'Dhum. Normal. Swasth khaal. Agla.', choices: knockChoices('') },
+    mid: { speaker: 'goti', text: 'Thok. Thos lakdi. Bahut thos. Shak waali thos? Nahi. Bas thos.', choices: knockChoices('') },
+    hollow: { speaker: 'narrator', text: 'Tok. Tok. TOK. Khokhla. Goti chammach se ek patra dheela karta hai.', effects: [{ sfx: 'cash' }], next: 'cash' },
+    cash: { speaker: 'narrator', text: 'Nakli deewaar se laal dhaage mein bandhe noton ke bandal phisalte hain. Bahut saare bandal. Behisaab bandal.', next: 'c2' },
+    c2: { speaker: 'goti', text: '…Doston. Sangeet dhol mein hai.', next: 'c3' },
+    c3: { speaker: 'pakya', text: 'Ye duniya ka sabse khoobsurat vaakya hai.', next: 'c4' },
+    c4: { speaker: 'sam', text: 'Koi haath nahi lagaayega. KOI NAHI. Ye hamara nahi hai. Ye colony ka hai. Aur Rahul aur Jai ne iske liye jaan di. Maru, ginna band kar.', next: 'c5' },
     c5: {
       speaker: 'maru',
-      text: 'Four lakh, forty-four thousand, four hundred and forty-four. I can’t stop. My hands won’t stop.',
+      text: 'Chaar lakh, chauvaalees hazaar, chaar sau chauvaalees. Ruk nahi raha. Haath nahi ruk rahe.',
       effects: [{ flag: 'drum.open' }, { complete: 'reveal.drum' }, { event: 'drumOpen' }],
     },
   },
@@ -122,7 +127,7 @@ extend(
   {
     p3_skin: {
       speaker: 'daadi',
-      text: 'Rahul and that drum. Every midnight: bang bang bang, re-gluing the right side. Always the right side. I sold it in self-defence.',
+      text: '*Pakya ki taraf dekhti bhi nahi* Ritu ne sab bata diya. …Par Rahul ka dhol? Har aadhi raat, dhum dhum dhum, daayi taraf gond lagaata tha. Hamesha daayi taraf. Woh aakhri baar ghar aaya tha toh bhi.',
       effects: [{ flag: 'daadi.skin' }, { complete: 'reveal.daadi' }],
     },
   },
@@ -134,61 +139,51 @@ extend(
   {},
 );
 
-/* ═════════════ Discovery 5: the projection booth ═════════════ */
+/* ═════════════ Discovery 5: the projection booth and Rahul's tape ═════════════ */
 DIALOGUES_3.booth = {
-  start: (s) => (f(s, 'rahul.out') ? 'open' : f(s, 'drum.open') ? 'code' : 'hum'),
+  start: (s) => (f(s, 'rahul.out') ? 'replay' : f(s, 'drum.open') ? 'code' : 'hum'),
   nodes: {
-    hum: { speaker: 'narrator', text: 'Behind the door, someone is humming an old film song. You knock. The humming stops. The bolt stays shut.', next: 'hum2' },
-    hum2: { speaker: 'maru', text: 'Ghost. GHOST. A ghost who knows old songs. That is the worst kind.' },
-    open: { speaker: 'narrator', text: 'The booth is a tiny flat now: a mat, a kettle, and eleven of Bablu’s samosa wrappers.' },
+    hum: { speaker: 'narrator', text: 'Darwaaze ke peeche se ek purana filmi gaana aa raha hai, ghis-ghis ke, baar baar. Darwaaze pe teen ank ka taala hai.', next: 'hum2' },
+    hum2: { speaker: 'maru', text: 'Bhoot. BHOOT. Purane gaane jaanne waala bhoot. Ye sabse buri kism ka hota hai.' },
     code: {
       speaker: 'narrator',
-      text: 'The humming again. Then a voice, very close to the door: “Who is it?”',
+      text: 'Wahi gaana. Taale pe teen ank. Sam ledger yaad karta hai. Jeetne waala number. Lottery jo kabhi kisi ne nahi jeeti.',
       choices: [
-        { text: '“The music is in the drum.”', next: 'code2' },
-        { who: 'pakya', tag: 'Bluff', text: '“Cinema inspection. Open up.”', next: 'nope' },
+        { text: '4 – 4 – 4', next: 'code2' },
+        { who: 'goti', tag: 'Ajeeb Harkat', text: 'Taale ko pyaar se samjhaao.', next: 'nope' },
       ],
     },
-    nope: { speaker: 'narrator', text: 'Silence. Then, faintly: “There has been no cinema here since 1999. Nice try.”', choices: [{ text: '“…The music is in the drum.”', next: 'code2' }] },
-    code2: { speaker: 'narrator', text: 'The bolt slides back. A thin man with a beard, a samosa and a lot of worry peers out.', effects: [{ flag: 'rahul.out' }, { sfx: 'door' }], next: 'r1' },
-    r1: { speaker: 'rahul', text: 'You found the money. Then you already know half of it. I was Zikomo’s accountant. His lottery took four lakh rupees from this colony and paid nothing.', next: 'r2' },
-    r2: { speaker: 'rahul', text: 'I took the money back and the book that proves it. Hid the money in my dhol, the book here, and myself with the book. Then Daadi sold my dhol for forty rupees.', next: 'r3' },
-    r3: { speaker: 'goti', text: 'We found it! Then we lost it. Then we found it again. It has been a big week for the drum.', next: 'r4' },
-    r4: { speaker: 'rahul', text: 'Tonight Zikomo comes for it with everything he has. So tonight we give the money back, at Bablu’s stall, in front of everyone. Let him try taking it from the whole colony.', next: 'r5' },
-    r5: { speaker: 'sam', text: 'A public plan. Witnesses. Proof. Timing. I love it. I hate it. I love it.', next: 'r6' },
-    r6: { speaker: 'maru', text: 'Can we vote? I vote no.', effects: [{ complete: 'reveal.rahul' }] },
+    nope: { speaker: 'goti', text: 'Taala-ji. Hum achhe log hain. Khul jaao. …Nahi khula. Taale bahut ziddi hote hain.', choices: [{ text: '4 – 4 – 4', next: 'code2' }] },
+    code2: { speaker: 'narrator', text: 'Khatak. Andar ek chatai, ek ketli, Bablu ke gyaarah samose ke kaagaz, aur ek cassette player jo ab bhi chal raha hai. Gaana khatam hota hai. Ek awaaz aati hai.', effects: [{ flag: 'rahul.out' }, { sfx: 'door' }, { event: 'reveal' }], next: 'r1' },
+    r1: { speaker: 'rahul', text: '*cassette pe* Main Rahul Tripathi. Agar ye sun rahe ho, toh shayad main aur Jai… khair. Main Zikomo ka accountant tha. Uski lottery ne colony se chaar lakh liye aur ek paisa nahi diya.', next: 'r2' },
+    r2: { speaker: 'rahul', text: '*cassette pe* Maine aur Jai ne paisa wapas chheena. Paisa mere dhol mein, kitaab locker mein, aur ye tape yahaan. Zikomo ko pata chal gaya hai. Wo humein dhoondh raha hai.', next: 'r3' },
+    r3: { speaker: 'rahul', text: '*cassette pe* Agar humein kuch ho jaaye… toh samajh lena Zikomo ne kiya. Aur Ritu… meri behen ko batana ki main uske liye Dubai se jhumke laane waala tha. *khatak*', next: 'r4' },
+    r4: { speaker: 'narrator', text: 'Bahut der tak koi kuch nahi bolta. Maru bhi nahi.', next: 'r5' },
+    r5: { speaker: 'pakya', text: 'Maine… uska naam istemaal kiya. Jai ka. Daadi ka khaana khaane ke liye.', next: 'r6' },
+    r6: { speaker: 'sam', text: 'Toh ab uska naam theek se istemaal karenge. Zikomo ko poori colony ke saamne sach bolna padega. Paisa wapas, aur gunaah kabool.', next: 'r7' },
+    r7: { speaker: 'goti', text: 'Aur Ritu?', next: 'r8' },
+    r8: { speaker: 'sam', text: 'Ritu humse baat nahi karti. Par usko ye tape sunna chahiye. Chalo. Sab.', effects: [{ complete: 'reveal.rahul' }, { event: 'kidnap' }] },
+    replay: { speaker: 'rahul', text: '*cassette pe* …Agar humein kuch ho jaaye, toh samajh lena Zikomo ne kiya. *khatak*' },
   },
 };
 
 DIALOGUES_3.rahul = {
-  start: (s) => (act(s, 'finale') ? 'finale' : 'idle'),
-  nodes: {
-    idle: { speaker: 'rahul', text: 'Ritu thinks I’m in Dubai. Don’t tell her yet. Actually, tell her. No, don’t. I’ll tell her. Tonight.' },
-    finale: { speaker: 'rahul', text: 'Witnesses, the drum, and Zikomo kept busy. Then we let the colony see the book. Go!' },
-  },
+  start: 'a',
+  nodes: { a: { speaker: 'narrator', text: 'Rahul ki tasveer. Muskura raha hai, dhol gale mein. Peeche Jai ka chehra, chai ke daag mein gaayab.' } },
 };
-
-extend(
-  'jai',
-  (s) => (act(s, 'reveal') && s.has('halfnote') && !f(s, 'jai.note') ? 'p3_note' : act(s, 'finale') ? 'p3_finale' : undefined),
-  {
-    p3_note: { speaker: 'jai', text: 'That’s half of Rahul’s note. He kept the other half. Whoever brings it, he’ll trust. So he trusts you now. Heaven help him.', effects: [{ flag: 'jai.note' }] },
-    p3_finale: { speaker: 'jai', text: 'I’ve got the big one, Bhaloo, chasing me round the temple. Do your part quickly. I am not a fast runner.' },
-  },
-);
 
 /* ═════════════ The finale: witnesses ═════════════ */
 const WITNESS_REASON: Record<string, string> = {
-  tiwari: 'Tonight? At the chai stall? I am busy. I am busy waiting for my rent.',
-  lalaji: 'Close my shop? In the evening? That is when the money comes in.',
-  bablu: 'I am AT the chai stall. I am always at the chai stall. What exactly is happening at my chai stall?',
-  pappu: 'An event at the chai stall? Will there be people? People need haircuts.',
+  tiwari: 'Aaj raat? Chai ki dukaan pe? Main busy hoon. Apne karze ka intezaar karne mein busy.',
+  lalaji: 'Shaam ko dukaan band karoon? Usi waqt toh paisa aata hai.',
+  bablu: 'Main chai ki dukaan pe HI hoon. Hamesha hota hoon. Meri dukaan pe hone kya waala hai?',
+  pappu: 'Chai ki dukaan pe event? Log honge? Logon ko haircut chahiye.',
 };
 const WITNESS_YES: Record<string, string> = {
-  tiwari: 'My lottery money? Five thousand rupees? I will be there before you.',
-  lalaji: 'My two thousand? From that crook’s lottery? I am closing the shop. I have never closed the shop.',
-  bablu: 'My eight hundred! I will make free chai for everyone. One cup each. Small cups.',
-  pappu: 'If this is true, I am telling everyone. If it is false, I am also telling everyone.',
+  tiwari: 'Meri lottery ke paise? Paanch hazaar? Aur Rahul ka case? *topi seedhi karta hai* Aaj main asli police waala banunga. Pehle pahunchunga.',
+  lalaji: 'Mere do hazaar? Us lutere ki lottery ke? Dukaan band kar raha hoon. Maine zindagi mein kabhi dukaan band nahi ki.',
+  bablu: 'Mere aath sau! Sabke liye free chai banaaunga. Ek ek cup. Chhote cup.',
+  pappu: 'Agar ye sach hai, toh sabko bataunga. Agar jhooth hai, toh bhi sabko bataunga.',
 };
 
 for (const npc of ['tiwari', 'lalaji', 'bablu', 'pappu']) {
@@ -200,30 +195,30 @@ for (const npc of ['tiwari', 'lalaji', 'bablu', 'pappu']) {
         speaker: npc,
         text: WITNESS_REASON[npc],
         choices: [
-          { who: 'sam', tag: 'Negotiate', text: 'Ask him to come to the chai stall tonight: his lottery money is coming back.', next: 'p3_w_sam' },
+          { who: 'sam', tag: 'Sauda', text: 'Aaj raat chai ki dukaan pe aane ko kaho: lottery ka paisa wapas aa raha hai, aur Zikomo sach bolega.', next: 'p3_w_sam' },
           {
             who: 'sam',
-            tag: 'Come clean',
-            text: 'Admit every lie the gang told him first. All of them.',
+            tag: 'Sach Kabool',
+            text: 'Pehle gang ka har jhooth kabool karo. Saare.',
             showIf: (s) => susp(s, npc) >= 50,
             effects: [{ suspicion: npc, delta: -45 }, { stat: 'gang.harmony', delta: -4 }, { flag: `confessed.${npc}` }],
             next: 'p3_w_clean',
           },
-          { who: 'pakya', tag: 'Bluff', text: '“There’s free chai and a film star at the stall tonight.”', effects: [{ flag: `bluffed.${npc}` }], next: 'p3_w_pak' },
-          { text: 'Not now.', next: 'p3_w_bye' },
+          { who: 'pakya', tag: 'Jhaansa', text: '“Aaj raat dukaan pe free chai aur ek film star hai.”', effects: [{ flag: `bluffed.${npc}` }], next: 'p3_w_pak' },
+          { text: 'Abhi nahi.', next: 'p3_w_bye' },
         ],
       },
-      p3_w_sam: { speaker: 'sam', text: 'Tonight, at Bablu’s stall. Proof of Zikomo’s lottery, and the money he took. Yours included.', branch: (s) => (susp(s, npc) < 50 ? 'p3_w_yes' : 'p3_w_no') },
+      p3_w_sam: { speaker: 'sam', text: 'Aaj raat, Bablu ki dukaan. Zikomo ki lottery ka saboot, uska loota hua paisa, aapka bhi. Aur Rahul aur Jai ke saath kya hua, woh bhi.', branch: (s) => (susp(s, npc) < 50 ? 'p3_w_yes' : 'p3_w_no') },
       p3_w_no: {
         speaker: npc,
-        text: 'You four have lied to me all month. Why would I walk across the road for another story?',
-        effects: [{ toast: 'Too suspicious to listen. Come clean, or let Sam smooth it over first.' }],
+        text: 'Tum chaaron ne poore mahine mujhse jhooth bola. Ek aur kahaani ke liye sadak kyun paar karoon?',
+        effects: [{ toast: 'Itna shak hai ki sunenge nahi. Sach kabool karo, ya pehle Sam se baat sambhalwaao.' }],
       },
-      p3_w_clean: { speaker: 'sam', text: 'Pakya is not a bank officer. Or a film producer. Or income tax. We are four unemployed men. But this time, it’s true.', next: 'p3_w_clean2' },
-      p3_w_clean2: { speaker: npc, text: '…That is the most honest thing anyone has said to me in years. Fine. I’ll come.', next: 'p3_w_yes' },
-      p3_w_pak: { speaker: npc, text: 'A film star? At Bablu’s? …Fine, I’ll come. But if there is no film star, I will remember.', effects: [{ flag: `witness.${npc}` }, { event: `witness:${npc}` }] },
+      p3_w_clean: { speaker: 'sam', text: 'Pakya bank officer nahi hai. Film producer nahi. Income tax nahi. Jai bhi nahi. Hum chaar berozgaar hain. Par is baar, sach hai.', next: 'p3_w_clean2' },
+      p3_w_clean2: { speaker: npc, text: '…Saalon mein kisi ne mujhse itna imaandaar kuch nahi bola. Theek hai. Aaunga.', next: 'p3_w_yes' },
+      p3_w_pak: { speaker: npc, text: 'Film star? Bablu ki dukaan pe? …Theek hai, aaunga. Par film star nahi mila toh yaad rakhunga.', effects: [{ flag: `witness.${npc}` }, { event: `witness:${npc}` }] },
       p3_w_yes: { speaker: npc, text: WITNESS_YES[npc], effects: [{ flag: `witness.${npc}` }, { event: `witness:${npc}` }] },
-      p3_w_done: { speaker: npc, text: 'I said I’m coming. Stop asking, or I’ll stop coming.' },
+      p3_w_done: { speaker: npc, text: 'Bola na aa raha hoon. Baar baar poochhoge toh nahi aaunga.' },
       p3_w_bye: { speaker: npc, text: 'Hmph.' },
     },
   );
@@ -236,20 +231,23 @@ extend(
   {
     p3_cart: {
       speaker: 'shambhu',
-      text: 'That drum? Tiwari-ji sold it to me this morning: “junk from the bachelors’ room, for rent arrears”. You want it back? ₹400.',
+      text: 'Woh dhol? Dongre sahab ne aaj subah becha: “kunwaaron ke kamre ka kabaad, karze ki vasooli”. Wapas chahiye? ₹400.',
       choices: [
-        { who: 'sam', tag: 'Negotiate', text: 'Offer the first pick of every bachelor’s junk in the colony, for life.', next: 'p3_cart_sam' },
-        { text: 'Pay ₹400.', showIf: (s) => s.money >= 400, effects: [{ money: -400 }], next: 'p3_cart_give' },
-        { text: 'Leave it. Goti could search the cart instead.', next: 'p3_cart_bye' },
+        { who: 'sam', tag: 'Sauda', text: 'Colony ke har kunwaare ka kabaad, zindagi bhar ke liye, pehli pasand offer karo.', next: 'p3_cart_sam' },
+        { text: '₹400 do.', showIf: (s) => s.money >= 400, effects: [{ money: -400 }], next: 'p3_cart_give' },
+        { text: 'Rehne do. Goti cart mein dhoondh lega.', next: 'p3_cart_bye' },
       ],
     },
-    p3_cart_sam: { speaker: 'shambhu', text: 'For life? …Done. You drive a hard bargain for a man with no money.', next: 'p3_cart_give' },
-    p3_cart_give: { speaker: 'narrator', text: 'Shambhu heaves the dhol off his cart. It is heavier than a dhol should be, and everyone pretends not to notice.', effects: [{ dholTo: 'carry' }, { event: 'gotDrum' }] },
-    p3_cart_bye: { speaker: 'shambhu', text: 'Raddi! Old things, new money!' },
+    p3_cart_sam: { speaker: 'shambhu', text: 'Zindagi bhar? …Pakka. Bina paise ke aadmi ke liye bada tagda mol-bhaav hai.', next: 'p3_cart_give' },
+    p3_cart_give: { speaker: 'narrator', text: 'Shambhu dhol utaarta hai. Dhol jitna bhaari hona chahiye, usse zyaada hai, aur sab anjaan bane rehte hain.', effects: [{ dholTo: 'carry' }, { event: 'gotDrum' }] },
+    p3_cart_bye: { speaker: 'shambhu', text: 'Raddi! Purani cheez, naya paisa!' },
   },
 );
 
-/* ═════════════ The climax at the chai stall ═════════════ */
+/* ═════════════ The climax at the chai stall ═════════════
+ * Zikomo holds Ritu and her grandparents by his white car. He gets the drum, gloats, and confesses.
+ * His own dynamite (he carries it "for negotiations") is what finally ends him: cartoon-style.
+ */
 DIALOGUES_3.climax = {
   start: (s) => {
     const e = s.m('ending') as string;
@@ -257,27 +255,34 @@ DIALOGUES_3.climax = {
   },
   nodes: {
     // ── triumph ──
-    tr1: { speaker: 'rahul', text: 'Shanti Nagar! This book is Zikomo’s lottery. Every rupee you paid, and every rupee he never paid out. And this drum is where I hid it.', next: 'tr2' },
-    tr2: { speaker: 'zikomo', text: 'Lies! These four are famous liars! Ask anyone!', next: 'tr3' },
-    tr3: { speaker: 'tiwari', text: 'They are famous liars. But this book has my name and my five thousand rupees in it. In YOUR handwriting.', next: 'tr4' },
-    tr4: { speaker: 'narrator', text: 'Sirens. An actual income tax team pulls up, called by a very nervous Bablu. Zikomo tries to leave and steps into the drain in his white shoes.', next: 'tr5' },
-    tr5: { speaker: 'pakya', text: 'The REAL income tax department. I always said I had connections.', next: 'end' },
+    tr1: { speaker: 'zikomo', text: 'Dhol! Aakhir! *thapthapaata hai* Chaar lakh, chauvaalees hazaar… Rahul ne socha mujhse chheen lega. Jai ne bhi. Dekho unka kya hua.', next: 'tr2' },
+    tr2: { speaker: 'sam', text: 'Kya hua, Zikomo-ji? Zor se bataiye. Colony sunna chahti hai.', next: 'tr3' },
+    tr3: { speaker: 'zikomo', text: '*hasta hai* Haan, MAINE maara! Dono ko! Accident banaaya! Aur tum chaar gadhe kya kar loge? Main abhi—', effects: [{ event: 'reveal' }], next: 'tr4' },
+    tr4: { speaker: 'tiwari', text: '*bheed mein se, topi seedhi karke* Assistant Sub-Inspector Dongre. Poori colony ne suna. Maine bhi suna. Aur maine likh bhi liya. Pen se.', next: 'tr5' },
+    tr5: { speaker: 'zikomo', text: 'Pen se? *kurte se dynamite ki chhadein nikaalta hai* Mere paas bhi ek “pen” hai! Koi hila toh—', next: 'tr6' },
+    tr6: { speaker: 'narrator', text: 'Goti ka ek bacha hua pataakha. Ek chingaari. Zikomo ki apni safed jeb mein, apni hi dynamite. Phhhsssss…', effects: [{ sfx: 'whoosh' }], next: 'tr7' },
+    tr7: { speaker: 'narrator', text: '*DHADAAAAM!*', effects: [{ sfx: 'thud' }, { event: 'blast' }], next: 'tr8' },
+    tr8: { speaker: 'narrator', text: 'Dhuaan chhat-ta hai. Zikomo khada hai: kaala chehra, khade baal, safed joote ab safed nahi. Woh bas itna bolta hai: “…mere joote.” Aur girta hai. Dongre Mama hathkadi laga dete hain.', next: 'tr9' },
+    tr9: { speaker: 'ritu', text: '*Dada-Dadi ka haath pakde* Tumne… Bhaiya ke liye ye sab kiya? Jhooth bolne waalon ne sach bulwaaya?', next: 'tr10' },
+    tr10: { speaker: 'pakya', text: 'Bas ek baar, Ritu-ji. Pehli aur aakhri baar. Shayad.', next: 'end' },
     // ── collapse ──
-    col1: { speaker: 'zikomo', text: 'Look at them! Bank officers! Film producers! Income tax! Census! Which liar do you believe today, Shanti Nagar?', next: 'col2' },
-    col2: { speaker: 'narrator', text: 'Nobody steps forward. Every face in the crowd remembers a different story the four of them told.', next: 'col3' },
-    col3: { speaker: 'zikomo', text: 'As I thought. Bhaloo, the drum. Gently. It is full of my… music.', next: 'col4' },
-    col4: { speaker: 'sam', text: 'We had the truth this time. We just used up everybody’s patience before we got to it.', next: 'end' },
+    col1: { speaker: 'zikomo', text: 'Dekho inko! Bank officer! Film producer! Income tax! Census! Aur JAI! Aaj kaunse jhoothe pe bharosa karoge, Shanti Nagar?', next: 'col2' },
+    col2: { speaker: 'narrator', text: 'Koi aage nahi aata. Bheed ke har chehre ko chaaron ki ek alag kahaani yaad hai.', next: 'col3' },
+    col3: { speaker: 'zikomo', text: 'Jaisa socha tha. Bhaloo, dhol utha. Aur ye budhe log? Chhod do. Mujhe sirf paisa chahiye tha. *gaadi mein baith-ta hai* *dynamite ki chhadi se cigar jalaata hai*', next: 'col4' },
+    col4: { speaker: 'narrator', text: '*DHADAAAAM!* Safed gaadi ek pal ke liye kaali ho jaati hai. Noton ki baarish. Zikomo dhuaan mein kaanpta hua bahar aata hai, aur pakda jaata hai. Paisa kiska hai, ab koi nahi jaanta.', effects: [{ sfx: 'thud' }, { event: 'blast' }], next: 'col5' },
+    col5: { speaker: 'sam', text: 'Is baar hamare paas sach tha. Bas sabka bharosa pehle hi khatam kar chuke the.', next: 'end' },
     // ── one idiot too many ──
-    bl1: { speaker: 'rahul', text: 'Shanti Nagar! This book is Zikomo’s lottery—', next: 'bl2' },
-    bl2: { speaker: 'narrator', text: 'Everybody turns. Not to Rahul. To one of the four friends, who is, as usual, causing a scene.', next: 'bl3' },
-    bl3: { speaker: 'zikomo', text: 'THAT one! That one has been making trouble all week! Do you trust a gang with THAT one in it?', next: 'bl4' },
-    bl4: { speaker: 'narrator', text: 'In the confusion the money comes back, the book gets read, and Zikomo slinks away. But the colony has decided exactly whose fault the chaos was.', next: 'end' },
+    bl1: { speaker: 'zikomo', text: 'Haan, maine maara Rahul aur Jai ko! Aur ab—', next: 'bl2' },
+    bl2: { speaker: 'narrator', text: 'Sab mudte hain. Zikomo ki taraf nahi. Chaaron mein se ek ki taraf, jo hamesha ki tarah, tamaasha kar raha hai.', next: 'bl3' },
+    bl3: { speaker: 'zikomo', text: 'Woh dekho! WOH waala! Poore hafte se musibat kar raha hai! Aise gang pe bharosa karoge?', next: 'bl4' },
+    bl4: { speaker: 'narrator', text: 'Dhakka-mukki mein Zikomo ki apni dynamite gir ke phat-ti hai. *DHADAAM* Paisa wapas aata hai, Zikomo dhuaan mein pakda jaata hai. Par colony ne tay kar liya hai ki is tamaashe ka zimmedaar kaun hai.', effects: [{ sfx: 'thud' }, { event: 'blast' }], next: 'end' },
     // ── raining rupees ──
-    fo1: { speaker: 'narrator', text: 'Too many things happen at once. Someone trips. Someone screams. The drum hits the ground, and the false panel pops open.', next: 'fo2' },
-    fo2: { speaker: 'narrator', text: 'Rupees rain over the chai stall. The whole colony grabs at them, shouting the exact amounts they paid into Zikomo’s lottery.', next: 'fo3' },
-    fo3: { speaker: 'zikomo', text: 'MY MONEY! …Your money. Our money? Whose money is this?', next: 'fo4' },
-    fo4: { speaker: 'goti', text: 'Everybody’s! It worked! Nothing went to plan and it still worked!', next: 'end' },
-    end: { speaker: 'narrator', text: 'And that was the night Shanti Nagar got its money back. Mostly.', effects: [{ event: 'showEnding' }] },
+    fo1: { speaker: 'narrator', text: 'Ek saath bahut kuch hota hai. Koi phisalta hai. Koi cheekhta hai. Dhol zameen pe girta hai, aur nakli patra khul jaata hai.', next: 'fo2' },
+    fo2: { speaker: 'narrator', text: 'Bablu ki dukaan pe noton ki baarish. Poori colony note pakadti hai, chilla chilla ke apni lottery ki rakam bolti hai.', next: 'fo3' },
+    fo3: { speaker: 'zikomo', text: 'MERA PAISA! Maine is paise ke liye do aadmi maare! …*sab chup* …Maine ye zor se bola kya?', next: 'fo4' },
+    fo4: { speaker: 'narrator', text: 'Zikomo bhaagta hai, jeb mein dynamite, aur seedha Gauri gaay se takraata hai. *DHADAAM* Gauri ko kuch nahi hota. Zikomo ko bahut kuch hota hai.', effects: [{ sfx: 'thud' }, { event: 'blast' }], next: 'fo5' },
+    fo5: { speaker: 'goti', text: 'Sabka paisa! Ho gaya! Kuch bhi plan ke mutaabik nahi hua aur phir bhi ho gaya!', next: 'end' },
+    end: { speaker: 'narrator', text: 'Aur us raat Shanti Nagar ko apna paisa wapas mila. Rahul aur Jai ko insaaf. Aur chaar gadhon ko… ek aur kahaani.', effects: [{ event: 'showEnding' }] },
   },
 };
 
@@ -285,7 +290,7 @@ extend(
   'zikomo',
   (s) => (act(s, 'finale') ? 'p3_night' : act(s, 'reveal') ? 'p3_morning' : undefined),
   {
-    p3_morning: { speaker: 'zikomo', text: 'A biscuit tin. With strings. I want my money, I want my drum, and I want my dignity back. In that order.' },
-    p3_night: { speaker: 'zikomo', text: 'Night is coming, idiots. When it comes, I take my drum, my money, and anyone standing near either.' },
+    p3_morning: { speaker: 'zikomo', text: 'Biscuit ka dabba. Taaron ke saath. Mujhe mera paisa chahiye, mera dhol chahiye, aur meri izzat wapas chahiye. Isi order mein.' },
+    p3_night: { speaker: 'zikomo', text: 'Ladki aur uske budhe mere paas hain, gadho. Raat se pehle dhol. Warna… *dynamite ki chhadi se daant saaf karta hai*' },
   },
 );

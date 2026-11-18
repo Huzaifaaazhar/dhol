@@ -2,12 +2,27 @@ import { useEffect, useRef, useState } from 'react';
 import { useGame, startNewGame } from '../game/store';
 import { ENDING_TITLES, epilogueLines, type EndingId } from '../game/endings';
 import { FRIENDS } from '../game/data/characters';
-import type { CharId } from '../game/types';
+import { CHAR_IDS, type CharId } from '../game/types';
 import { onInput } from '../game/input';
-import { dhol, sfx, stopRhythm } from '../game/audio';
+import { playOneShot, ent } from '../game/runtime';
+import { startMelody, startRhythm, stopRhythm, sfx } from '../game/audio';
+import { onChase, startChase } from '../game/chase';
 import { Logo } from './Screens';
 
 const set = useGame.setState;
+
+/** An original song for the end credits; the four dance to it in the street. */
+const LYRICS = [
+  '♪ Dhol baja, dhol baja, chaar yaaron ka shor baja ♪',
+  '♪ Karza bhi hai, jhooth bhi hai, phir bhi dil ka zor baja ♪',
+  '♪ Gali gali mein dhoom machi, Zikomo ka band baja ♪',
+  '♪ Picture abhi baaki hai, mere dost, dhol baja ♪',
+];
+
+function closeCard() {
+  set({ endingShown: false });
+  startChase();
+}
 
 export function EndingCard() {
   const shown = useGame((s) => s.endingShown);
@@ -17,8 +32,10 @@ export function EndingCard() {
   const lies = useGame((s) => s.lies);
   const secrets = useGame((s) => s.secrets);
   const [credits, setCredits] = useState(false);
+  const [lyric, setLyric] = useState(0);
   const opened = useRef(0);
 
+  // the song, the lyrics and the dance
   useEffect(() => {
     if (!shown) {
       opened.current = 0;
@@ -27,13 +44,26 @@ export function EndingCard() {
     opened.current = performance.now();
     stopRhythm();
     const id = mstate.ending as EndingId;
-    if (id === 'collapse') sfx('fail');
-    else {
-      dhol('both', 0, 1);
-      dhol('both', 0.25, 1);
-      dhol('bass', 0.5, 1);
-      dhol('both', 0.75, 1);
+    if (id === 'collapse') {
+      sfx('fail');
+      startRhythm(96, 0.4);
+      startMelody(96, 0.06);
+    } else {
+      startRhythm(132, 0.6);
+      startMelody(132, 0.1);
     }
+    const lyr = window.setInterval(() => setLyric((n) => n + 1), 3600);
+    const dance = window.setInterval(() => {
+      const st = useGame.getState();
+      CHAR_IDS.forEach((c, i) => {
+        if (st.where[c] !== st.scene) return;
+        if (ent(c).oneShot <= 0) window.setTimeout(() => playOneShot(c, i % 2 ? 'celebrate' : 'signature', 1.3), i * 180);
+      });
+    }, 1400);
+    return () => {
+      window.clearInterval(lyr);
+      window.clearInterval(dance);
+    };
   }, [shown]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(
@@ -41,7 +71,7 @@ export function EndingCard() {
       onInput((a) => {
         // ignore the key press that ended the last line (the card has not recorded its opening yet)
         if (!useGame.getState().endingShown || opened.current === 0 || performance.now() - opened.current < 1500) return;
-        if (a === 'confirm') set({ endingShown: false });
+        if (a === 'confirm') closeCard();
       }),
     [],
   );
@@ -62,7 +92,7 @@ export function EndingCard() {
   });
 
   return (
-    <div className={`ending ending-${id}`} role="dialog" aria-label={`Ending: ${t.title}`} style={culprit ? { ['--c' as string]: FRIENDS[culprit].color } : undefined}>
+    <div className={`ending ending-${id}`} role="dialog" aria-label={`Ant: ${t.title}`} style={culprit ? { ['--c' as string]: FRIENDS[culprit].color } : undefined}>
       {id === 'fortune' && (
         <div className="rain" aria-hidden>
           {[...Array(24)].map((_, i) => (
@@ -72,6 +102,9 @@ export function EndingCard() {
           ))}
         </div>
       )}
+      <div className="lyric" key={lyric} aria-live="off">
+        {LYRICS[lyric % LYRICS.length]}
+      </div>
       <div className="ending-card">
         {!credits ? (
           <>
@@ -79,7 +112,7 @@ export function EndingCard() {
             <h2 className="ending-title">{t.title}</h2>
             {culprit && (
               <div className="ending-culprit">
-                <span className="ending-badge">{FRIENDS[culprit].name[0]}</span> Blame {FRIENDS[culprit].name}.
+                <span className="ending-badge">{FRIENDS[culprit].name[0]}</span> Saara dosh {FRIENDS[culprit].name} ka.
               </div>
             )}
             <ul className="ending-lines">
@@ -90,32 +123,49 @@ export function EndingCard() {
               ))}
             </ul>
             <p className="ending-stats">
-              Ritu’s trust {Math.round(stats['ritu.trust'] ?? 0)} · Gang harmony {Math.round(stats['gang.harmony'] ?? 0)} · {lies.contradictions.length} lies caught · {secrets.length} secrets
+              Ritu ka bharosa {Math.round(stats['ritu.trust'] ?? 0)} · Yaari {Math.round(stats['gang.harmony'] ?? 0)} · {lies.contradictions.length} jhooth pakde gaye · {secrets.length} raaz
             </p>
             <div className="ending-actions">
-              <button className="btn" onClick={() => set({ endingShown: false })}>
-                Keep exploring <kbd>Enter</kbd>
+              <button className="btn" onClick={closeCard}>
+                Aakhri scene dekho <kbd>Enter</kbd>
               </button>
               <button className="btn ghost" onClick={() => setCredits(true)}>
-                Credits
+                Banaane waale
               </button>
               <button className="btn ghost" onClick={() => startNewGame()}>
-                Play again from the start
+                Shuru se phir khelo
               </button>
             </div>
           </>
         ) : (
           <div className="credits">
             <Logo size="md" />
-            <p>Four idiots. One big mess. One drum.</p>
-            <p>An original game inspired by the spirit of a much-loved 2007 Bollywood comedy. Every character model, line of dialogue, building, poster and sound in it was made from scratch, in code.</p>
-            <p>Built with React, TypeScript, three.js and React Three Fiber. Fonts: Yatra One and Baloo 2 (SIL Open Font License). Music and sound effects are synthesised live in your browser.</p>
-            <p>There are four endings. Each one is decided by what you did: the lies you told, who you trusted, and how much noise you made.</p>
+            <p>Chaar yaar. Ek dhol. Bada lafda.</p>
+            <p>2007 ki ek pyaari Bollywood comedy se prerit ek original khel. Har kirdaar, har dialogue, har imaarat, har poster aur har awaaz shuru se, code mein banaayi gayi hai.</p>
+            <p>React, TypeScript, three.js aur React Three Fiber se bana. Font: Yatra One aur Baloo 2 (SIL Open Font License). Sangeet aur awaazein aapke browser mein hi bajti hain.</p>
+            <p>Chaar ant hain. Kaunsa milega, ye aapke kaamon pe hai: kitne jhooth bole, kis pe bharosa kiya, aur kitna shor machaaya.</p>
             <button className="btn" onClick={() => setCredits(false)}>
-              Back
+              Wapas
             </button>
           </div>
         )}
+      </div>
+    </div>
+  );
+}
+
+/** Letterbox and the last title while the four run after Ritu's car. */
+export function ChaseCaption() {
+  const [on, setOn] = useState(false);
+  useEffect(() => onChase(setOn), []);
+  if (!on) return null;
+  return (
+    <div className="chase" aria-hidden>
+      <div className="letterbox top" />
+      <div className="letterbox bottom" />
+      <div className="chase-title">
+        <Logo size="md" />
+        <p>Picture abhi baaki hai…</p>
       </div>
     </div>
   );

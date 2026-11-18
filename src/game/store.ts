@@ -246,7 +246,7 @@ export function migrateSave(old: Partial<Persisted>, version: number): Persisted
     const where = p.savedPos?.scene ?? p.scene;
     p.where = allIn(where);
     // Part 1 bluffs that the old save can still prove
-    if (p.flags['ritu.cable']) p.lies.beliefs = { ...p.lies.beliefs, daadi: { 'pakya.job': { value: 'cable TV inspector', by: 'pakya', t: 0 } } };
+    if (p.flags['ritu.cable']) p.lies.beliefs = { ...p.lies.beliefs, daadi: { 'pakya.job': { value: 'cable TV ka jaanchkarta', by: 'pakya', t: 0 } } };
   }
   if (version < 3) {
     // Part 2 ended on a placeholder; Part 3 picks up from it
@@ -393,7 +393,7 @@ export function completeObjective(objId: string) {
   const obj = def.objectives.find((o) => o.id === objId);
   set({ missions });
   if (allDone) {
-    toast(def.title, 'mission', 'Mission complete');
+    toast(def.title, 'mission', 'Muhim poori');
     if (def.next && MISSION_MAP[def.next]) {
       const n = MISSION_MAP[def.next];
       // the interval card at the end of Part 1 starts Part 2 when it closes
@@ -402,7 +402,7 @@ export function completeObjective(objId: string) {
         window.setTimeout(() => {
           const go = () => {
             activateMission(def.next!);
-            toast(n.title, 'mission', 'New mission');
+            toast(n.title, 'mission', 'Nayi muhim');
           };
           // never yank the gang around in the middle of a conversation
           if (get().dialogue) set((st) => ({ afterDialogue: [...st.afterDialogue, () => window.setTimeout(go, 600)] }));
@@ -410,7 +410,7 @@ export function completeObjective(objId: string) {
         }, 1800);
     }
   } else if (obj) {
-    toast(obj.text, 'objective', 'Done');
+    toast(obj.text, 'objective', 'Ho gaya');
   }
 }
 
@@ -482,7 +482,7 @@ export function startNewGame() {
   });
   const snap = persistedOf(get());
   set({ checkpoint: { mission: 'rent', data: JSON.stringify(snap) } });
-  window.setTimeout(() => toast(MISSION_MAP.rent.title, 'mission', 'Mission'), 900);
+  window.setTimeout(() => toast(MISSION_MAP.rent.title, 'mission', 'Muhim'), 900);
 }
 
 export function continueGame() {

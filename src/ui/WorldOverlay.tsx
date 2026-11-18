@@ -110,7 +110,7 @@ function PromptCard({ id }: { id: string }) {
         <div className="prompt-label">
           {it.label}
           {sus >= 5 && (
-            <span className="prompt-sus" title="How suspicious they are of you">
+            <span className="prompt-sus" title="Inhe tum pe kitna shak hai">
               {[0, 1, 2, 3, 4].map((i) => (
                 <i key={i} className={i < Math.round(sus / 20) ? 'on' : ''} />
               ))}
@@ -129,12 +129,12 @@ function PromptCard({ id }: { id: string }) {
             <span>{mine.verb}</span>
           </div>
         )}
-        {!main && !mine && others.length > 0 && <div className="prompt-row prompt-muted">Not a job for {FRIENDS[active].name}</div>}
+        {!main && !mine && others.length > 0 && <div className="prompt-row prompt-muted">{FRIENDS[active].name} ka kaam nahi</div>}
         {others.length > 0 && (
           <div className="prompt-others">
             {others.map((a) => (
               <span key={a.id} className="chip" style={{ ['--c' as string]: FRIENDS[a.who!].color }}>
-                <b>{CHAR_IDS.indexOf(a.who!) + 1}</b> {FRIENDS[a.who!].name} could try something
+                <b>{CHAR_IDS.indexOf(a.who!) + 1}</b> {FRIENDS[a.who!].name} kuch kar sakta hai
               </span>
             ))}
           </div>
@@ -217,7 +217,7 @@ function FriendMarkers() {
         return Math.hypot(a.x - e.x, a.z - e.z) > 4;
       }).map((c) => {
         const task = tasks.find((t) => t.who === c);
-        const label = task ? task.label : hidden[c] ? 'Hiding' : 'Waiting here';
+        const label = task ? task.label : hidden[c] ? 'Chhupa hai' : 'Yahaan ruka hai';
         const slow = task?.kind === 'search' && taskRate(c, task.spec) < 1;
         return <Marker key={c} who={c} label={label} timed={!!task?.duration} slow={slow} />;
       })}
@@ -248,7 +248,7 @@ function Marker({ who, label, timed, slow }: { who: CharId; label: string; timed
             <span ref={bar} />
           </span>
         ) : null}
-        {slow && <span className="busy-slow">slow: Goti is faster</span>}
+        {slow && <span className="busy-slow">dheema: Goti tez hai</span>}
       </div>
     </div>
   );

@@ -1,12 +1,13 @@
+import { SICK_IN_BED, ROOM_MARU_SICK } from '../data/questions';
 /**
  * EVERYTHING GOES WRONG
  * Zikomo searches the hideout at sunset. In parallel, on one clock:
  *  - Sam (plan A) waits out Lalaji's coin counting to rent a wedding dhol, or
  *  - Goti (plan B) scavenges a biscuit tin, rope and a tabla skin (noisy) and builds a fake.
- *  - Someone carries the real dhol home, past Tiwari-ji, who is about to inspect the room.
- *  - Pakya keeps Tiwari-ji talking: his answers must match every lie told before.
+ *  - Someone carries the real dhol home, past Dongre Mama, who is about to inspect the room.
+ *  - Pakya keeps Dongre Mama talking: his answers must match every lie told before.
  *  - Maru watches the lane for Spanner, who peeks into the hideout; if Maru panics he runs past
- *    Tiwari-ji, which wrecks any "Maru is sick in bed" story Pakya told.
+ *    Dongre Mama, which wrecks any "Maru is sick in bed" story Pakya told.
  * Outcome at sunset: Zikomo takes the real dhol (failure), a fake (best), or nothing (he comes back angrier).
  */
 import type { CharId } from '../types';
@@ -77,17 +78,17 @@ export const chaos: Director = {
       setM('timerEnd', now + t);
       setM('timerLen', t);
       inspectAt = now + 35;
-      toast(`Sunset in ${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}${h >= 60 ? ' (a united gang buys extra time)' : h < 35 ? ' (all the bickering cost you time)' : ''}`, 'alert', 'The clock is running');
+      toast(`Suraj dhalne mein ${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}${h >= 60 ? ' (ekjut gang ko extra waqt mila)' : h < 35 ? ' (jhagde mein waqt gaya)' : ''}`, 'alert', 'Ghadi chal rahi hai');
     }
     if (name === 'lalajiWait') {
-      startTask('sam', { kind: 'wait', duration: 20, label: 'Waiting for Lalaji to count', onDone: [{ flag: 'chaos.waited' }, { toast: 'Lalaji has finished counting. Talk to him again.' }] }, 'lalaji_wait');
+      startTask('sam', { kind: 'wait', duration: 20, label: 'Lalaji ginti kar rahe hain', onDone: [{ flag: 'chaos.waited' }, { toast: 'Lalaji ki ginti poori. Unse phir baat karo.' }] }, 'lalaji_wait');
     }
-    if (name === 'lalajiRefused') toast('Lalaji refused. Goti will have to build a fake: tin, rope and a tabla skin.', 'fail');
+    if (name === 'lalajiRefused') toast('Lalaji ne mana kar diya. Goti ko nakli banaana padega: dabba, rassi aur tabla ki khaal.', 'fail');
     if (name === 'task:cancel') {
       const t = (data as { task: { source: string } }).task;
       if (t.source === 'lalaji_wait' && !get().flags['chaos.waited']) {
         setFlag('chaos.lalajiWait', false);
-        bark('lalaji', 'You left! I lost count! Start again!', 2.4);
+        bark('lalaji', 'Tum chale gaye! Ginti bhool gaya! Phir se shuru!', 2.4);
       }
       if (t.source.startsWith('npc:tiwari')) {
         const a = agents.get('tiwari');
@@ -97,7 +98,7 @@ export const chaos: Director = {
     if (name === 'built') {
       setM('fake', 'hideout');
       completeObjective('chaos.fake');
-      toast('A fake dhol now sits in the hideout. In bad light, it is perfect.', 'objective');
+      toast('Ab adde mein nakli dhol rakha hai. Kam roshni mein, ekdum perfect.', 'objective');
     }
     if (name === 'placeFake') {
       set({ items: get().items.filter((i) => i !== 'fakedhol') });
@@ -107,15 +108,15 @@ export const chaos: Director = {
     if (name === 'hideReal') {
       set({ dhol: 'house' });
       completeObjective('chaos.hide');
-      toast('The real dhol is under Maru’s charpai. Maru will never sleep again.', 'objective');
+      toast('Asli dhol Maru ki charpai ke neeche hai. Maru ab kabhi nahi soyega.', 'objective');
     }
     if (name === 'arrive:tiwariDoor') {
       if (s.dhol === 'house') {
         set({ dhol: 'tiwari' });
-        bark('tiwari', 'What is this under the charpai? A DRUM? Confiscated! Rent first!', 3.2);
+        bark('tiwari', 'Charpai ke neeche kya hai? DHOL? Zabt! Pehle karza!', 3.2);
         playOneShot('tiwari', 'panic', 0.8);
-        toast('Tiwari-ji found the real dhol in your room and took it', 'fail', 'Complication');
-      } else bark('tiwari', 'Hmm. Clean. Suspiciously clean.', 2.4);
+        toast('Dongre Mama ko kamre mein asli dhol mila aur woh le gaye', 'fail', 'Gadbad');
+      } else bark('tiwari', 'Hmm. Saaf. Shak paida karne jitna saaf.', 2.4);
       tiwariBack = now + 12;
       inspectAt = now + 75;
     }
@@ -124,7 +125,7 @@ export const chaos: Director = {
       if (a) a.anim = 'read';
     }
     if (name === 'maruPanic') {
-      // Maru bolts for home, straight past Tiwari-ji
+      // Maru bolts for home, straight past Dongre Mama
       const m = ent('maru');
       noise('maru', m.x, m.z);
       if (get().where.maru === 'street') {
@@ -132,17 +133,17 @@ export const chaos: Director = {
         m.x = t.x + 1.5;
         m.z = t.z + 1.2;
         const st = get();
-        const sick = st.lies.beliefs.tiwari?.['maru.health']?.value === 'Sick in bed' || (st.lies.beliefs.tiwari?.['room.state']?.value ?? '').includes('Maru is sick');
+        const sick = st.lies.beliefs.tiwari?.['maru.health']?.value === SICK_IN_BED || st.lies.beliefs.tiwari?.['room.state']?.value === ROOM_MARU_SICK;
         if (sick) {
-          const { state } = tell(st.lies, { topic: 'maru.health', value: 'running around screaming', by: 'maru', to: 'tiwari', t: now });
+          const { state } = tell(st.lies, { topic: 'maru.health', value: 'cheekhte hue bhaag raha tha', by: 'maru', to: 'tiwari', t: now });
           set({ lies: state });
           tiwariSus(20);
           emote('tiwari', '💢', 2.4);
-          bark('tiwari', 'SICK IN BED? He just ran past me screaming like a pressure cooker!', 3.2);
-          toast('Maru’s panic just blew Pakya’s “sick in bed” story', 'lie', 'Contradiction');
-          window.setTimeout(() => bark('pakya', 'MARU! You had ONE job. Being sick!', 2.6), 900);
+          bark('tiwari', 'BISTAR PE BEEMAR? Abhi mere saamne se pressure cooker ki tarah cheekhta hua bhaaga!', 3.2);
+          toast('Maru ki ghabraahat ne Pakya ki “bistar pe beemar” waali kahaani ki pol khol di', 'lie', 'Takraav');
+          window.setTimeout(() => bark('pakya', 'MARU! Tera EK kaam tha. Beemar rehna!', 2.6), 900);
           addStat('gang.harmony', -8);
-        } else bark('tiwari', 'Why is everybody running today?', 2.2);
+        } else bark('tiwari', 'Aaj sab bhaag kyun rahe hain?', 2.2);
       }
     }
   },
@@ -155,17 +156,17 @@ export const chaos: Director = {
     const stalling = taskOf('pakya')?.kind === 'stall' && taskOf('pakya')?.spec.target === 'tiwari';
     if (t) t.mode = stalling ? 'stalled' : t.mode === 'stalled' ? 'idle' : t.mode;
 
-    // Pakya's story collapses if Tiwari-ji gets too suspicious
+    // Pakya's story collapses if Dongre Mama gets too suspicious
     if (stalling && (s.lies.suspicion.tiwari ?? 0) >= 90) {
       cancelTask('pakya', true);
-      bark('tiwari', 'Enough stories! I am inspecting that room. NOW.', 2.8);
+      bark('tiwari', 'Bas kahaaniyaan! Main kamre ki talaashi le raha hoon. ABHI.', 2.8);
       inspectAt = now;
     }
 
-    // Tiwari-ji's room inspection
+    // Dongre Mama's room inspection
     if (end && t && !stalling && t.mode === 'idle' && inspectAt && now >= inspectAt) {
       inspectAt = 0;
-      bark('tiwari', 'Inspection time! Nobody has paid rent, so everybody gets inspected!', 2.6);
+      bark('tiwari', 'Talaashi ka waqt! Kisi ne karza nahi chukaaya, toh sabki talaashi!', 2.6);
       // he really walks in: through the front door and over to Maru's charpai
       agentTravel('tiwari', 'house', ROOM_CHECK.x, ROOM_CHECK.z, 'tiwariDoor');
       t.anim = 'idle';
@@ -175,7 +176,7 @@ export const chaos: Director = {
       agentTravel('tiwari', 'street', TIWARI_CHAIR.x, TIWARI_CHAIR.z, 'tiwariChair');
     }
 
-    // Tiwari-ji spots a drum being carried past him
+    // Dongre Mama spots a drum being carried past him
     const c = carrier();
     if (c && t && s.where[c] === 'street' && t.scene === 'street') {
       const e = ent(c);
@@ -185,8 +186,8 @@ export const chaos: Director = {
         set({ dhol: 'tiwari' });
         sfx('fail');
         emote('tiwari', '!', 2);
-        bark('tiwari', 'What is that? A DRUM? In MY building? Rent first, drum later!', 3);
-        toast('Tiwari-ji confiscated the real dhol! Sam or Pakya might get it back.', 'fail', 'Complication');
+        bark('tiwari', 'Ye kya hai? DHOL? MERE ilaake mein? Pehle karza, phir dhol!', 3);
+        toast('Dongre Mama ne asli dhol zabt kar liya! Sam ya Pakya wapas la sakte hain.', 'fail', 'Gadbad');
       }
     }
 
@@ -199,9 +200,9 @@ export const chaos: Director = {
         if (s.dhol === 'hideout' && getM<string>('fake', '') !== 'hideout' && end) {
           setM('timerEnd', end - 40);
           sfx('honk');
-          bark('spanner', 'Oho! A drum in the garage! BOSS! Come early!', 3);
-          toast('Spanner saw the real dhol through the shutter. Zikomo is coming 40 seconds early!', 'fail', 'Complication');
-        } else bark('spanner', 'Hmm. Garage. Boring garage.', 2);
+          bark('spanner', 'Oho! Garage mein dhol! BOSS! Jaldi aao!', 3);
+          toast('Spanner ne shutter se asli dhol dekh liya. Zikomo 40 second pehle aa raha hai!', 'fail', 'Gadbad');
+        } else bark('spanner', 'Hmm. Garage. Bekaar garage.', 2);
       }
     }
 
@@ -217,10 +218,10 @@ export const chaos: Director = {
   caught(who: CharId) {
     if (carrier() === who) {
       set({ dhol: 'zikomo' });
-      failMission('Spanner caught whoever was carrying the real dhol. Zikomo didn’t even have to wait for sunset.');
+      failMission('Spanner ne asli dhol uthaane waale ko pakad liya. Zikomo ko suraj dhalne ka intezaar bhi nahi karna pada.');
       return;
     }
-    bark('spanner', 'Sunset, idiot. The boss is coming at sunset. Don’t make me run before then.', 2.6);
+    bark('spanner', 'Suraj dhalne de, gadhe. Boss tab aayega. Usse pehle mujhe mat daudaa.', 2.6);
     investigate('spanner', ent(who).x, ent(who).z, 3, get().worldTime);
   },
 };
@@ -232,7 +233,7 @@ function sunset() {
   const realExposed = s.dhol === 'hideout' || (c !== null && s.where[c] !== 'house');
   if (realExposed) {
     set({ dhol: 'zikomo' });
-    failMission('Sunset. Zikomo walked into the hideout and walked out with Rahul’s real dhol under his arm.');
+    failMission('Suraj dhal gaya. Zikomo adde mein aaya aur Rahul ka asli dhol bagal mein dabaake chala gaya.');
     return;
   }
   setFlag('end.fake', getM<string>('fake', '') === 'hideout');
@@ -240,7 +241,7 @@ function sunset() {
   // Zikomo arrives at the lane; bring the active friend to meet him
   spawnAgent('zikomo', 'street', -19.6, 15.8, { face: 0 });
   moveActive('street', -19.8, 14.2, Math.PI);
-  toast('Sunset', 'mission', 'Zikomo is here');
+  toast('Sunset', 'mission', 'Zikomo aa gaya');
   window.setTimeout(() => {
     set({ talkingTo: 'zikomo' });
     startDialogue('chaos_end');

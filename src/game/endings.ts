@@ -61,25 +61,25 @@ export function troubleFrom(lies: LieState, finale: Partial<Record<CharId, numbe
 }
 
 export const ENDING_TITLES: Record<EndingId, { title: string; kicker: string }> = {
-  triumph: { title: 'The Rightful Owners', kicker: 'The mess, resolved' },
-  collapse: { title: 'House of Cards', kicker: 'The lies collapsed' },
-  blame: { title: 'One Idiot Too Many', kicker: 'Somebody ruined it for everyone' },
-  fortune: { title: 'Raining Rupees', kicker: 'Chaos, and somehow luck' },
+  triumph: { title: 'Insaaf', kicker: 'Ek baar ke liye, insaaf' },
+  collapse: { title: 'Taash ka Mahal', kicker: 'Jhooth ka mahal gir gaya' },
+  blame: { title: 'Ek Gadha Zyaada', kicker: 'Ek ne sabka khel bigaada' },
+  fortune: { title: 'Noton ki Baarish', kicker: 'Hungaama, aur pata nahi kaise kismat' },
 };
 
 const CAUSE_LINE: Record<string, string> = {
-  caught: 'Zikomo’s men caught whoever was carrying the drum. Zikomo drove off with the colony’s money.',
-  time: 'Night fell before the drum reached the chai stall. Zikomo collected it himself.',
-  lies: 'Too many stories clashed in front of the whole colony. Nobody believed a word, not even the true ones.',
-  alone: 'Nobody came to the chai stall. Four men and a drum make a sad little crowd.',
-  bluffs: 'The witnesses came for a film star who did not exist. When they found out, they stopped listening.',
+  caught: 'Zikomo ke aadmiyon ne dhol uthaane waale ko pakad liya. Colony ka paisa ek pal ke liye Zikomo ke paas chala gaya.',
+  time: 'Dhol chai ki dukaan tak pahunchne se pehle raat ho gayi. Zikomo khud dhol lene aa gaya.',
+  lies: 'Poori colony ke saamne itni kahaaniyaan takraayin ki kisi ne ek shabd nahi maana. Sach waale bhi nahi.',
+  alone: 'Chai ki dukaan pe koi nahi aaya. Chaar aadmi aur ek dhol: bahut udaas bheed.',
+  bluffs: 'Gawaah ek film star ke liye aaye the jo tha hi nahi. Jab pata chala, sunna band kar diya.',
 };
 
 const CULPRIT_LINE: Record<CharId, string> = {
-  sam: 'Sam’s plans had plans, and every one of them contradicted the last. The colony now calls him “Plan Z”.',
-  pakya: 'Pakya had been a bank officer, a producer, a census man and income tax to different people. The real income tax department would like a word.',
-  goti: 'Every crash, bang and accidental drum solo of the week was Goti. The colony has banned him from carts, drums and spoons.',
-  maru: 'Maru panicked so loudly, so often, that the whole colony now jumps when he sneezes. He has been made the official neighbourhood alarm.',
+  sam: 'Sam ke plan ke andar plan the, aur har plan pichhle wale ke ulat. Colony ab use “Plan Z” bulaati hai.',
+  pakya: 'Pakya alag alag logon ke liye bank officer, producer, census wala, income tax aur Jai tha. Asli income tax department ab usse milna chahta hai.',
+  goti: 'Hafte bhar ka har dhamaaka, har thok, har galti se baja dhol: Goti. Colony ne use thelon, dholon aur chammachon se ban kar diya hai.',
+  maru: 'Maru itni zor se, itni baar ghabraaya ki ab uski chheenk pe poori colony uchhal padti hai. Use colony ka official alarm bana diya gaya hai.',
 };
 
 export interface EpilogueState {
@@ -97,24 +97,24 @@ export function epilogueLines(e: EpilogueState): string[] {
   const out: string[] = [];
   if (e.ending.id === 'collapse') out.push(CAUSE_LINE[e.ending.cause] ?? CAUSE_LINE.lies);
   if (e.ending.id === 'blame' && e.ending.culprit) out.push(CULPRIT_LINE[e.ending.culprit]);
-  if (e.ending.id === 'triumph') out.push('Zikomo was led away in muddy white shoes. Every family got its lottery money back, counted twice by Lalaji.');
-  if (e.ending.id === 'fortune') out.push('Every rupee ended up in the right pocket, somehow. Nobody can explain how. Moti ate one note and is not sorry.');
+  if (e.ending.id === 'triumph') out.push('Zikomo kaale chehre aur khade baalon ke saath hathkadi mein le jaaya gaya. Har ghar ko lottery ka paisa wapas mila, Lalaji ne do baar gin ke diya.');
+  if (e.ending.id === 'fortune') out.push('Har rupaya kisi tarah sahi jeb mein pahuncha. Kaise, koi nahi jaanta. Moti ne ek note kha liya aur use koi afsos nahi.');
 
-  if (e.ending.id === 'collapse') out.push('The four of them now wash glasses at Bablu’s stall to pay the rent. Bablu says they are his best liars yet.');
-  else if (e.hasTicket) out.push('Ticket #4444 finally paid out. Tiwari-ji got his rent in cash, and cried a little.');
-  else out.push('The winning ticket stayed in Zikomo’s car. The rent is still due. Tiwari-ji has started a separate diary for it.');
+  if (e.ending.id === 'collapse') out.push('Chaaron ab karza chukaane ke liye Bablu ki dukaan pe glass dhote hain. Bablu kehta hai itne achhe jhoothe usne kabhi nahi dekhe.');
+  else if (e.hasTicket) out.push('Ticket #4444 aakhir mein jeet gaya. Dongre Mama ko apna karza nakad mila, byaaj ke saath. Woh thoda roye.');
+  else out.push('Jeetne waala ticket Zikomo ki gaadi mein reh gaya. Karza abhi baaki hai. Dongre Mama ne uske liye alag diary shuru kar di hai.');
 
   const ranked = [...(['sam', 'pakya', 'goti', 'maru'] as CharId[])].sort((a, b) => (e.scores[b] ?? 0) - (e.scores[a] ?? 0));
   const winner = ranked[0];
   const name = { sam: 'Sam', pakya: 'Pakya', goti: 'Goti', maru: 'Maru' }[winner];
-  if (e.rituTrust >= 60) out.push(`Ritu agreed to have chai with ${name}. The other three are each certain she meant them.`);
-  else if (e.rituTrust < 30) out.push('Ritu now takes the long way round the colony, to avoid all four of them.');
-  else out.push('Ritu thanked all four of them, very politely, then hugged Moti for much longer.');
+  if (e.rituTrust >= 60) out.push(`Jaate jaate Ritu ne ${name} ki taraf dekh ke muskuraaya. Baaki teeno ko pakka yakeen hai ki woh unki taraf thi.`);
+  else if (e.rituTrust < 30) out.push('Ritu ne chaaron ko ek baar dekha, sar hilaaya, aur gaadi ka sheesha upar kar liya.');
+  else out.push('Ritu ne chaaron ka bahut tameez se shukriya kiya, aur Moti ko bahut der tak gale lagaaya.');
 
-  out.push(e.liesCaught === 0 ? 'Not a single lie was caught all week. Pakya will not stop talking about it.' : `The colony compared notes: ${e.liesCaught} lie${e.liesCaught === 1 ? '' : 's'} caught. Tiwari-ji framed the list.`);
-  if (e.harmony >= 60) out.push('The four of them still share one room, one lemon, and one terrible plan at a time.');
-  else if (e.harmony < 35) out.push('The four of them are not speaking to each other. This lasted until dinner.');
-  if (e.secrets.includes('tank')) out.push('Lalaji finally gave Kamla his letter. He delivered it with a free onion.');
-  out.push('Rahul came home. Daadi sold his new dhol within the hour.');
+  out.push(e.liesCaught === 0 ? 'Poore hafte ek bhi jhooth nahi pakda gaya. Pakya iske baare mein chup nahi ho raha.' : `Colony ne hisaab milaaya: ${e.liesCaught} jhooth pakde gaye. Dongre Mama ne list frame karwa ke chowki mein laga di.`);
+  if (e.harmony >= 60) out.push('Chaaron abhi bhi ek kamra, ek nimbu, aur ek waqt pe ek bekaar plan share karte hain.');
+  else if (e.harmony < 35) out.push('Chaaron ek doosre se baat nahi kar rahe. Ye raat ke khaane tak chala.');
+  if (e.secrets.includes('tank')) out.push('Lalaji ne aakhir Kamla ko apna khat de diya. Saath mein ek pyaaz free.');
+  out.push('Agli subah Ritu Dada-Dadi ke saath Pune chhod ke chali gayi. Uski gaadi chali, aur chaaron uske peechhe daud pade. Kyun? Kisi ko nahi pata. Picture abhi baaki hai.');
   return out;
 }

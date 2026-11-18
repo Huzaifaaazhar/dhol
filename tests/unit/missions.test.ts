@@ -49,7 +49,7 @@ describe('save migration', () => {
   });
   it('carries Pakya’s Part 1 cable-TV bluff into Daadi’s memory', () => {
     const old = { ...freshProgress(), flags: { 'ritu.cable': true } } as never;
-    expect(migrateSave(old, 1).lies.beliefs.daadi['pakya.job'].value).toBe('cable TV inspector');
+    expect(migrateSave(old, 1).lies.beliefs.daadi['pakya.job'].value).toBe('cable TV ka jaanchkarta');
   });
 });
 
@@ -69,9 +69,9 @@ describe('abilities', () => {
     expect(taskRate('sam', spec)).toBeCloseTo(1 / 3);
   });
   it('exposes suspicion and beliefs to dialogue conditions', () => {
-    useGame.setState({ lies: { ...useGame.getState().lies, suspicion: { tiwari: 42 }, beliefs: { tiwari: { 'pakya.job': { value: 'film producer', by: 'pakya', t: 0 } } } } });
+    useGame.setState({ lies: { ...useGame.getState().lies, suspicion: { tiwari: 42 }, beliefs: { tiwari: { 'pakya.job': { value: 'filmon ka producer', by: 'pakya', t: 0 } } } } });
     const v = view();
     expect(v.suspicion('tiwari')).toBe(42);
-    expect(v.believes('tiwari', 'pakya.job')).toBe('film producer');
+    expect(v.believes('tiwari', 'pakya.job')).toBe('filmon ka producer');
   });
 });

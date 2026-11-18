@@ -1,3 +1,4 @@
+import { filmi } from './filmi';
 import { setAmbient } from './sim/sim';
 /** Dev-only hooks used by the browser tests (tests/e2e). Not shipped in production builds. */
 import { useGame, activateMission, completeObjective, freshProgress, retryMission } from './store';
@@ -73,6 +74,7 @@ export const debugApi = {
     useGame.setState({ worldTime: simClock.t });
   },
   switchFriend,
+  filmi,
   completeObjective,
   answerQuestion,
   startDialogue,

@@ -358,7 +358,7 @@ function Piece({ f }: { f: Furniture }) {
           <Cyl p={[0, 0, 0.03]} s={[0.8, 0.06, 0.8]} r={[Math.PI / 2, 0, 0]} c="#1d1d1d" />
           <Cyl p={[0, 0, 0.06]} s={[0.6, 0.03, 0.6]} r={[Math.PI / 2, 0, 0]} c="#d62828" />
           <Cyl p={[0, 0, 0.08]} s={[0.36, 0.03, 0.36]} r={[Math.PI / 2, 0, 0]} c="#f1faee" />
-          {/* Tiwari-ji's photo pinned in the middle */}
+          {/* Dongre Mama's photo pinned in the middle */}
           <Box p={[0, 0, 0.11]} s={[0.22, 0.28, 0.01]} c="#e9d8a6" shadow={false} />
           <mesh geometry={GEO.sphereLo} material={mat('#b07650')} position={[0, 0.03, 0.12]} scale={[0.12, 0.13, 0.02]} />
           {/* darts that all missed */}
@@ -510,9 +510,9 @@ function planTexture(board: boolean) {
   g.fillRect(0, 0, 512, 300);
   g.fillStyle = board ? '#f1faee' : '#1d3557';
   g.font = 'bold 44px "Yatra One", serif';
-  g.fillText(board ? 'MASTER PLAN' : 'GET RICH', 24, 58);
+  g.fillText(board ? 'MASTER PLAN' : 'AMEER BANO', 24, 58);
   g.font = '600 30px "Baloo 2", sans-serif';
-  const lines = board ? ['1. Money?', '2. ??????', '3. Rent paid', '4. Respect'] : ['Step 1: Become rich', 'Step 2: Stay rich', '(step 1 how??)'];
+  const lines = board ? ['1. Paisa?', '2. ??????', '3. Karza khatam', '4. Izzat'] : ['Step 1: Ameer bano', 'Step 2: Ameer raho', '(step 1 kaise??)'];
   lines.forEach((l, i) => g.fillText(l, 30, 110 + i * 46));
   g.strokeStyle = '#e63946';
   g.lineWidth = 5;

@@ -13,16 +13,16 @@ export function SlotList({ canSave }: { canSave: boolean }) {
       {slots.map(({ n, slot }) => (
         <li key={n} className={`slot ${slot ? '' : 'is-empty'}`}>
           <div className="slot-info">
-            <span className="slot-n">Slot {n}</span>
+            <span className="slot-n">Khaana {n}</span>
             {slot ? (
               <>
                 <span className="slot-mission">{slot.meta.mission}</span>
                 <span className="slot-meta">
-                  Part {slot.meta.part} · {slot.meta.scene} · {timeAgo(slot.meta.savedAt)}
+                  Hissa {slot.meta.part} · {slot.meta.scene} · {timeAgo(slot.meta.savedAt)}
                 </span>
               </>
             ) : (
-              <span className="slot-meta">Empty</span>
+              <span className="slot-meta">Khaali</span>
             )}
           </div>
           <div className="slot-actions">
@@ -32,12 +32,12 @@ export function SlotList({ canSave }: { canSave: boolean }) {
                 onClick={() => {
                   if (saveToSlot(n)) {
                     sfx('success');
-                    toast(`Saved to slot ${n}`, 'objective');
-                  } else toast('Could not save: this browser is blocking storage', 'fail');
+                    toast(`Khaana ${n} mein sambhaal liya`, 'objective');
+                  } else toast('Sambhaala nahi gaya: browser jagah nahi de raha', 'fail');
                   refresh((x) => x + 1);
                 }}
               >
-                {slot ? 'Overwrite' : 'Save here'}
+                {slot ? 'Iske upar sambhaalo' : 'Yahaan sambhaalo'}
               </button>
             )}
             {slot && (
@@ -62,7 +62,7 @@ export function SlotList({ canSave }: { canSave: boolean }) {
                   refresh((x) => x + 1);
                 }}
               >
-                {confirmDel === n ? 'Sure?' : 'Delete'}
+                {confirmDel === n ? 'Pakka?' : 'Mitaao'}
               </button>
             )}
           </div>

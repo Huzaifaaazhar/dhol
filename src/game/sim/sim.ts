@@ -1,4 +1,5 @@
 import type { CharId, SceneId } from '../types';
+import { filmi } from '../filmi';
 /**
  * The world clock. Everything that should keep happening while you switch friends lives here:
  * NPC patrols, friend tasks, gossip, suspicion fading, lookout alarms and mission directors.
@@ -71,8 +72,11 @@ export function installSim() {
     if (name.startsWith('smooth:')) {
       // Sam can only smooth things over with each person once per mission
       set((st) => ({ mstate: { ...st.mstate, [`smooth.${name.slice(7)}`]: true } }));
-      bark(name.slice(7), 'Hmm. Fine. I will believe you. Once.', 2.2);
+      bark(name.slice(7), 'Hmm. Theek hai. Maan leta hoon. Ek baar.', 2.2);
     }
+    // filmi punctuation for the story's big moments (directors still hear these events)
+    if (name === 'blast') filmi('blast');
+    if (name === 'reveal' || name === 'drumOpen' || name === 'kidnap') filmi('reveal');
     if (name === 'showEnding') {
       // the finale always ends here, whichever objectives were met: the ending reflects them
       const st = get();
@@ -83,7 +87,7 @@ export function installSim() {
     }
     if (name === 'tiwariReturns') {
       set({ dhol: `carried:${get().active}` });
-      toast('You have the real dhol again', 'objective');
+      toast('Asli dhol phir tumhare paas hai', 'objective');
     }
     director()?.event?.(name, data);
   });
@@ -135,7 +139,7 @@ export function simTick(rawDt: number) {
     if (r.state !== st.lies) set({ lies: r.state });
     for (const c of r.found) {
       emote(c.npc, '💢', 2.2);
-      toast(`${NPCS[c.npc]?.name ?? c.npc} heard from ${NPCS[c.via!]?.name ?? c.via} that it was “${c.heard}”. That is not what they were told.`, 'lie', 'Gossip');
+      toast(`${NPCS[c.npc]?.name ?? c.npc} ne ${NPCS[c.via!]?.name ?? c.via} se suna ki “${c.heard}”. Unhe toh kuch aur bataaya gaya tha.`, 'lie', 'Afwaah');
     }
   }
 
@@ -160,8 +164,8 @@ function lookout(dt: number, now: number) {
       if (d < 15 && now - last > 18) {
         alerted.set(a.id, now);
         sfx('scream');
-        bark('maru', `${NPCS[a.id]?.name ?? 'Someone'} is coming! ${['Hide! HIDE!', 'Everybody act normal!', 'I see him! He sees nothing! Yet!'][Math.floor(Math.random() * 3)]}`, 3);
-        toast(`Maru spotted ${NPCS[a.id]?.name ?? a.id}`, 'alert', 'Lookout');
+        bark('maru', `${NPCS[a.id]?.name ?? 'Koi'} aa raha hai! ${['Chhupo! CHHUPO!', 'Sab normal dikho!', 'Mujhe dikh raha hai! Use kuch nahi dikh raha! Abhi tak!'][Math.floor(Math.random() * 3)]}`, 3);
+        toast(`Maru ne ${NPCS[a.id]?.name ?? a.id} ko dekh liya`, 'alert', 'Nigraani');
       }
     }
   }
@@ -184,8 +188,8 @@ function lookout(dt: number, now: number) {
     set((st) => ({ posted: { ...st.posted, maru: false }, hidden: { ...st.hidden, maru: undefined } }));
     sfx('scream');
     runtime.shake = 0.5;
-    bark('maru', 'AAAAAAAAAAH! I CAN’T DO THIS!', 3);
-    toast('Maru panicked and ran', 'fail', 'He abandoned his post');
+    bark('maru', 'AAAAAAAAAAH! MUJHSE NAHI HOGA!', 3);
+    toast('Maru ghabra ke bhaag gaya', 'fail', 'Usne apni jagah chhod di');
     director()?.event?.('maruPanic');
   }
   if (Math.abs(panic - s.panic) > 0.5) set({ panic });
@@ -215,13 +219,13 @@ function stealth(now: number) {
       agent.until = now + 6;
       sfx('honk');
       emote(agent.id, '!', 1.6);
-      bark(agent.id, ['OYE! You! Stop!', 'Found one! Boss!', 'Hey, idiot number ' + (CHAR_IDS.indexOf(who) + 1) + '!'][Math.floor(Math.random() * 3)], 2.2);
+      bark(agent.id, ['OYE! Tu! Ruk!', 'Ek mila! Boss!', 'Oye, gadha number ' + (CHAR_IDS.indexOf(who) + 1) + '!'][Math.floor(Math.random() * 3)], 2.2);
       const lastToast = spottedToast.get(who) ?? -99;
       const following = who !== s.active && !s.posted[who] && s.where[who] === s.scene;
       if (now - lastToast > 6 && !following) {
         spottedToast.set(who, now);
-        if (s.active === who) toast('You have been spotted. Run, or hide!', 'alert');
-        else toast(`${FRIENDS[who].name} has been spotted!`, 'alert', `Press ${CHAR_IDS.indexOf(who) + 1} to help him`);
+        if (s.active === who) toast('Tumhe dekh liya gaya. Bhaago, ya chhupo!', 'alert');
+        else toast(`${FRIENDS[who].name} ko dekh liya gaya!`, 'alert', `Madad ke liye ${CHAR_IDS.indexOf(who) + 1} dabao`);
       }
     }
   }
@@ -235,7 +239,7 @@ function stealth(now: number) {
       if (now > a.until - 4) {
         a.mode = a.route.length ? 'route' : 'idle';
         a.chase = null;
-        bark(a.id, 'Where did he go?', 1.8);
+        bark(a.id, 'Kahaan gaya?', 1.8);
       }
       continue;
     }
@@ -246,6 +250,7 @@ function stealth(now: number) {
       a.chase = null;
       a.until = 0;
       pendingGrace.set(who, now);
+      filmi('dhishoom', 'PAKDA GAYA!');
       director()?.caught?.(who, a.id);
     }
   }
@@ -277,7 +282,7 @@ function followThroughDoor(a: Agent, to: SceneId, now: number) {
   }
   agentTravel(a.id, to, d.inside.x, d.inside.z - 0.7, `peek:${a.id}`);
   a.until = now + 12;
-  bark(a.id, ['He went in here! I saw him!', 'Hiding indoors? Coming in!', 'Knock knock. It is me. The goon.'][Math.floor(Math.random() * 3)], 2.2);
+  bark(a.id, ['Isme ghusa hai! Maine dekha!', 'Andar chhup raha hai? Aa raha hoon!', 'Khat khat. Main hoon. Gunda.'][Math.floor(Math.random() * 3)], 2.2);
   peeking.set(a.id, { who: who!, scene: to });
   return true;
 }
@@ -303,7 +308,7 @@ function peeks(now: number) {
       // done looking (or the trip ended oddly): walk back out to the patrol
       peeking.delete(id);
       if (a.scene === p.scene) {
-        if (get().scene === p.scene) bark(id, ['Nobody here. Just smells of socks.', 'Empty. Boss will not like this.', 'Hmph. Wrong door.'][Math.floor(Math.random() * 3)], 2.2);
+        if (get().scene === p.scene) bark(id, ['Koi nahi hai. Bas mozon ki boo.', 'Khaali. Boss ko pasand nahi aayega.', 'Hunh. Galat darwaaza.'][Math.floor(Math.random() * 3)], 2.2);
         a.mode = 'route';
       }
     }

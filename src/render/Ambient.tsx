@@ -46,7 +46,7 @@ function pedLook(i: number): Look {
 
 export const PED_IDS = PATHS.map((_, i) => `ped${i}`);
 
-const BUMP_LINES = ['Oye! Watch it!', 'Arre, look where you walk!', 'Tch. Youngsters.', 'Side please, side!'];
+const BUMP_LINES = ['Oye! Dekh ke!', 'Arre, dekh ke chalo!', 'Chh. Aaj kal ke ladke.', 'Side please, side!'];
 
 function Pedestrians() {
   const looks = useMemo(() => PATHS.map((_, i) => pedLook(i)), []);
@@ -155,6 +155,9 @@ function Traffic() {
 
   useFrame((_, rawDt) => {
     const dt = Math.min(rawDt, 0.05);
+    // the road is cleared for the closing chase
+    refs.current.forEach((r) => r && (r.visible = !runtime.chase));
+    if (runtime.chase) return;
     const gang = useGame.getState().mode === 'play' ? CHAR_IDS.map((c) => ent(c)) : [];
     const dyn: typeof runtime.dynamic = [];
     vs.current.forEach((v, i) => {
@@ -168,7 +171,7 @@ function Traffic() {
           if (v.honkCd < 0) {
             v.honkCd = 2.5;
             sfx('honk');
-            if (Math.random() < 0.5) bark(useGame.getState().active, ['Okay okay, going!', 'Sorry, uncle!', 'The road is for walking also!'][Math.floor(Math.random() * 3)], 1.8);
+            if (Math.random() < 0.5) bark(useGame.getState().active, ['Achha achha, ja raha hoon!', 'Sorry, uncle!', 'Sadak chalne ke liye bhi hai!'][Math.floor(Math.random() * 3)], 1.8);
           }
         }
       }

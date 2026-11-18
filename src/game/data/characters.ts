@@ -29,6 +29,10 @@ export interface MoveStyle {
 export interface FriendDef {
   id: CharId;
   name: string;
+  /** full name, as on the title card */
+  fullName: string;
+  /** one filmi line for the freeze-frame name card */
+  tagline: string;
   role: string;
   blurb: string;
   ability: string;
@@ -47,10 +51,12 @@ export const FRIENDS: Record<CharId, FriendDef> = {
   sam: {
     id: 'sam',
     name: 'Sam',
-    role: 'The planner',
-    blurb: 'Has a plan for everything. None of them have worked yet.',
-    ability: 'Negotiate',
-    abilityVerb: 'Make a deal',
+    fullName: 'Sameer “Sam” Arya',
+    tagline: 'Plan pe plan. Kaam ek bhi nahi.',
+    role: 'Tarkeeb-baaz',
+    blurb: 'Har cheez ka plan hai. Ab tak ek bhi kaam nahi aaya.',
+    ability: 'Sauda',
+    abilityVerb: 'Sauda karo',
     color: '#0aa3b5',
     voice: 300,
     look: {
@@ -67,20 +73,22 @@ export const FRIENDS: Record<CharId, FriendDef> = {
     },
     move: { speed: 4.2, runMul: 1.7, bounce: 0.03, stride: 0.55, armSwing: 0.35, sway: 0.02, lean: 0.03, jitter: 0, cadence: 1.55 },
     barks: [
-      'Step one: look confident.',
-      'I have a plan. A very good plan.',
-      'Gentlemen. Focus.',
-      'Trust me, this is all part of the strategy.',
+      'Step one: confident dikho.',
+      'Mere paas plan hai. Ekdum solid plan.',
+      'Gentlemen. Focus karo.',
+      'Bharosa rakho, ye sab strategy ka hissa hai.',
     ],
-    signature: ['Strategy is ninety percent posture.', 'Let me just… think aloud.', 'Plan B is ready. Plan C is loading.'],
+    signature: ['Strategy mein nabbe percent posture hota hai.', 'Ek minute… zor se soch raha hoon.', 'Plan B taiyaar hai. Plan C ban raha hai.'],
   },
   pakya: {
     id: 'pakya',
     name: 'Pakya',
-    role: 'The smooth talker',
-    blurb: 'Can talk his way into anywhere. Getting out is your problem.',
-    ability: 'Bluff',
-    abilityVerb: 'Bluff',
+    fullName: 'Pankaj “Pakya” Tiwari',
+    tagline: 'Jhooth bolna kala hai. Aur main kalakaar.',
+    role: 'Baaton ka Badshah',
+    blurb: 'Baaton se kahin bhi ghus jaata hai. Nikalna tumhari samasya hai.',
+    ability: 'Jhaansa',
+    abilityVerb: 'Jhaansa do',
     color: '#e4007c',
     voice: 360,
     look: {
@@ -97,20 +105,22 @@ export const FRIENDS: Record<CharId, FriendDef> = {
     },
     move: { speed: 4.4, runMul: 1.7, bounce: 0.05, stride: 0.6, armSwing: 0.55, sway: 0.12, lean: -0.04, jitter: 0, cadence: 1.35 },
     barks: [
-      'Relax. I know a guy.',
-      'Smile. Let the hair do the talking.',
-      'Technically, that was not a lie.',
-      'Who, me? I am practically famous.',
+      'Tension mat le. Mera ek banda hai.',
+      'Smile karo. Baal baat karenge.',
+      'Technically, wo jhooth nahi tha.',
+      'Main? Main toh almost famous hoon.',
     ],
-    signature: ['*combs hair* Still got it.', 'Wink. Wink. Okay one more. Wink.', 'Hello madam, film producer here.'],
+    signature: ['*baal sanwaarta hai* Abhi bhi hai jalwa.', 'Aankh maari. Ek aur. Bas ek aur.', 'Hello madam, main film producer hoon.'],
   },
   goti: {
     id: 'goti',
     name: 'Goti',
-    role: 'The wild card',
-    blurb: 'Solves problems no one else would even recognise as problems.',
-    ability: 'Do something weird',
-    abilityVerb: 'Try something weird',
+    fullName: 'Gautam “Goti” Sisodia',
+    tagline: 'Dimaag hai. Bas kahaan hai, pata nahi.',
+    role: 'Ulta Dimaag',
+    blurb: 'Aisi samasyaayein suljhaata hai jinhe koi samasya bhi nahi maanta.',
+    ability: 'Ajeeb Harkat',
+    abilityVerb: 'Kuch ajeeb karo',
     color: '#ffb400',
     voice: 430,
     look: {
@@ -127,20 +137,22 @@ export const FRIENDS: Record<CharId, FriendDef> = {
     },
     move: { speed: 4.0, runMul: 1.8, bounce: 0.14, stride: 0.7, armSwing: 0.8, sway: 0.06, lean: 0.06, jitter: 0, cadence: 1.9 },
     barks: [
-      'What if… we just licked it?',
-      'I found a coin! Oh. It is a button.',
-      'Hmm. That cloud looks like Tiwari-ji.',
-      'I have an idea. You will not like it.',
+      'Agar… hum isko chaat ke dekhein?',
+      'Sikka mila! Oh. Button hai.',
+      'Woh baadal bilkul Dongre Mama jaisa hai.',
+      'Mere paas idea hai. Tumhe pasand nahi aayega.',
     ],
-    signature: ['*does a cartwheel, mostly*', '*sniffs the air* Samosa. Two lanes away.', 'Hey! Hey! …nothing. Just checking.'],
+    signature: ['*cartwheel maarta hai, aadha*', '*soonghta hai* Samosa. Do gali door.', 'Oye! Oye! …kuch nahi. Bas check kar raha tha.'],
   },
   maru: {
     id: 'maru',
     name: 'Maru',
-    role: 'The nervous wreck',
-    blurb: 'Panics professionally. Disaster follows him like a stray dog.',
-    ability: 'Make a scene',
-    abilityVerb: 'Panic dramatically',
+    fullName: 'Martand “Maru” Dhamdhere',
+    tagline: 'Darr ke aage… aur darr hai.',
+    role: 'Ghabraahat ki Dukaan',
+    blurb: 'Pesha: ghabraana. Musibat uske peeche aawaara kutte ki tarah chalti hai.',
+    ability: 'Tamaasha',
+    abilityVerb: 'Tamaasha karo',
     color: '#6cc04a',
     voice: 250,
     look: {
@@ -157,11 +169,11 @@ export const FRIENDS: Record<CharId, FriendDef> = {
     },
     move: { speed: 4.1, runMul: 1.9, bounce: 0.04, stride: 0.45, armSwing: 0.25, sway: 0.03, lean: 0.12, jitter: 0.03, cadence: 2.2 },
     barks: [
-      'I have a bad feeling about this.',
-      'Was that a cow? Is it looking at me?',
-      'We are going to jail. I can feel it.',
-      'My left eye is twitching. That is a sign.',
+      'Mujhe bahut bura feeling aa raha hai.',
+      'Woh gaay thi? Mujhe ghoor rahi hai kya?',
+      'Hum jail jaayenge. Mujhe pata hai.',
+      'Meri baayi aankh phadak rahi hai. Ye ishaara hai.',
     ],
-    signature: ['AAAAAAH! …sorry. Reflex.', '*faints* …*un-faints*', 'HELP! HELP! …no, I am fine.'],
+    signature: ['AAAAAAH! …sorry. Aadat hai.', '*behosh* …*wapas hosh*', 'BACHAO! BACHAO! …nahi, theek hoon.'],
   },
 };

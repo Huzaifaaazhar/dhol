@@ -19,7 +19,7 @@ const npcName = (id: string) => NPCS[id]?.name ?? id;
 function Eyes({ value }: { value: number }) {
   const n = Math.round(value / 20);
   return (
-    <span className="eyes" aria-label={`Suspicion ${Math.round(value)} of 100`}>
+    <span className="eyes" aria-label={`Shak ${Math.round(value)} / 100`}>
       {[0, 1, 2, 3, 4].map((i) => (
         <i key={i} className={i < n ? 'on' : ''} />
       ))}
@@ -35,12 +35,12 @@ export function LieBook() {
   const npcs = [...new Set([...Object.keys(lies.beliefs), ...Object.keys(lies.suspicion).filter((k) => lies.suspicion[k] > 1)])].filter((n) => n !== 'jai' || lies.beliefs.jai);
   const jai = lies.stories.jai ?? {};
   return (
-    <div className="book-wrap" role="dialog" aria-label="Pakya’s Lie Book" onClick={() => set({ lieBook: false })}>
+    <div className="book-wrap" role="dialog" aria-label="Pakya ki Jhooth ki Diary" onClick={() => set({ lieBook: false })}>
       <div className="book" onClick={(e) => e.stopPropagation()}>
         <section className="page">
-          <h2>Who believes what</h2>
-          <p className="page-sub">Pakya’s private record. Do not lose. Do not let Sam read.</p>
-          {npcs.length === 0 && <p className="page-empty">Nobody has been lied to yet. Suspicious in itself.</p>}
+          <h2>Kaun kya maanta hai</h2>
+          <p className="page-sub">Pakya ka niji hisaab. Khona mat. Sam ko padhne mat dena.</p>
+          {npcs.length === 0 && <p className="page-empty">Abhi tak kisi se jhooth nahi bola. Ye khud mein shak ki baat hai.</p>}
           {npcs.map((n) => (
             <div key={n} className="entry">
               <div className="entry-head">
@@ -51,7 +51,7 @@ export function LieBook() {
                 <div key={topic} className="entry-line">
                   <span className="entry-topic">{TOPICS[topic] ?? topic}:</span> “{b.value}”
                   <span className="entry-by" style={{ ['--c' as string]: FRIENDS[b.by].color }}>
-                    {b.via ? `via ${npcName(b.via)}` : FRIENDS[b.by].name}
+                    {b.via ? `${npcName(b.via)} ke zariye` : FRIENDS[b.by].name}
                   </span>
                 </div>
               ))}
@@ -59,17 +59,17 @@ export function LieBook() {
           ))}
         </section>
         <section className="page">
-          <h2>Caught out</h2>
-          {lies.contradictions.length === 0 && <p className="page-empty">No contradictions. Yet.</p>}
+          <h2>Pakde gaye</h2>
+          {lies.contradictions.length === 0 && <p className="page-empty">Koi jhooth nahi pakda gaya. Abhi tak.</p>}
           {[...lies.contradictions].reverse().slice(0, 8).map((c, i) => (
             <div key={i} className="caught">
-              <span className="stamp">Caught</span>
-              <b>{npcName(c.npc)}</b> believed “{c.believed}” ({FRIENDS[c.earlierBy].name}), then heard “{c.heard}” {c.via ? `from ${npcName(c.via)}` : `from ${FRIENDS[c.by].name}`}.
+              <span className="stamp">Pakda</span>
+              <b>{npcName(c.npc)}</b> “{c.believed}” maanta tha ({FRIENDS[c.earlierBy].name}), phir {c.via ? `${npcName(c.via)} se` : `${FRIENDS[c.by].name} se`} suna “{c.heard}”.
             </div>
           ))}
           {Object.keys(jai).length > 0 && (
             <>
-              <h2>What Jai told people</h2>
+              <h2>Colony ko Jai ke baare mein kya yaad hai</h2>
               {Object.entries(jai).map(([teller, v]) => (
                 <div key={teller} className="entry-line">
                   <b>{npcName(teller)}:</b> “{v}”
@@ -78,7 +78,7 @@ export function LieBook() {
             </>
           )}
           <p className="page-foot">
-            <kbd>L</kbd> or <kbd>Esc</kbd> to close
+            <kbd>L</kbd> ya <kbd>Esc</kbd> se band karo
           </p>
         </section>
       </div>
@@ -104,11 +104,11 @@ export function Situations() {
   const split = CHAR_IDS.some((c) => posted[c] || where[c] !== where[active]) || tasks.length > 0;
   if (!split && !m?.live) return null;
   return (
-    <div className="situations" aria-label="The gang">
+    <div className="situations" aria-label="Gang">
       {CHAR_IDS.map((c, i) => {
         const t = tasks.find((x) => x.who === c);
         const danger = [...agents.values()].some((a) => a.hostile && a.scene === where[c] && Math.hypot(ent(a.id).x - ent(c).x, ent(a.id).z - ent(c).z) < 7);
-        const status = c === active ? 'You' : t ? t.label : hidden[c] ? 'Hiding' : posted[c] ? 'Waiting' : 'With you';
+        const status = c === active ? 'Tum' : t ? t.label : hidden[c] ? 'Chhupa hai' : posted[c] ? 'Ruka hai' : 'Saath mein';
         return (
           <button
             key={c}
@@ -124,7 +124,7 @@ export function Situations() {
             <span className="sit-where">{SCENES[where[c]].name}</span>
             <span className="sit-what">
               {status}
-              {dhol === `carried:${c}` ? ' · carrying the dhol' : ''}
+              {dhol === `carried:${c}` ? ' · dhol uthaaye' : ''}
             </span>
             {t?.duration ? (
               <span className="sit-bar">
@@ -132,7 +132,7 @@ export function Situations() {
               </span>
             ) : null}
             {c === 'maru' && panic > 5 && (
-              <span className="sit-panic" title="Maru’s panic">
+              <span className="sit-panic" title="Maru ki ghabraahat">
                 <span style={{ width: `${panic}%` }} />
               </span>
             )}
@@ -153,8 +153,8 @@ export function MissionTimer() {
   const left = Math.max(0, Math.ceil(end - now));
   const urgent = left < 30;
   return (
-    <div className={`timer ${urgent ? 'is-urgent' : ''}`} role="timer" aria-label={which === 'finale' ? 'Time until nightfall' : 'Time until Zikomo arrives'}>
-      <span className="timer-label">{which === 'finale' ? 'Nightfall in' : 'Sunset in'}</span>
+    <div className={`timer ${urgent ? 'is-urgent' : ''}`} role="timer" aria-label={which === 'finale' ? 'Raat hone mein baaki waqt' : 'Zikomo ke aane mein baaki waqt'}>
+      <span className="timer-label">{which === 'finale' ? 'Raat hone mein' : 'Suraj dhalne mein'}</span>
       <span className="timer-time">
         {Math.floor(left / 60)}:{String(left % 60).padStart(2, '0')}
       </span>
@@ -173,7 +173,7 @@ export function QuestionCard() {
   const left = Math.max(0, Math.ceil(q.deadline - now));
   const me = active === 'pakya';
   return (
-    <div className={`question ${me ? 'is-mine' : ''}`} role="dialog" aria-label="Question for Pakya">
+    <div className={`question ${me ? 'is-mine' : ''}`} role="dialog" aria-label="Pakya ke liye sawaal">
       <div className="question-who">
         {ASKER[q.npc] ?? npcName(q.npc)} <span className="question-left">{left}s</span>
       </div>
@@ -186,10 +186,10 @@ export function QuestionCard() {
               <li key={o}>
                 <button onClick={() => answerQuestion(i)}>
                   <kbd>{i + 1}</kbd> {o}
-                  {c.kind === 'matches' && <span className="lie-ok">fits your story</span>}
+                  {c.kind === 'matches' && <span className="lie-ok">kahaani se mel khaata hai</span>}
                   {c.kind === 'contradicts' && (
                     <span className="lie-bad">
-                      clashes: {npcName(c.against.to)} heard “{c.against.value}”
+                      takraav: {npcName(c.against.to)} ne suna tha “{c.against.value}”
                     </span>
                   )}
                 </button>
@@ -200,9 +200,9 @@ export function QuestionCard() {
       ) : (
         <p className="question-switch">
           <button className="btn" onClick={() => switchFriend('pakya')}>
-            Switch to Pakya <kbd>2</kbd>
+            Pakya ko chuno <kbd>2</kbd>
           </button>{' '}
-          to answer, or he will improvise.
+          jawaab dene ke liye, warna woh khud kuch bana dega.
         </p>
       )}
     </div>
@@ -229,13 +229,13 @@ export function FailCard() {
   );
   if (!failure) return null;
   return (
-    <div className="fail" role="alertdialog" aria-label="Mission failed">
+    <div className="fail" role="alertdialog" aria-label="Muhim naakaam">
       <div className="fail-inner">
-        <div className="fail-kicker">Plan failed</div>
+        <div className="fail-kicker">Plan naakaam</div>
         <p className="fail-reason">{failure.reason}</p>
         <div className="fail-actions">
           <button className="btn" onClick={() => retryMission()}>
-            Try again from the start of the mission <kbd>Enter</kbd>
+            Muhim shuru se phir aazmaao <kbd>Enter</kbd>
           </button>
           <button
             className="btn ghost"
@@ -245,7 +245,7 @@ export function FailCard() {
               set({ mode: 'title' });
             }}
           >
-            Quit to title
+            Shuru ke screen pe jao
           </button>
         </div>
       </div>

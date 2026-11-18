@@ -1,4 +1,6 @@
 import { useFrame } from '@react-three/fiber';
+import { CHASE, chaseCarX } from '../game/chase';
+import { RituCar } from './RituCar';
 import { SCENES } from '../game/data/scenes';
 import type { RoomDef } from '../game/data/scenes/interiors';
 import { useGame } from '../game/store';
@@ -61,6 +63,12 @@ export function GameWorld() {
       z = (lead.z + o.z) / 2;
       zoom = scene.zoom * 1.25;
     }
+    // the closing chase: follow Ritu's car, a little wider
+    if (runtime.chase) {
+      x = chaseCarX() - 4;
+      z = CHASE.z;
+      zoom = scene.zoom * 0.85;
+    }
     g.x = x;
     g.z = z;
     g.zoom = zoom;
@@ -89,6 +97,7 @@ export function GameWorld() {
           <ZikomoCar />
           <DeliveryMarker />
           <CinemaBackDoor />
+          <RituCar />
         </>
       )}
     </group>

@@ -120,14 +120,14 @@ export function signTexture(text: string, sub: string | undefined, bg: string, f
 }
 
 const POSTERS: Array<[string, string, string, string]> = [
-  ['KHATARNAK KHILADI 3', 'Revenge Again', '#d00000', '#ffba08'],
-  ['LOVE IN LUDHIANA', 'A musical tragedy', '#ff006e', '#fff'],
-  ['PINTO SIR', 'Tuitions · Results*', '#ffffff', '#1d3557'],
-  ['HERO NO. 420', 'Now in colour', '#3a0ca3', '#f72585'],
-  ['DANGER BHAI', 'He is back. Again.', '#000000', '#ffd60a'],
-  ['MANGO THIEVES', 'WANTED · Reward ₹10', '#f1faee', '#9d0208'],
-  ['DHINCHAK DIWALI', 'Mega sale!', '#ffb703', '#6a040f'],
-  ['ROOM FOR RENT', 'No bachelors!!!', '#e9edc9', '#283618'],
+  ['KHATARNAK KHILADI 3', 'Phir Se Badla', '#d00000', '#ffba08'],
+  ['LUDHIANA WAALA PYAAR', 'Ek sangeetmay tragedy', '#ff006e', '#fff'],
+  ['PINTO SIR', 'Tuition · Result pakka*', '#ffffff', '#1d3557'],
+  ['HERO NO. 420', 'Ab rangeen mein', '#3a0ca3', '#f72585'],
+  ['DANGER BHAI', 'Woh laut aaya. Phir se.', '#000000', '#ffd60a'],
+  ['AAM CHOR', 'TALAASH · Inaam ₹10', '#f1faee', '#9d0208'],
+  ['DHINCHAK DIWALI', 'Bumper sale!', '#ffb703', '#6a040f'],
+  ['KAMRA KIRAAYE PE', 'Kunwaare mana hain!!!', '#e9edc9', '#283618'],
 ];
 
 export function posterTexture(i: number) {

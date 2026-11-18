@@ -65,7 +65,7 @@ function setup(fresh: boolean) {
 export const zikomo: Director = {
   start() {
     setup(true);
-    toast('The gang is scattered. Switch with 1–4 and get everyone to the hideout.', 'alert', 'Zikomo is here');
+    toast('Gang bikhri hui hai. 1–4 se dost badlo aur sabko adde pe pahunchaao.', 'alert', 'Zikomo aa gaya');
   },
   tick() {
     const s = get();
@@ -77,7 +77,7 @@ export const zikomo: Director = {
       if (!getM(`in.${c}`, false)) {
         setM(`in.${c}`, true);
         set((st) => ({ posted: { ...st.posted, [c]: c !== st.active } }));
-        toast(`${c[0].toUpperCase() + c.slice(1)} made it to the hideout`, 'objective', `${CHAR_IDS.filter((f) => get().where[f] === 'hideout').length} of 4 safe`);
+        toast(`${c[0].toUpperCase() + c.slice(1)} adde pe pahunch gaya`, 'objective', `${CHAR_IDS.filter((f) => get().where[f] === 'hideout').length} / 4 mehfooz`);
       }
     }
     if (n === 4 && !getM('allIn', false) && !s.dialogue && s.scene === 'hideout') {
@@ -89,10 +89,10 @@ export const zikomo: Director = {
     const c = getM<number>('caught', 0) + 1;
     setM('caught', c);
     if (c >= 3) {
-      failMission('Zikomo’s men caught you three times. Zikomo is no longer amused, and his shoes are no longer white.');
+      failMission('Zikomo ke aadmiyon ne tumhe teen baar pakda. Zikomo ab khush nahi hai, aur uske joote ab safed nahi.');
       return;
     }
-    toast(`${who[0].toUpperCase() + who.slice(1)} was caught and dragged to Zikomo`, 'fail', `Caught ${c} of 3`);
+    toast(`${who[0].toUpperCase() + who.slice(1)} pakda gaya aur Zikomo ke paas ghaseeta gaya`, 'fail', `Pakde gaye: ${c} / 3`);
     placeFriend(who, 'street', ZIKOMO_SPOT.x - 1.2, ZIKOMO_SPOT.z + 0.8, 1.6, false);
     setM('caughtWho', who);
     focusFriend(who);
@@ -108,7 +108,7 @@ export const zikomo: Director = {
       setFlag('zik.caught', false);
       const s = get();
       const target = who || s.active;
-      bark('bhaloo', 'Go. And stay gone.', 2);
+      bark('bhaloo', 'Jao. Aur door hi rehna.', 2);
       window.setTimeout(() => {
         sendHome(target);
         const st = get();
@@ -118,7 +118,7 @@ export const zikomo: Director = {
     }
     if (name === 'deal') {
       emote('zikomo', '$', 2);
-      toast('Zikomo gives you one day to find the dhol. His men will be watching.', 'alert', 'Deal');
+      toast('Zikomo ne dhol dhoondhne ke liye ek din diya hai. Uske aadmi nazar rakhenge.', 'alert', 'Sauda');
       setM('caughtWho', '');
       setFlag('zik.caught', false);
       // the deal ends the hunt: everyone may go home

@@ -205,9 +205,52 @@ kbd {
   animation: rise 0.45s cubic-bezier(0.2, 1.4, 0.4, 1) both;
 }
 .intro-friend-name {
-  font: 400 clamp(56px, 9vw, 120px) / 0.9 var(--display);
+  font: 400 clamp(34px, 4.6vw, 66px) / 0.95 var(--display);
   color: var(--c);
   text-shadow: 0.04em 0.04em 0 var(--ink);
+}
+.intro-tag-en {
+  display: block;
+  margin-top: 0.3em;
+  font: 600 0.62em var(--body);
+  letter-spacing: 0.04em;
+  opacity: 0.75;
+}
+/* freeze-frame name cards, filmi style */
+.freeze {
+  animation: freeze-in 0.5s cubic-bezier(0.2, 1.6, 0.4, 1) both;
+}
+@keyframes freeze-in {
+  0% { transform: scale(1.5) rotate(-4deg); opacity: 0; }
+  60% { transform: scale(0.97) rotate(0.5deg); opacity: 1; }
+  100% { transform: none; opacity: 1; }
+}
+.freeze-flash {
+  position: fixed;
+  inset: 0;
+  background: #fff8e1;
+  animation: filmi-flash 0.35s ease-out both;
+  z-index: -1;
+}
+.freeze-band {
+  position: absolute;
+  left: -40vw;
+  right: -20vw;
+  top: 18%;
+  bottom: -18%;
+  background: repeating-linear-gradient(-12deg, color-mix(in srgb, var(--c) 55%, transparent) 0 14px, transparent 14px 26px);
+  transform: skewY(-4deg);
+  z-index: -1;
+  opacity: 0.55;
+}
+.intro-friend-kicker {
+  display: inline-block;
+  margin-bottom: 0.2em;
+  padding: 1px 10px 3px;
+  background: var(--ink);
+  color: var(--marigold);
+  font: 400 clamp(18px, 2vw, 26px) var(--display);
+  transform: rotate(-2deg);
 }
 .intro-friend-role {
   display: inline-block;
@@ -1599,8 +1642,10 @@ kbd {
     transform: translateY(120vh) rotate(540deg);
   }
 }
-.app.ending-open .hud > *:not(.ending),
-.app.ending-open .toasts {
+.app.ending-open .hud > *:not(.ending):not(.lyric),
+.app.chase-on .hud > *:not(.chase),
+.app.ending-open .toasts,
+.app.chase-on .toasts {
   visibility: hidden;
 }
 
@@ -1838,4 +1883,123 @@ kbd {
     padding-left: 14px;
     padding-right: 14px;
   }
+}
+
+/* ───────────── filmi moments: word bursts, reveal vignette, blast flash ───────────── */
+.filmi {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 7;
+  overflow: hidden;
+}
+.filmi-burst {
+  position: absolute;
+  left: 50%;
+  top: 34%;
+  width: min(440px, 80vw);
+  transform: translate(-50%, -50%) rotate(var(--r));
+  display: grid;
+  place-items: center;
+  animation: filmi-pop 1.05s cubic-bezier(0.2, 1.8, 0.4, 1) both;
+}
+.filmi-star {
+  width: 100%;
+  grid-area: 1 / 1;
+  fill: var(--marigold);
+  stroke: var(--ink);
+  stroke-width: 4;
+  filter: drop-shadow(6px 6px 0 var(--rani));
+}
+.filmi-burst span {
+  grid-area: 1 / 1;
+  position: relative;
+  z-index: 1;
+  font: 400 clamp(34px, 7vw, 68px) / 1 var(--display);
+  color: var(--rani);
+  -webkit-text-stroke: 2px var(--ink);
+  text-shadow: 3px 3px 0 var(--ink);
+  letter-spacing: 0.02em;
+}
+@keyframes filmi-pop {
+  0% { transform: translate(-50%, -50%) rotate(var(--r)) scale(0.1); opacity: 0; }
+  18% { transform: translate(-50%, -50%) rotate(var(--r)) scale(1.15); opacity: 1; }
+  70% { transform: translate(-50%, -50%) rotate(var(--r)) scale(1); opacity: 1; }
+  100% { transform: translate(-50%, -50%) rotate(var(--r)) scale(1.05); opacity: 0; }
+}
+.filmi-blast .filmi-burst span { color: #fff3c4; font-size: clamp(44px, 10vw, 96px); }
+.filmi-flash {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 45%, #fffbe6 0%, #ffd27a 40%, #ff7a3d 75%, transparent 100%);
+  animation: filmi-flash 0.9s ease-out both;
+}
+@keyframes filmi-flash {
+  0% { opacity: 1; }
+  100% { opacity: 0; }
+}
+.filmi-vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at center, transparent 35%, rgba(150, 0, 40, 0.55) 100%);
+  animation: filmi-vig 1.6s ease-out both;
+}
+@keyframes filmi-vig {
+  0% { opacity: 0; }
+  15% { opacity: 1; }
+  100% { opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .filmi-burst, .filmi-flash, .filmi-vignette { animation-duration: 0.01s; }
+}
+
+/* ───────────── ending song lyrics and the closing chase ───────────── */
+.lyric {
+  position: absolute;
+  top: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2;
+  width: max-content;
+  max-width: calc(100vw - 32px);
+  padding: 6px 18px 8px;
+  background: var(--ink);
+  border: 2px solid var(--marigold);
+  color: var(--marigold);
+  font: 400 clamp(16px, 2.2vw, 24px) / 1.2 var(--display);
+  text-align: center;
+  animation: rise 0.5s ease-out both;
+}
+/* let the dancing gang show around the card on wide screens */
+@media (min-width: 900px) {
+  .ending {
+    justify-items: end;
+    padding-right: 4vw;
+    background-blend-mode: normal;
+    background: linear-gradient(90deg, transparent 0%, rgba(42, 18, 56, 0.25) 35%, rgba(42, 18, 56, 0.85) 62%);
+  }
+  .ending-fortune, .ending-collapse, .ending-blame {
+    background: linear-gradient(90deg, transparent 0%, rgba(42, 18, 56, 0.25) 35%, rgba(42, 18, 56, 0.85) 62%);
+  }
+  .ending-card { width: min(560px, 46vw); }
+}
+.chase {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 13;
+}
+.chase-title {
+  position: absolute;
+  left: 50%;
+  bottom: calc(9vh + 18px);
+  transform: translateX(-50%);
+  text-align: center;
+  animation: rise 1.2s 2s ease-out both;
+}
+.chase-title p {
+  margin: 4px 0 0;
+  font: 400 clamp(22px, 3vw, 36px) var(--display);
+  color: var(--marigold);
+  text-shadow: 3px 3px 0 var(--ink);
 }

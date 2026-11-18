@@ -5,7 +5,7 @@ export async function rich(t) {
   const { st, api, key, advance, choose, until, near, shot, page } = t;
   // Pakya told Daadi he was the cable TV man in Part 1
   await api('jumpTo', 'rich', { 'ritu.cable': true }, {
-    lies: { claims: [], suspicion: {}, contradictions: [], stories: {}, beliefs: { daadi: { 'pakya.job': { value: 'cable TV inspector', by: 'pakya', t: 0 } } } },
+    lies: { claims: [], suspicion: {}, contradictions: [], stories: {}, beliefs: { daadi: { 'pakya.job': { value: 'cable TV ka jaanchkarta', by: 'pakya', t: 0 } } } },
   });
   await t.wait(1500);
   let s = await st();
@@ -88,7 +88,7 @@ export async function rich(t) {
   const hint = await page.locator('.lie-bad').count();
   check(hint > 0, 'as Pakya, the bluff is marked as clashing with an earlier story');
   await shot('rich-liehint');
-  await choose('film producer');
+  await choose('filmon ka producer');
   await advance();
   s = await st();
   check(s.lies.contradictions.some((c) => c.npc === 'ritu' && c.topic === 'pakya.job'), 'Ritu caught the contradiction (Lie Book records it)');
@@ -364,7 +364,7 @@ export async function zikomo(t) {
   await choose('income tax');
   await advance();
   s = await st();
-  check(s.lies.beliefs.zikomo?.['pakya.job']?.value === 'income tax officer', 'Zikomo now believes Pakya is an income tax officer');
+  check(s.lies.beliefs.zikomo?.['pakya.job']?.value === 'income tax ka afsar', 'Zikomo now believes Pakya is an income tax officer');
   await t.wait(1200);
   await enterHideout(t);
 
@@ -682,7 +682,7 @@ export async function chaos(t) {
 export async function chaosPanic(t) {
   const { st, api, page } = t;
   await api('jumpTo', 'chaos', {}, {
-    lies: { claims: [], suspicion: {}, contradictions: [], stories: {}, beliefs: { tiwari: { 'maru.health': { value: 'Sick in bed', by: 'pakya', t: 0 } } } },
+    lies: { claims: [], suspicion: {}, contradictions: [], stories: {}, beliefs: { tiwari: { 'maru.health': { value: 'Bistar pe beemar hai', by: 'pakya', t: 0 } } } },
   });
   await t.until((x) => x.dialogue?.script === 'chaos_intro', 10000, 'intro');
   await t.advance();
@@ -742,7 +742,7 @@ export async function part1Start(t) {
   await advance();
   s = await st();
   check(s.missions.rent.startsWith('done'), 'Rent Day still completes');
-  check(s.lies.beliefs.tiwari?.['pakya.job']?.value === 'income tax officer', 'Part 1 bluffs are recorded in the lie ledger');
+  check(s.lies.beliefs.tiwari?.['pakya.job']?.value === 'income tax ka afsar', 'Part 1 bluffs are recorded in the lie ledger');
 }
 
 export async function interval(t) {
@@ -976,11 +976,11 @@ export async function finaleCollapse(t) {
   await api('jumpTo', 'finale', FINALE_FLAGS, {
     items: ['register'],
     lies: {
-      claims: [{ topic: 'pakya.job', value: 'bank officer', by: 'pakya', to: 'zikomo', t: 0 }],
+      claims: [{ topic: 'pakya.job', value: 'bank mein afsar', by: 'pakya', to: 'zikomo', t: 0 }],
       suspicion: {},
       contradictions: [],
       stories: {},
-      beliefs: { zikomo: { 'pakya.job': { value: 'bank officer', by: 'pakya', t: 0 }, 'gang.dhol': { value: 'Never heard of a dhol', by: 'pakya', t: 0 }, 'gang.who': { value: 'nobody, ji. Nobody.', by: 'sam', t: 0 }, 'gang.money': { value: 'What money?', by: 'pakya', t: 0 }, 'dhol.fake': { value: 'Must have been Shambhu', by: 'goti', t: 0 } } },
+      beliefs: { zikomo: { 'pakya.job': { value: 'bank mein afsar', by: 'pakya', t: 0 }, 'gang.dhol': { value: 'Never heard of a dhol', by: 'pakya', t: 0 }, 'gang.who': { value: 'nobody, ji. Nobody.', by: 'sam', t: 0 }, 'gang.money': { value: 'What money?', by: 'pakya', t: 0 }, 'dhol.fake': { value: 'Must have been Shambhu', by: 'goti', t: 0 } } },
     },
   });
   await t.wait(2000);
@@ -999,7 +999,7 @@ export async function finaleCollapse(t) {
 export async function finaleBlame(t) {
   const { api } = t;
   // Maru panicked his way through the whole week
-  const contradictions = [0, 1, 2, 3, 4].map((i) => ({ npc: 'tiwari', topic: 'maru.health', believed: 'Sick in bed', heard: 'running around screaming', by: 'maru', earlierBy: 'pakya', t: i }));
+  const contradictions = [0, 1, 2, 3, 4].map((i) => ({ npc: 'tiwari', topic: 'maru.health', believed: 'Bistar pe beemar hai', heard: 'cheekhte hue bhaag raha tha', by: 'maru', earlierBy: 'pakya', t: i }));
   await api('jumpTo', 'finale', FINALE_FLAGS, { items: ['register'], stats: { 'ritu.trust': 50, 'gang.harmony': 60 }, lies: { claims: [], suspicion: {}, beliefs: {}, stories: {}, contradictions } });
   await t.wait(2000);
   await gotiGetsDrum(t);

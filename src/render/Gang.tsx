@@ -1,4 +1,6 @@
 import { useLayoutEffect, useMemo, useRef } from 'react';
+import { CHASE, chaseCarX } from '../game/chase';
+import { filmi } from '../game/filmi';
 import { useFrame } from '@react-three/fiber';
 import type { CharId, SceneDef } from '../game/types';
 import { CHAR_IDS } from '../game/types';
@@ -91,6 +93,29 @@ export function Gang({ scene }: { scene: SceneDef }) {
     if (!scene.interior) npcCircles.push(...runtime.dynamic);
     const here = CHAR_IDS.filter((c) => st.where[c] === scene.id);
 
+    /* ── the closing chase: everyone runs after Ritu's car ── */
+    if (runtime.chase && !scene.interior) {
+      const cx = chaseCarX();
+      here.forEach((c, i) => {
+        const e = ent(c);
+        const tx = cx - 3.2 - i * 1.3;
+        const tz = CHASE.z + (i % 2 ? 0.7 : -0.7);
+        const dx = tx - e.x;
+        const dz = tz - e.z;
+        const d = Math.hypot(dx, dz);
+        const sp = Math.min(d, 7.5 * dt);
+        if (d > 0.05) {
+          e.x += (dx / d) * sp;
+          e.z += (dz / d) * sp;
+          e.face = Math.atan2(dx, dz);
+        }
+        e.stride += sp;
+        e.speed = sp / Math.max(dt, 1e-4);
+        e.anim = 'run';
+      });
+      return;
+    }
+
     /* ── leader ── */
     const def = FRIENDS[st.active];
     const inp = moveAxis();
@@ -125,8 +150,8 @@ export function Gang({ scene }: { scene: SceneDef }) {
       if (st.active === 'maru' && run && tripCd.current < 0 && Math.random() < dt * 0.25) {
         tripCd.current = 6;
         playOneShot('maru', 'trip', 1.1);
-        sfx('thud');
-        bark('maru', ['I’m okay!', 'Who put the ground there?!', 'Nobody saw that.'][Math.floor(Math.random() * 3)]);
+        filmi('dhishoom', 'DHAPP!');
+        bark('maru', ['Main theek hoon!', 'Zameen yahaan kisne rakhi?!', 'Kisi ne nahi dekha.'][Math.floor(Math.random() * 3)]);
         runtime.attention = { x: lead.x, z: lead.z, until: performance.now() + 1800 };
         npcs.forEach((n) => {
           const e = ent(n.id);

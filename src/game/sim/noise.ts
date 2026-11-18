@@ -16,7 +16,7 @@ export function noise(by: CharId, x: number, z: number, owner?: string) {
   const s = get();
   sfx('thud');
   runtime.shake = Math.max(runtime.shake, 0.25);
-  bark(by, by === 'goti' ? ['Oops.', 'That was not me. That was gravity.', 'Nobody heard that, right?'][Math.floor(Math.random() * 3)] : 'Oh no.', 2.2);
+  bark(by, by === 'goti' ? ['Oops.', 'Woh main nahi tha. Gravity thi.', 'Kisi ne suna toh nahi, na?'][Math.floor(Math.random() * 3)] : 'Arre nahi.', 2.2);
   if (owner) {
     set({ lies: { ...s.lies, suspicion: { ...s.lies.suspicion, [owner]: Math.min(100, (s.lies.suspicion[owner] ?? 0) + 10) } } });
     emote(owner, '💢', 2);
@@ -30,7 +30,7 @@ export function noise(by: CharId, x: number, z: number, owner?: string) {
       emote(a.id, '?', 1.6);
     }
   }
-  if (get().active !== by) toast(`${FRIENDS[by].name} made a racket`, 'alert', 'Anyone nearby heard it');
+  if (get().active !== by) toast(`${FRIENDS[by].name} ne shor machaaya`, 'alert', 'Aas-paas sabne suna');
   emitGameEvent('noise', { by, x, z });
 }
 

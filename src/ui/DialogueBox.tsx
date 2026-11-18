@@ -117,7 +117,7 @@ export function DialogueBox() {
                 <kbd>{i + 1}</kbd>
                 {f && <span className="choice-tag">{f.name} · {c.tag}</span>}
                 <span className="choice-text">{c.text}</span>
-                {locked && <span className="choice-lock">{f!.name} steps in</span>}
+                {locked && <span className="choice-lock">{f!.name} aage aayega</span>}
                 <LieHint effects={c.effects} />
               </li>
             );
@@ -141,10 +141,10 @@ function LieHint({ effects }: { effects?: import('../game/types').Effect[] }) {
   if (active !== 'pakya' || !effects) return null;
   const c = effects.find((e) => 'claim' in e) as { claim: string; value: string; to?: string; truth?: boolean } | undefined;
   if (!c) return null;
-  if (c.truth) return <span className="lie-ok">the truth, for once</span>;
+  if (c.truth) return <span className="lie-ok">ek baar ke liye, sach</span>;
   const to = c.to ?? talkingTo ?? '';
   const r = lineCheck(c.claim, c.value, to);
-  if (r.kind === 'matches') return <span className="lie-ok">fits your story</span>;
-  if (r.kind === 'contradicts') return <span className="lie-bad">clashes: {NPCS[r.against.to]?.name ?? r.against.to} heard “{r.against.value}”</span>;
-  return <span className="lie-new">new lie</span>;
+  if (r.kind === 'matches') return <span className="lie-ok">kahaani se mel khaata hai</span>;
+  if (r.kind === 'contradicts') return <span className="lie-bad">takraav: {NPCS[r.against.to]?.name ?? r.against.to} ne suna tha “{r.against.value}”</span>;
+  return <span className="lie-new">naya jhooth</span>;
 }

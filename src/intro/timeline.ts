@@ -17,9 +17,9 @@ export const INTRO = {
 };
 
 export const BROKE_BEATS: Array<{ at: number; text: string }> = [
-  { at: 0.3, text: 'Broke.' },
-  { at: 1.5, text: 'Unemployed.' },
-  { at: 2.8, text: 'Desperate to get rich.' },
+  { at: 0.3, text: 'Kangaal.' },
+  { at: 1.5, text: 'Berozgaar.' },
+  { at: 2.8, text: 'Ameer banne ke liye betaab.' },
 ];
 
 export const introClock = { start: 0 };

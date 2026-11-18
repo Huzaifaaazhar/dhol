@@ -24,7 +24,7 @@ export function installController() {
       const m = !s.muted;
       set({ muted: m });
       setMuted(m);
-      toast(m ? 'Sound off' : 'Sound on', 'info');
+      toast(m ? 'Awaaz band' : 'Awaaz chalu', 'info');
       return;
     }
     if (s.mode !== 'play' || s.transition || s.partEnded || s.endingShown) return;
@@ -116,7 +116,7 @@ function interact(special: boolean) {
     if (near) {
       set({ dhol: `carried:${near}` });
       sfx('thud');
-      bark(near, ['Why me?', 'Give it here. Gently.', 'Ooh! Can I play it?', 'It’s so heavy. And so wanted by criminals.'][CHAR_IDS.indexOf(near)], 2.2);
+      bark(near, ['Main hi kyun?', 'Idhar do. Aaram se.', 'Ooh! Baja sakta hoon?', 'Kitna bhaari hai. Aur gundon ko kitna chahiye.'][CHAR_IDS.indexOf(near)], 2.2);
       return;
     }
   }
@@ -144,10 +144,10 @@ function nothingHere() {
   shrugAt = now;
   const id = get().active;
   const lines: Record<string, string[]> = {
-    sam: ['Nothing useful here. Noted.', 'Not part of the plan.'],
-    pakya: ['Nothing here worth charming.', 'Empty. Like my wallet.'],
-    goti: ['I poked it. Nothing happened.', 'Hello? …No.'],
-    maru: ['Is something supposed to happen? Please say no.', 'Nothing. Good. Nothing is safe.'],
+    sam: ['Yahaan kaam ka kuch nahi. Note kar liya.', 'Plan ka hissa nahi hai.'],
+    pakya: ['Yahaan impress karne laayak kuch nahi.', 'Khaali. Mere batue ki tarah.'],
+    goti: ['Maine chheda. Kuch nahi hua.', 'Hello? …Nahi.'],
+    maru: ['Kuch hona chahiye tha kya? Please bolo nahi.', 'Kuch nahi. Achha hai. Kuch nahi matlab safe.'],
   };
   const l = lines[id];
   emote(id, '?', 1.2);
@@ -200,16 +200,16 @@ function signature() {
   }
   if (id === 'maru' && n > 0 && !s.hints.maruScene) {
     set({ hints: { ...s.hints, maruScene: true } });
-    toast('Everyone is staring at Maru. Useful, sometimes.', 'info');
+    toast('Sab Maru ko ghoor rahe hain. Kabhi kabhi kaam aata hai.', 'info');
   }
 }
 
 function reaction(by: string, at: string) {
   const lines: Record<string, string[]> = {
-    sam: ['Please. People are watching.', 'That was not in the plan.'],
-    pakya: ['Ignore him, he’s with me. I mean, not with me.', 'Smooth. Very smooth. Not.'],
-    goti: ['Do it again!', 'I want to try!'],
-    maru: ['Why would you do that?!', 'My heart, yaar.'],
+    sam: ['Please. Log dekh rahe hain.', 'Ye plan mein nahi tha.'],
+    pakya: ['Isko ignore karo, ye mere saath hai. Matlab, saath nahi hai.', 'Smooth. Bahut smooth. Nahi.'],
+    goti: ['Phir se karo!', 'Mujhe bhi karna hai!'],
+    maru: ['Aisa kyun kiya?!', 'Mera dil, yaar.'],
   };
   const l = lines[by] ?? ['…'];
   void at;
@@ -220,9 +220,9 @@ function reaction(by: string, at: string) {
 function rallyGang() {
   const n = rally();
   if (!n) return false;
-  bark('sam', 'Gang! On me! Formation! …Any formation!', 2.4);
+  bark('sam', 'Gang! Mere paas! Formation! …Koi bhi formation!', 2.4);
   sfx('switch');
-  toast(`${n} friend${n > 1 ? 's' : ''} rejoined Sam`, 'info');
+  toast(`${n} dost Sam ke saath wapas aaye`, 'info');
   return true;
 }
 
@@ -247,7 +247,7 @@ function distractAround(x: number, z: number) {
       n++;
     }
   }
-  if (n) toast('Everyone nearby is staring at Maru', 'info', 'Distraction');
+  if (n) toast('Aas-paas sab Maru ko ghoor rahe hain', 'info', 'Dhyaan bhatka');
 }
 
 /** Goti: lob a cracker. Zikomo’s men run to the bang. */
@@ -261,7 +261,7 @@ function throwCracker() {
   sfx('thud');
   sfx('honk');
   runtime.shake = 0.4;
-  bark('goti', 'Happy Diwali! In whatever month this is!', 2.4);
+  bark('goti', 'Happy Diwali! Jo bhi mahina ho!', 2.4);
   let n = 0;
   for (const a of agentsIn(s.scene)) {
     if (!a.hostile) continue;
@@ -269,6 +269,6 @@ function throwCracker() {
     emote(a.id, '?', 2);
     n++;
   }
-  toast(n ? 'BANG! Zikomo’s men run to look' : 'BANG! Nobody important was around', 'info', 'Cracker');
+  toast(n ? 'DHAMM! Zikomo ke aadmi dekhne bhaage' : 'DHAMM! Koi kaam ka aadmi aas-paas nahi tha', 'info', 'Pataakha');
   return true;
 }

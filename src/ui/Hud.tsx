@@ -28,8 +28,8 @@ export function ObjectiveSign() {
       <div className="objective-title">{m.title}</div>
       {obj && <div className="objective-text">{obj.text}</div>}
       {expanded && obj?.hint && <div className="objective-hint">{obj.hint}</div>}
-      <div className="wallet" title="Money saved towards the rent">
-        ₹{money.toLocaleString('en-IN')} <span>of ₹6,000 rent</span>
+      <div className="wallet" title="Karza chukaane ke liye jama paisa">
+        ₹{money.toLocaleString('en-IN')} <span>/ ₹6,000 karza</span>
       </div>
     </div>
   );
@@ -55,7 +55,7 @@ export function Roster() {
           <kbd>F</kbd> {f.ability}
         </div>
       </div>
-      <div className="roster-tokens" role="tablist" aria-label="Switch friend">
+      <div className="roster-tokens" role="tablist" aria-label="Dost badlo">
         {CHAR_IDS.map((id, i) => (
           <button
             key={id}
@@ -102,36 +102,36 @@ export function Hints() {
   if (dialogue) return null;
   let content: React.ReactNode = null;
   const touch = document.documentElement.classList.contains('touch-ui');
-  if (!hints.moved && touch) content = <>Drag the pad on the left to walk. Tap a friend’s circle to switch.</>;
+  if (!hints.moved && touch) content = <>Chalne ke liye baayein pad ko kheencho. Dost badalne ke liye uske gole pe tap karo.</>;
   else if (!hints.moved)
     content = (
       <>
         <kbd>W</kbd>
         <kbd>A</kbd>
         <kbd>S</kbd>
-        <kbd>D</kbd> or arrows to walk · hold <kbd>Shift</kbd> to run
+        <kbd>D</kbd> ya teer se chalo · daudne ke liye <kbd>Shift</kbd> dabaaye rakho
       </>
     );
   else if (!missions.rent.done.includes('rent.meet'))
     content = (
       <>
-        <kbd>1</kbd>–<kbd>4</kbd> or <kbd>Tab</kbd> to switch friend · <kbd>F</kbd> for their special move
+        <kbd>1</kbd>–<kbd>4</kbd> ya <kbd>Tab</kbd> se dost badlo · <kbd>F</kbd> se uski khaas chaal
       </>
     );
   else if (!hints.interacted && focus)
     content = (
       <>
-        <kbd>E</kbd> to interact · <kbd>F</kbd> to try your friend’s ability on it
+        <kbd>E</kbd> se baat/kaam · <kbd>F</kbd> se dost ki khoobi aazmaao
       </>
     );
   else if (['rich', 'jai', 'zikomo', 'dhol', 'chaos'].some((m) => missions[m]?.status === 'active') && !hints.ordered)
     content = (
       <>
-        <kbd>Q</kbd> tell the nearest friend to wait or come along · <kbd>L</kbd> Pakya’s Lie Book · time keeps running when you switch
+        <kbd>Q</kbd> paas wale dost ko ruko ya chalo bolo · <kbd>L</kbd> Pakya ki Jhooth ki Diary · dost badalne pe bhi waqt chalta rehta hai
       </>
     );
   else if (scene === 'house' && missions.rent.done.includes('rent.meet') && missions.rent.status === 'active')
-    content = <>The door is at the front of the room. Walk down-left.</>;
+    content = <>Darwaaza kamre ke aage hai. Neeche-baayein chalo.</>;
   if (!content) return null;
   return <div className="hint">{content}</div>;
 }
@@ -165,7 +165,7 @@ export function MissionLog() {
           return (
             <li key={id} className={`log-item is-${v.status}`}>
               <div className="log-title">
-                {def.title} {v.status === 'done' && <span className="log-done">done</span>}
+                {def.title} {v.status === 'done' && <span className="log-done">poora</span>}
               </div>
               <div className="log-intro">{def.intro}</div>
               <ul>

@@ -1,4 +1,6 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { onChase } from './game/chase';
+import { FilmiFX } from './ui/FilmiFX';
 import { useGame } from './game/store';
 import { installInput } from './game/input';
 import { installController } from './game/controller';
@@ -9,13 +11,15 @@ import { Hints, ObjectiveSign, Roster, SceneCard, Toasts } from './ui/Hud';
 import { Boot, Fader, IntroOverlay, PartEnd, PauseMenu, TitleScreen } from './ui/Screens';
 import { FailCard, LieBook, MissionTimer, QuestionCard, Situations } from './ui/Part2';
 import { WorldOverlay } from './ui/WorldOverlay';
-import { EndingCard } from './ui/Ending';
+import { EndingCard, ChaseCaption } from './ui/Ending';
 import { TouchControls } from './ui/Touch';
 
 export default function App() {
   const mode = useGame((s) => s.mode);
   const dialogue = useGame((s) => s.dialogue);
   const ending = useGame((s) => s.endingShown);
+  const [chasing, setChasing] = useState(false);
+  useEffect(() => onChase(setChasing), []);
 
   useEffect(() => {
     installInput();
@@ -24,7 +28,7 @@ export default function App() {
   }, []);
 
   return (
-    <div className={`app mode-${mode} ${dialogue ? 'has-dialogue' : ''} ${ending ? 'ending-open' : ''}`}>
+    <div className={`app mode-${mode} ${dialogue ? 'has-dialogue' : ''} ${ending ? 'ending-open' : ''} ${chasing ? 'chase-on' : ''}`}>
       <Stage />
       <div className="grain" aria-hidden />
       <div className="vignette" aria-hidden />
@@ -34,6 +38,7 @@ export default function App() {
       {mode === 'play' && (
         <div className="hud">
           <WorldOverlay />
+          <FilmiFX />
           <TouchControls />
           <ObjectiveSign />
           <Roster />
@@ -46,10 +51,11 @@ export default function App() {
           <LieBook />
           <FailCard />
           <EndingCard />
+          <ChaseCaption />
           <PauseMenu />
           <PartEnd />
-          <button className="menu-btn" onClick={() => useGame.setState({ paused: true })} aria-label="Open menu">
-            <kbd>Esc</kbd> Menu
+          <button className="menu-btn" onClick={() => useGame.setState({ paused: true })} aria-label="Menu kholo">
+            <kbd>Esc</kbd> Suchi
           </button>
         </div>
       )}

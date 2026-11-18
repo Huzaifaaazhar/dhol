@@ -1,13 +1,14 @@
 /**
- * FOUR FRIENDS, ONE DISASTER
- * Tonight the money goes back to the colony at Bablu's chai stall, in front of Zikomo. Four jobs, one clock:
- *   Goti finds the dhol (Tiwari-ji sold it to Shambhu, who wanders the main road with his cart),
+ * CHAR YAAR, EK DHAMAKA
+ * Zikomo has kidnapped Ritu and her grandparents and holds them by his white car. The drum for
+ * their lives, tonight, at Bablu's chai stall, and the colony must hear him confess. Four jobs, one clock:
+ *   Goti finds the dhol (Dongre Mama sold it to Shambhu, who wanders the main road with his cart),
  *   Pakya keeps Zikomo talking (his questions test every lie the gang ever told him),
  *   Sam brings witnesses (anyone who was lied to refuses until Sam comes clean or smooths it over),
  *   Maru keeps Zikomo's men away from the drum.
- * Earlier decisions shape it: gang harmony sets the time, Ritu's trust brings Ritu and Daadi,
- * a confronted Jai draws off one goon, fooling Zikomo in Part 2 makes him angrier, and the
- * winning ticket is either in Goti's trunk or in Zikomo's car.
+ * Earlier decisions shape it: gang harmony sets the time, Ritu's trust makes her and Daadi speak up,
+ * a convincing fake Jai gets Mama to lock up one goon, fooling Zikomo in Part 2 makes him angrier,
+ * and the winning ticket is either in Goti's trunk or in Zikomo's car.
  */
 import type { CharId } from '../types';
 import { CHAR_IDS } from '../types';
@@ -29,9 +30,11 @@ const WITNESS_SPOTS: Record<string, [number, number]> = {
   lalaji: [10.8, 16.0],
   bablu: [12, 9.3],
   pappu: [12.6, 15.8],
-  ritu: [14.0, 15.2],
-  daadi: [15.2, 15.8],
+  // the hostages, held by Zikomo's car
+  ritu: [18.6, 7.6],
+  daadi: [19.6, 6.8],
 };
+const DADAJI_SPOT: [number, number] = [19.2, 8.4];
 const SHAMBHU_ROUTE: Array<[number, number, number?]> = [
   [-30, 6.6, 5],
   [-8, 6.6, 3],
@@ -56,7 +59,9 @@ function spawnWorld() {
   const s = get();
   spawnAgent('shambhu', 'street', -8, 6.6, { route: SHAMBHU_ROUTE, speed: 1.15 });
   spawnAgent('zikomo', 'street', ZIKOMO_CAR.x - 1.4, ZIKOMO_CAR.z + 0.6, { face: -2.2 });
-  spawnAgent('rahul', 'street', STALL.x - 1.2, STALL.z + 1.4, { face: 2.6 });
+  // Ritu and her grandparents, held by Zikomo's car
+  spawnAgent('dadaji', 'street', DADAJI_SPOT[0], DADAJI_SPOT[1], { face: -2.4 });
+  for (const h of ['ritu', 'daadi'] as const) if (!s.flags[`witness.${h}`]) spawnAgent(h, 'street', WITNESS_SPOTS[h][0], WITNESS_SPOTS[h][1], { face: -2.4 });
   spawnAgent('spanner', 'street', 24, -5.5, { route: [[-26, -5.5, 1.5], [26, -5.5, 1.5]], speed: 2.0, vision: GOON_VISION, hostile: true });
   if (!s.flags['jai.helps']) spawnAgent('bhaloo', 'street', -30, 6.9, { route: [[-31, 6.9, 1.5], [4.5, 6.9, 1.5]], speed: 1.8, vision: GOON_VISION, hostile: true });
   // witnesses who already agreed walk over again (after a reload)
@@ -66,7 +71,7 @@ function spawnWorld() {
 function spawnWitness(id: string, instant = false) {
   const [x, z] = WITNESS_SPOTS[id];
   if (id === 'bablu') return; // already there
-  const from: Record<string, [number, number]> = { tiwari: [-10.6, -7.1], lalaji: [13.5, -6.6], pappu: [25, -6.9], ritu: [-28, -7.0], daadi: [-27, -7.2] };
+  const from: Record<string, [number, number]> = { tiwari: [-10.6, -7.1], lalaji: [13.5, -6.6], pappu: [25, -6.9], ritu: [x, z], daadi: [x, z] };
   const [sx, sz] = instant ? [x, z] : from[id];
   spawnAgent(id, 'street', sx, sz, { speed: 2.2, face: 0 });
   if (!instant) agentGoto(id, x, z, `witnessArrived:${id}`);
@@ -84,7 +89,8 @@ export const finale: Director = {
     watchTime = 0;
     // previous decisions set the stage
     const harmony = s.stats['gang.harmony'] ?? 60;
-    const jaiHelps = !!s.flags['jai.met'] && (s.lies.suspicion.jai ?? 0) < 60;
+    // a convincing "Jai" won Mama over: for once he acts like a policeman ('jai.helps' kept for old saves)
+    const jaiHelps = !!s.flags['jai.met'] && (s.lies.suspicion.tiwari ?? 0) < 60;
     setFlag('jai.helps', jaiHelps);
     const rituComes = (s.stats['ritu.trust'] ?? 0) >= 45;
     const zSus = (s.lies.suspicion.zikomo ?? 0) + (s.flags['end.fake'] ? 25 : 0) + (s.flags.deal ? 15 : 0);
@@ -110,10 +116,11 @@ export const finale: Director = {
     set({ active: 'sam' });
     moveActive('street', starts.sam[0], starts.sam[1], 0);
     window.setTimeout(() => agentGoto('zikomo', ZIK_PLAZA.x, ZIK_PLAZA.z, 'zikPlaza'), 6000);
-    toast(`Nightfall in ${Math.floor(T / 60)}:${String(T % 60).padStart(2, '0')}${harmony >= 60 ? ' (the gang works well together: extra time)' : harmony < 35 ? ' (the gang is bickering: less time)' : ''}`, 'alert', 'Four jobs, one clock');
-    if (jaiHelps) window.setTimeout(() => toast('Jai is leading Bhaloo on a chase round the temple. One goon fewer.', 'info', 'Because you trusted Jai'), 3000);
-    if (rituComes) window.setTimeout(() => toast('Ritu is bringing Daadi to the chai stall. Two witnesses, for free.', 'info', 'Because Ritu trusts you'), 6000);
-    if (s.flags['end.fake']) window.setTimeout(() => toast('Zikomo has not forgiven the biscuit tin. He starts out suspicious.', 'info'), 9000);
+    toast(`Raat hone mein ${Math.floor(T / 60)}:${String(T % 60).padStart(2, '0')}${harmony >= 60 ? ' (gang mein ekta hai: extra waqt)' : harmony < 35 ? ' (gang jhagad rahi hai: kam waqt)' : ''}`, 'alert', 'Chaar kaam, ek ghadi');
+    window.setTimeout(() => toast('Zikomo ne Ritu aur uske Dada-Dadi ko apni safed gaadi ke paas pakad rakha hai.', 'alert', 'Agwa'), 1500);
+    if (jaiHelps) window.setTimeout(() => toast('Dongre Mama ne ek baar police waale ki tarah kaam kiya aur Bhaloo ko chowki mein band kar diya. Ek gunda kam.', 'info', 'Kyunki Mama ko abhi bhi bharosa hai'), 3500);
+    if (rituComes) window.setTimeout(() => toast('Ritu ko abhi bhi bharosa hai: Zikomo bolega toh woh aur Daadi tumhara saath denge. Do gawaah.', 'info', 'Kyunki Ritu ko bharosa hai'), 6000);
+    if (s.flags['end.fake']) window.setTimeout(() => toast('Zikomo ne biscuit ke dabbe ko maaf nahi kiya. Shuru se hi shak mein hai.', 'info'), 9000);
   },
   tick(dt, now) {
     const s = get();
@@ -136,8 +143,8 @@ export const finale: Director = {
       if (stalling) cancelTask('pakya', true);
       sfx('alarm');
       emote('zikomo', '💢', 3);
-      bark('zikomo', 'ENOUGH talking! Find that drum! NOW!', 3);
-      toast('Zikomo has lost his patience. His men are hunting, and night comes sooner.', 'fail', 'Complication');
+      bark('zikomo', 'BAS baatein! Dhol dhoondho! ABHI!', 3);
+      toast('Zikomo ka sabr toot gaya. Uske aadmi shikaar pe hain, aur raat jaldi aayegi.', 'fail', 'Gadbad');
       for (const id of ['spanner', 'bhaloo']) {
         const a = agents.get(id);
         if (a) a.speed *= 1.25;
@@ -155,8 +162,8 @@ export const finale: Director = {
       cancelTask(carSearch.who, true);
       trouble(carSearch.who);
       set({ lies: { ...get().lies, suspicion: { ...get().lies.suspicion, zikomo: Math.min(100, (get().lies.suspicion.zikomo ?? 0) + 20) } } });
-      bark('zikomo', 'OYE! Away from my car!', 2.4);
-      toast('Zikomo saw that. Keep him talking (Pakya) before you try his car.', 'fail');
+      bark('zikomo', 'OYE! Meri gaadi se door!', 2.4);
+      toast('Zikomo ne dekh liya. Gaadi chhoone se pehle use baaton mein uljhaao (Pakya).', 'fail');
     }
 
     // Maru on watch
@@ -187,8 +194,8 @@ export const finale: Director = {
     }
     trouble(who);
     chaos();
-    bark('spanner', 'Not you. The DRUM. Get lost.', 2.2);
-    toast(`${who[0].toUpperCase() + who.slice(1)} was caught and thrown out of the way`, 'fail', 'Trouble');
+    bark('spanner', 'Tu nahi. DHOL. Nikal.', 2.2);
+    toast(`${who[0].toUpperCase() + who.slice(1)} pakda gaya aur raaste se phenk diya gaya`, 'fail', 'Musibat');
     sendHome(who);
   },
   event(name, data) {
@@ -196,14 +203,14 @@ export const finale: Director = {
     if (name.startsWith('witness:')) {
       const id = name.slice(8);
       spawnWitness(id);
-      rawToast(`${id[0].toUpperCase() + id.slice(1)} is heading to the chai stall`, 'objective', `${witnessCount()} witnesses`);
+      rawToast(`${id[0].toUpperCase() + id.slice(1)} chai ki dukaan ki taraf chal pada`, 'objective', `${witnessCount()} gawaah`);
     }
     if (name === 'cartSearched' || name === 'task:done') {
       const t = (data as { task?: { who: CharId; source: string } } | undefined)?.task;
       if (name === 'task:done' && t?.source.includes('cart') && s.dhol === 'cart') {
         set({ dhol: `carried:${t.who}` });
-        bark(t.who, 'Found it under a pile of old newspapers! Heavy. Rich-person heavy.', 2.6);
-        bark('shambhu', 'Oye! That is my drum! …Fine, it’s your drum. It was always your drum.', 3);
+        bark(t.who, 'Purane akhbaaron ke neeche mil gaya! Bhaari. Ameeron wala bhaari.', 2.6);
+        bark('shambhu', 'Oye! Woh mera dhol hai! …Achha, tumhara dhol. Hamesha se tumhara tha.', 3);
         completeObjective('finale.drum');
       }
     }

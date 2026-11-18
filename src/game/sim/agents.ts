@@ -236,7 +236,7 @@ function waitsForYou(a: Agent, st: ReturnType<typeof useGame.getState>, dt: numb
   }
   if (w > 4) return false;
   waited.set(a.id, w + dt);
-  if (w + dt > 4) bark(a.id, a.id === 'postman' ? 'Excuse me! Post coming through!' : 'Excuse me, beta. Some of us have work.', 2);
+  if (w + dt > 4) bark(a.id, a.id === 'postman' ? 'Hatiye! Daak aa rahi hai!' : 'Hato beta. Kuch logon ko kaam bhi hai.', 2);
   e.speed = 0;
   e.face = Math.atan2(me.x - e.x, me.z - e.z);
   return true;
