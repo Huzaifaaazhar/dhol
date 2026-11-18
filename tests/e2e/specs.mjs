@@ -1162,7 +1162,7 @@ export async function saves(t) {
   await t.wait(1500);
   await key('KeyX', 2000);
   const menu = await page.locator('.menu-item').allInnerTexts();
-  check(menu[0].startsWith('Continue') && menu.some((m) => m.startsWith('Load a saved game')), 'after a reload the title offers Continue and Load');
+  check(menu[0].startsWith('Jaari rakho') && menu.some((m) => m.startsWith('Sambhaala hua khel kholo')), 'after a reload the title offers Jaari rakho (continue) and Kholo (load)');
   await key('Enter', 3000);
   s = await st();
   check(s.mode === 'play' && s.missions.jai.startsWith('active') && !!s.lies.stories.jai?.bablu, 'Continue resumes the mission with its progress');
