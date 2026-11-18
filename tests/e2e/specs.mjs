@@ -63,7 +63,7 @@ export async function rich(t) {
   check(s.dialogue?.script === 'ritu2' && s.dialogue.node.startsWith('butt_'), `a friend butts in (${s.dialogue?.node})`);
   await shot('rich-buttin');
   await advance();
-  await choose('Introduce her to Moti');
+  await choose('Moti se formally');
   await advance();
   s = await st();
   check(s.flags['move.goti'], 'Goti made his move');
@@ -88,7 +88,7 @@ export async function rich(t) {
   const hint = await page.locator('.lie-bad').count();
   check(hint > 0, 'as Pakya, the bluff is marked as clashing with an earlier story');
   await shot('rich-liehint');
-  await choose('filmon ka producer');
+  await choose('Film producer bano');
   await advance();
   s = await st();
   check(s.lies.contradictions.some((c) => c.npc === 'ritu' && c.topic === 'pakya.job'), 'Ritu caught the contradiction (Lie Book records it)');
@@ -101,7 +101,7 @@ export async function rich(t) {
   await near('ritu', 1.0, 0.9);
   await key('KeyE', 600);
   await advance();
-  await choose('actually listen');
+  await choose('sach mein suno');
   await advance();
   await api('switchFriend', 'maru');
   await t.wait(500);
@@ -109,7 +109,7 @@ export async function rich(t) {
   await near('ritu', 1.0, 0.9);
   await key('KeyE', 600);
   await advance();
-  await choose('brother used to play');
+  await choose('uska bhai dhol pe');
   await advance();
   s = await st();
   check(s.missions.rich.includes('rich.moves'), `all four made their move (trust ${s.stats['ritu.trust']})`);
@@ -149,7 +149,7 @@ export async function richFail(t) {
   await near('ritu', 1.0, 0.9);
   await key('KeyE', 600);
   await advance();
-  await choose('five-year plan');
+  await choose('paanch saal ka plan');
   await advance();
   const s = await t.until((x) => !!x.failure, 6000, 'failure');
   check(s.failure.mission === 'rich', 'losing Ritu’s trust fails the mission');
@@ -161,13 +161,13 @@ export async function richFail(t) {
   check(!r.failure && r.stats['ritu.trust'] === 30 && !r.flags['move.sam'], 'Retry restores the checkpoint (trust 30, no moves)');
 }
 
-/* ═════════ 2. WHO EXACTLY IS JAI? ═════════ */
+/* ═════════ 2. MAIN HOON JAI ═════════ */
 export async function jai(t) {
-  const { st, api, key, advance, choose, near } = t;
+  const { st, api, key, advance, choose } = t;
   await api('jumpTo', 'jai');
   await t.wait(1200);
-  check((await api('agentIds')).includes('jai'), 'Jai is in the colony');
-  // two different versions of his story
+  check((await api('agentIds')).includes('ritu'), 'Ritu is out in the colony, investigating');
+  // two different memories of the dead Jai
   await api('tp', 12, 7.9);
   await t.wait(800);
   await key('KeyE', 500);
@@ -177,77 +177,87 @@ export async function jai(t) {
   await key('KeyE', 500);
   let r = await advance();
   let s = await st();
-  check(s.lies.stories.jai?.bablu && s.lies.stories.jai?.pappu, 'heard Jai’s story from Bablu and from Pappu');
-  check(s.missions.jai.includes('jai.stories'), 'two different stories: objective done');
-  // Sam negotiates a look at Pappu's register (proof, approach 3)
+  check(s.lies.stories.jai?.bablu && s.lies.stories.jai?.pappu, 'Bablu and Pappu each remember Jai differently');
+  check(s.missions.jai.includes('jai.stories'), 'two different memories: objective done');
+  // Sam negotiates a look at Pappu's lodge register (proof, approach 3)
   if (r === 'choices') {
-    await choose('word-of-mouth');
+    await choose('free prachaar');
     await advance();
   }
   s = await st();
-  check(s.items.includes('register') && s.missions.jai.includes('jai.proof'), 'Sam got a look at Pappu’s register: Jai Malhotra, Dubai');
-  await near('jai', 1.0, 1.0);
+  check(s.items.includes('register') && s.missions.jai.includes('jai.proof'), 'Pappu’s register: Rahul Tripathi and Jaishankar Yadav, room three');
+  // Pakya walks into the bungalow as Jai, and survives Dadaji's questions
+  await api('switchFriend', 'pakya');
+  await t.wait(2600);
+  await goThroughDoor(t, -28, -11.2);
+  s = await t.until((x) => x.scene === 'ritu' && !x.transition, 10000, 'inside the bungalow');
+  await api('tp', -3.5, 1.5);
+  await t.wait(800);
   await key('KeyE', 600);
+  s = await st();
+  check(s.dialogue?.script === 'dadaji', 'Pakya presents himself to Dadaji');
   await advance();
-  await choose('Lay out the evidence');
+  await choose('Delhi ka');
   await advance();
-  s = await t.until((x) => x.missions.jai.startsWith('done'), 8000, 'Jai mission to complete');
-  check(s.flags['jai.met'], 'Jai revealed Rahul is hiding and something is inside his dhol');
+  await choose('chaar chammach');
+  await advance();
+  s = await t.until((x) => x.missions.jai.startsWith('done'), 8000, 'the Jai mission to complete');
+  check(s.flags['jai.met'] && s.lies.beliefs.dadaji?.['pakya.who']?.value === 'Jai', 'Dadaji now believes Pakya is Jai');
   await t.until((x) => x.missions.zikomo.startsWith('active'), 8000, 'Zikomo mission to start');
-  check(true, 'Zikomo Is Looking for You started');
+  check(true, 'Zikomo Aa Gaya started: word is out that Jai is alive');
 }
 
 export async function jaiStealth(t) {
   const { st, api, key, page } = t;
   await api('jumpTo', 'jai');
   await t.wait(1000);
-  // being seen makes Jai suspicious
-  const j = await api('agent', 'jai');
+  // being seen following her makes Ritu suspicious
+  const j = await api('agent', 'ritu');
   await api('switchFriend', 'maru');
   await t.wait(400);
-  await api('tp', j.x, j.z - 2.2); // he faces north, towards the bungalow
-  await t.until((x) => (x.lies.suspicion.jai ?? 0) > 0, 15000, 'Jai to notice Maru');
-  check(true, 'Jai noticed Maru staring at him');
+  await api('tp', j.x, j.z - 2.2); // she faces north, towards the bungalow
+  await t.until((x) => (x.lies.suspicion.jai ?? 0) > 0, 15000, 'Ritu to notice Maru');
+  check(true, 'Ritu noticed Maru following her');
   await api('tp', 0, 20);
-  // wait for him to leave for his phone call, then Goti goes through his bag
+  // wait for her to leave for her phone call, then Goti goes through her bag
   await t.until(() => true, 100);
   const left = async () => {
-    const a = await api('agent', 'jai');
+    const a = await api('agent', 'ritu');
     return a.ri >= 2 && a.ri <= 4 && Math.hypot(a.x + 22.3, a.z + 6.3) > 8;
   };
   const t0 = Date.now();
   while (!(await left())) {
-    if (Date.now() - t0 > 60000) throw new Error('Jai never left his post');
+    if (Date.now() - t0 > 60000) throw new Error('Ritu never left her bench');
     await t.wait(500);
   }
-  check(true, 'Jai walked off to make a call');
+  check(true, 'Ritu walked off to make a call');
   await api('switchFriend', 'goti');
   await t.wait(400);
   await api('tp', -22.3, -5.3);
   await t.wait(900);
   await key('KeyF', 500);
   let s = await st();
-  check(s.tasks.some((x) => x.who === 'goti' && x.source.startsWith('jai_bag')), 'Goti is searching Jai’s bag');
+  check(s.tasks.some((x) => x.who === 'goti' && x.source.startsWith('jai_bag')), 'Goti is searching Ritu’s bag');
   s = await t.until((x) => x.items.includes('photo') || !x.tasks.length, 30000, 'bag search');
-  check(s.items.includes('photo') && s.missions.jai.includes('jai.proof'), 'Goti found the photo of Jai and Rahul (proof, approach 1)');
+  check(s.items.includes('photo') && s.missions.jai.includes('jai.proof'), 'Goti found the photo: Jai’s face lost under a tea stain (proof, approach 1)');
   await t.shot('jai-bag');
-  // overhearing: wait until he is on the phone in the lane, stand behind him
+  // overhearing: wait until she is on the phone in the lane, stand behind her
   const calling = async () => {
-    const a = await api('agent', 'jai');
+    const a = await api('agent', 'ritu');
     return a.ri === 4 && a.wait > 2;
   };
   const t1 = Date.now();
   while (!(await calling())) {
-    if (Date.now() - t1 > 90000) throw new Error('Jai never made his call');
+    if (Date.now() - t1 > 90000) throw new Error('Ritu never made her call');
     await t.wait(500);
   }
-  const a = await api('agent', 'jai');
+  const a = await api('agent', 'ritu');
   await api('switchFriend', 'sam');
   await t.wait(400);
   await api('tp', a.x + 0.4, a.z - 2.6);
   await t.wait(2500);
   const bubbles = await page.locator('.bubble').allInnerTexts();
-  check(bubbles.some((b) => b.includes('…')), `Jai’s phone call is audible: “${bubbles.find((b) => b.includes('…'))?.slice(0, 60)}”`);
+  check(bubbles.some((b) => b.includes('…')), `Ritu’s phone call is audible: “${bubbles.find((b) => b.includes('…'))?.slice(0, 60)}”`);
 }
 
 export async function jaiFail(t) {
@@ -259,10 +269,10 @@ export async function jaiFail(t) {
     const s = g.getState();
     g.setState({ lies: { ...s.lies, suspicion: { jai: 92 } } });
   });
-  const j = await api('agent', 'jai');
+  const j = await api('agent', 'ritu');
   await api('tp', j.x, j.z - 2.0);
-  const s = await t.until((x) => !!x.failure, 20000, 'Jai to skip town');
-  check(s.failure.reason.includes('Jai'), 'staring at Jai once too often makes him leave: mission failed');
+  const s = await t.until((x) => !!x.failure, 20000, 'Ritu to call the police');
+  check(s.failure.reason.includes('Dongre Mama'), 'following Ritu once too often: she calls the police, and the police is Mama');
 }
 
 /* ═════════ 3. ZIKOMO IS LOOKING FOR YOU ═════════ */
@@ -359,9 +369,9 @@ export async function zikomo(t) {
   check(s.mstate.caught === 1, 'caught once');
   await t.shot('zik-caught');
   await advance();
-  await choose('somebody important');
+  await choose('bada aadmi');
   await advance();
-  await choose('income tax');
+  await choose('income tax officer hoon');
   await advance();
   s = await st();
   check(s.lies.beliefs.zikomo?.['pakya.job']?.value === 'income tax ka afsar', 'Zikomo now believes Pakya is an income tax officer');
@@ -386,7 +396,7 @@ export async function zikomoDeal(t) {
   await t.near('zikomo', 1.0, 1.0);
   await key('KeyE', 600);
   await advance();
-  await choose('Offer a deal');
+  await choose('Deal offer karo');
   await advance();
   const s = await t.until((x) => x.missions.zikomo.startsWith('done'), 8000, 'deal to end the mission');
   check(s.flags.deal, 'Sam made a deal with Zikomo instead (alternative approach)');
@@ -406,7 +416,7 @@ export async function zikomoFail(t) {
   await page.keyboard.up('KeyW');
   await inFrontOf(t, 'bhaloo', 'sam', 1.8);
   const s = await t.until((x) => !!x.failure, 25000, 'third capture');
-  check(s.failure.reason.includes('three times'), 'caught a third time: mission failed');
+  check(s.failure.reason.includes('teen baar'), 'caught a third time: mission failed');
 }
 
 /* ═════════ 4. FIND THE DHOL ═════════ */
@@ -437,7 +447,7 @@ export async function dhol(t) {
   await t.near('shambhu', 0.9, 0.9);
   await key('KeyE', 600);
   await advance();
-  await choose('Pay twenty');
+  await choose('Bees rupaye do');
   await advance();
   s = await st();
   check(s.flags['clue.shambhu'] && s.money === 230, 'paid Shambhu ₹20: he sold it to Lalaji');
@@ -498,9 +508,9 @@ export async function dhol(t) {
   // Sam can’t find the seam; Goti can
   await api('tp', 0.2, 3.2);
   await t.wait(800);
-  await page.waitForFunction(() => [...document.querySelectorAll('.prompt')].some((p) => p.innerText.includes('Examine the dhol')), null, { timeout: 8000 }).catch(() => {});
+  await page.waitForFunction(() => [...document.querySelectorAll('.prompt')].some((p) => p.innerText.includes('Dhol ki jaanch karo')), null, { timeout: 8000 }).catch(() => {});
   const prompt = (await page.locator('.prompt').allInnerTexts()).join(' ');
-  check(prompt.includes('Examine the dhol') && prompt.includes('Goti could try'), 'prompt offers Sam a slow search and hints that Goti is better');
+  check(prompt.includes('Dhol ki jaanch karo') && prompt.includes('Goti kuch kar sakta hai'), 'prompt offers Sam a slow search and hints that Goti is better');
   await api('switchFriend', 'goti');
   await t.wait(2600);
   await enterHideout(t);
@@ -560,18 +570,18 @@ export async function chaos(t) {
   check(s.missions.chaos.includes('chaos.plan') && s.mstate.timerEnd > 0, `plan B chosen: the sunset clock is running`);
   check((await page.locator('.timer').count()) === 1, 'the sunset clock is on screen');
 
-  // Pakya keeps Tiwari-ji talking
+  // Pakya keeps Dongre Mama talking
   await key('Digit2', 700);
   await exitHideout(t);
   await api('tp', -10.6, -5.9);
   await t.wait(900);
   await key('KeyF', 600);
   s = await st();
-  check(s.tasks.some((x) => x.who === 'pakya' && x.kind === 'stall'), 'Pakya is keeping Tiwari-ji talking');
+  check(s.tasks.some((x) => x.who === 'pakya' && x.kind === 'stall'), 'Pakya is keeping Dongre Mama talking');
   for (let i = 0; i < 20 && (await api('agent', 'tiwari')).mode !== 'stalled'; i++) await t.wait(200);
-  check((await api('agent', 'tiwari')).mode === 'stalled', 'Tiwari-ji is stuck in conversation');
-  s = await t.until((x) => !!x.question, 30000, 'Tiwari-ji to ask Pakya something');
-  check(s.question.npc === 'tiwari', `Tiwari-ji asks: “${s.question.prompt}”`);
+  check((await api('agent', 'tiwari')).mode === 'stalled', 'Dongre Mama is stuck in conversation');
+  s = await t.until((x) => !!x.question, 30000, 'Dongre Mama to ask Pakya something');
+  check(s.question.npc === 'tiwari', `Dongre Mama asks: “${s.question.prompt}”`);
   await t.shot('chaos-question');
   await key('Digit1', 700);
   s = await st();
@@ -632,7 +642,7 @@ export async function chaos(t) {
     await key('Digit1', 600);
   }
 
-  // Sam carries the real dhol home while Pakya keeps Tiwari-ji busy
+  // Sam carries the real dhol home while Pakya keeps Dongre Mama busy
   await api('switchFriend', 'sam');
   await t.wait(2600);
   s = await st();
@@ -652,13 +662,13 @@ export async function chaos(t) {
   await api('tp', -14, -6.9);
   await t.wait(900);
   s = await st();
-  check(s.dhol === 'carried:sam', 'Tiwari-ji didn’t notice: Pakya kept him busy');
+  check(s.dhol === 'carried:sam', 'Dongre Mama didn’t notice: Pakya kept him busy');
   await key('KeyE', 2400);
   await t.until((x) => x.scene === 'house' && !x.transition, 10000, 'home');
   await api('tp', -3.9, 1.6);
-  await page.waitForFunction(() => [...document.querySelectorAll('.prompt')].some((p) => p.innerText.includes('Hide the real dhol')), null, { timeout: 8000 }).catch(() => {});
+  await page.waitForFunction(() => [...document.querySelectorAll('.prompt')].some((p) => p.innerText.includes('Asli dhol iske neeche chhupaao')), null, { timeout: 8000 }).catch(() => {});
   const p = (await page.locator('.prompt').allInnerTexts()).join(' ');
-  check(p.includes('Hide the real dhol'), 'the charpai offers to hide the real dhol');
+  check(p.includes('Asli dhol iske neeche chhupaao'), 'the charpai offers to hide the real dhol');
   await key('KeyE', 700);
   s = await st();
   check(s.dhol === 'house' && s.missions.chaos.includes('chaos.hide'), 'the real dhol is under Maru’s charpai');
@@ -678,7 +688,7 @@ export async function chaos(t) {
   await t.shot('part2-end');
 }
 
-/* Maru panics and runs past Tiwari-ji, wrecking Pakya's "sick in bed" story */
+/* Maru panics and runs past Dongre Mama, wrecking Pakya's "sick in bed" story */
 export async function chaosPanic(t) {
   const { st, api, page } = t;
   await api('jumpTo', 'chaos', {}, {
@@ -694,8 +704,8 @@ export async function chaosPanic(t) {
   });
   const sp = await api('agent', 'spanner');
   await api('tp', sp.x + 3, sp.z + 3, 'maru');
-  const s = await t.until((x) => x.lies.contradictions.some((c) => c.npc === 'tiwari' && c.topic === 'maru.health'), 20000, 'Maru’s panic to reach Tiwari-ji');
-  check(s.lies.suspicion.tiwari >= 20, 'Tiwari-ji saw “sick” Maru sprinting past: suspicion up');
+  const s = await t.until((x) => x.lies.contradictions.some((c) => c.npc === 'tiwari' && c.topic === 'maru.health'), 20000, 'Maru’s panic to reach Dongre Mama');
+  check(s.lies.suspicion.tiwari >= 20, 'Dongre Mama saw “sick” Maru sprinting past: suspicion up');
   check(s.stats['gang.harmony'] < 60, 'Pakya blames Maru: harmony drops');
 }
 
@@ -711,7 +721,7 @@ export async function chaosFail(t) {
     g.setState({ mstate: { ...g.getState().mstate, timerEnd: window.__dhol.api.now() + 2 } });
   });
   const s = await t.until((x) => !!x.failure, 20000, 'sunset failure');
-  check(s.dhol === 'zikomo' && s.failure.reason.includes('real dhol'), 'real dhol left in the hideout at sunset: Zikomo takes it, mission failed');
+  check(s.dhol === 'zikomo' && s.failure.reason.includes('asli dhol'), 'real dhol left in the hideout at sunset: Zikomo takes it, mission failed');
 }
 
 /* ═════════ Part 1 regression ═════════ */
@@ -733,12 +743,12 @@ export async function part1Start(t) {
   await t.wait(800);
   await key('KeyE', 2600);
   s = await st();
-  check(s.scene === 'street' && s.dialogue?.script === 'tiwari', 'Tiwari-ji blocks the door');
+  check(s.scene === 'street' && s.dialogue?.script === 'tiwari', 'Dongre Mama blocks the door');
   check(Object.values(s.where).every((w) => w === 'street'), 'the whole gang came outside together');
   await advance();
-  await choose('somebody important');
+  await choose('bada aadmi');
   await advance();
-  await choose('Income Tax');
+  await choose('Income Tax department');
   await advance();
   s = await st();
   check(s.missions.rent.startsWith('done'), 'Rent Day still completes');
@@ -799,7 +809,7 @@ export async function reveal(t) {
   await t.wait(900);
   await key('KeyE', 500);
   await advance();
-  await choose('Ask for the key honestly');
+  await choose('Imaandaari se chaabi maango');
   await advance();
   s = await st();
   check(s.flags['cinema.open'], 'discovery 2: Pappu hands over his uncle’s cinema key (and mentions a light in the booth)');
@@ -821,7 +831,7 @@ export async function reveal(t) {
   await key('KeyE', 500);
   await advance();
   s = await st();
-  check(!s.flags['rahul.out'], 'someone is humming in the bolted projection booth');
+  check(!s.flags['rahul.out'], 'an old song plays behind the locked projection booth');
   await goThroughDoor(t, 4.5, 4.3);
 
   // 4. Goti knocks along the real dhol under Maru's charpai
@@ -832,11 +842,11 @@ export async function reveal(t) {
   await t.wait(900);
   await key('KeyF', 600);
   await advance();
-  await choose('left skin');
+  await choose('Baayi khaal');
   await advance();
   s = await st();
   check(!s.flags['drum.open'], 'a wrong knock just sounds like a drum');
-  await choose('beside the strap');
+  await choose('patte ke paas');
   await advance();
   s = await st();
   check(s.flags['drum.open'] && s.missions.reveal.includes('reveal.drum'), 'discovery 4: the hollow side, and ₹4,44,444 in a false wall');
@@ -849,12 +859,12 @@ export async function reveal(t) {
   await t.wait(900);
   await key('KeyE', 500);
   await advance();
-  await choose('The music is in the drum');
+  await choose('4 – 4 – 4');
   await advance();
   s = await t.until((x) => x.missions.reveal.startsWith('done'), 10000, 'the reveal to finish');
-  check(s.flags['rahul.out'], 'discovery 5: Rahul has been living in the projection booth');
+  check(s.flags['rahul.out'], 'discovery 5: Rahul’s last tape, naming Zikomo');
   await t.until((x) => x.missions.finale.startsWith('active'), 10000, 'the final mission to start');
-  check(true, 'Four Friends, One Disaster started');
+  check(true, 'Char Yaar, Ek Dhamaka started: Ritu and her grandparents are kidnapped');
   await t.wait(1200);
   await t.shot('finale-start');
 }
@@ -869,7 +879,7 @@ async function answerAs(t, wantClash) {
   let pick = 0;
   for (let i = 0; i < n; i++) {
     const txt = await opts.nth(i).innerText();
-    const clash = txt.includes('clashes');
+    const clash = txt.includes('takraav');
     if (clash === wantClash) {
       pick = i;
       break;
@@ -922,7 +932,7 @@ async function pakyaStallsZikomo(t, clashes) {
   return answered;
 }
 
-async function samBrings(t, npc, x, z, label = 'Ask him to come') {
+async function samBrings(t, npc, x, z, label = 'aane ko kaho') {
   await t.api('switchFriend', 'sam');
   await t.wait(400);
   await t.api('tp', x, z);
@@ -949,20 +959,20 @@ export async function finaleTriumph(t) {
   await api('jumpTo', 'finale', { ...FINALE_FLAGS, 'jai.met': true }, { items: ['register', 'ticket'], stats: { 'ritu.trust': 50, 'gang.harmony': 65 } });
   await t.wait(2000);
   let s = await t.st();
-  check(s.flags['jai.helps'] && !(await api('agentIds')).includes('bhaloo'), 'because you confronted Jai, he draws Bhaloo away');
-  check(s.flags['witness.ritu'], 'because Ritu trusts you, she and Daadi come as witnesses');
+  check(s.flags['jai.helps'] && !(await api('agentIds')).includes('bhaloo'), 'because the fake Jai won Mama over, he locks Bhaloo in the chowki');
+  check(s.flags['witness.ritu'], 'because Ritu still trusts you, she and Daadi will speak up as witnesses');
   check(s.mstate.timerEnd - (await api('now')) > 290, 'a united gang (harmony 65) gets extra time');
   await gotiGetsDrum(t);
   // leave Goti hidden while the others work
   await api('tp', -4.1, 13.4, 'goti');
   await t.key('KeyE', 400);
   await pakyaStallsZikomo(t, false);
-  check(await samBrings(t, 'tiwari', -10.6, -5.9), 'Sam convinced Tiwari-ji to come');
+  check(await samBrings(t, 'tiwari', -10.6, -5.9), 'Sam convinced Dongre Mama to come');
   check(await samBrings(t, 'pappu', 25, -5.6), 'Sam convinced Pappu to come');
   s = await t.st();
   check(s.missions.finale.includes('finale.witness'), 'two witnesses or more: objective done');
   s = await deliver(t);
-  check(s.mstate.ending === 'triumph', `ending: The Rightful Owners (finale lies ${s.mstate.finaleContra}, chaos ${s.mstate.chaos})`);
+  check(s.mstate.ending === 'triumph', `ending: Insaaf (finale lies ${s.mstate.finaleContra}, chaos ${s.mstate.chaos})`);
   check((await t.page.locator('.ending-triumph').count()) === 1, 'the triumph ending screen is shown');
   await t.shot('ending-triumph');
   await t.key('Enter', 1200);
@@ -990,9 +1000,9 @@ export async function finaleCollapse(t) {
   const n = await pakyaStallsZikomo(t, true);
   const s0 = await t.st();
   check(n >= 2 && s0.mstate.finaleContra >= 2, `Pakya contradicted his old story to Zikomo ${s0.mstate.finaleContra} times`);
-  check(await samBrings(t, 'tiwari', -10.6, -5.9), 'Tiwari-ji still comes');
+  check(await samBrings(t, 'tiwari', -10.6, -5.9), 'Dongre Mama still comes');
   const s = await deliver(t);
-  check(s.mstate.ending === 'collapse' && s.mstate.endingCause === 'lies', 'ending: House of Cards (the lies collapsed in front of everyone)');
+  check(s.mstate.ending === 'collapse' && s.mstate.endingCause === 'lies', 'ending: Taash ka Mahal (the lies collapsed in front of everyone)');
   await t.shot('ending-collapse');
 }
 
@@ -1005,9 +1015,9 @@ export async function finaleBlame(t) {
   await gotiGetsDrum(t);
   await api('tp', -4.1, 13.4, 'goti');
   await t.key('KeyE', 400);
-  check(await samBrings(t, 'tiwari', -10.6, -5.9), 'Tiwari-ji comes');
+  check(await samBrings(t, 'tiwari', -10.6, -5.9), 'Dongre Mama comes');
   const s = await deliver(t);
-  check(s.mstate.ending === 'blame' && s.mstate.culprit === 'maru', 'ending: One Idiot Too Many, and it is Maru (caught out five times this week)');
+  check(s.mstate.ending === 'blame' && s.mstate.culprit === 'maru', 'ending: Ek Gadha Zyaada, and it is Maru (caught out five times this week)');
   check((await t.page.locator('.ending-culprit').innerText()).includes('Maru'), 'the ending screen names the culprit');
   await t.shot('ending-blame');
 }
@@ -1021,7 +1031,7 @@ export async function finaleFortune(t) {
   await t.key('KeyE', 400);
   check(await samBrings(t, 'pappu', 25, -5.6), 'only Pappu comes (Ritu does not trust you enough to bring Daadi)');
   const s = await deliver(t);
-  check(s.mstate.ending === 'fortune', `ending: Raining Rupees (${s.mstate.endingCause})`);
+  check(s.mstate.ending === 'fortune', `ending: Noton ki Baarish (${s.mstate.endingCause})`);
   check((await t.page.locator('.rain span').count()) > 10, 'rupees rain across the ending screen');
   await t.shot('ending-fortune');
 }
@@ -1038,7 +1048,7 @@ export async function finaleTimeout(t) {
   await t.advance(80);
   // the card may already have been dismissed by the last presses: the decided ending is what matters
   const s = await t.until((x) => x.endingShown || !!x.mstate.ending, 10000, 'ending');
-  check(s.mstate.ending === 'collapse' && s.mstate.endingCause === 'time', 'nightfall without the drum: Zikomo takes it (House of Cards)');
+  check(s.mstate.ending === 'collapse' && s.mstate.endingCause === 'time', 'nightfall without the drum: Zikomo takes it (Taash ka Mahal)');
 }
 
 /* ═════════ MOBILE: touch controls ═════════ */
@@ -1047,7 +1057,7 @@ export async function mobile(t) {
   await page.mouse.click(195, 420); // tap to begin
   await t.wait(1500);
   await t.key('Escape', 2000); // skip the opening
-  await page.getByText('Start the story').click();
+  await page.getByText('Kahaani shuru karo').click();
   await t.wait(3000);
   let s = await st();
   check(s.mode === 'play', 'tapping through the title starts the game');
@@ -1079,7 +1089,7 @@ export async function mobile(t) {
   await api('tp', 2.7, -3.4);
   await t.wait(1000);
   const label = await page.locator('.tbtn-e .tbtn-label').innerText();
-  check(label.length > 0 && label !== 'Interact', `the E button is labelled with the action: “${label}”`);
+  check(label.length > 0 && label !== 'Baat / kaam', `the E button is labelled with the action: “${label}”`);
   await page.locator('.tbtn-e').dispatchEvent('pointerdown');
   await t.wait(800);
   check((await page.locator('.bubble').count()) > 0, `tapping E did it: “${(await page.locator('.bubble').first().innerText()).slice(0, 50)}…”`);
@@ -1112,7 +1122,7 @@ export async function mobile(t) {
   await page.locator('.menu-btn').click();
   await t.wait(500);
   check((await page.locator('.pause').count()) === 1, 'the menu opens with a tap');
-  await page.getByText('Save / Load').click();
+  await page.getByText('Sambhaalo / Kholo').click();
   await t.wait(300);
   await t.shot('mobile-pause');
 }
@@ -1131,18 +1141,18 @@ export async function saves(t) {
   check(!!s.lies.stories.jai?.bablu, 'progress made: Bablu told us Jai’s story');
   // save to slot 2 through the pause menu
   await key('Escape', 600);
-  await page.getByRole('tab', { name: 'Save / Load' }).click();
+  await page.getByRole('tab', { name: 'Sambhaalo / Kholo' }).click();
   await t.wait(300);
-  await page.locator('.slot').nth(1).getByRole('button', { name: 'Save here' }).click();
+  await page.locator('.slot').nth(1).getByRole('button', { name: 'Yahaan sambhaalo' }).click();
   await t.wait(500);
-  check((await page.locator('.slot').nth(1).innerText()).includes('Who Exactly Is Jai?'), 'slot 2 shows the mission it was saved in');
+  check((await page.locator('.slot').nth(1).innerText()).includes('Main Hoon Jai'), 'slot 2 shows the mission it was saved in');
   await t.shot('saves-pause');
   await key('Escape', 400);
   // make more progress, then load the slot: the extra progress is gone
   await page.evaluate(() => window.__dhol.useGame.setState({ money: 9999 }));
   await key('Escape', 600);
-  await page.getByRole('tab', { name: 'Save / Load' }).click();
-  await page.locator('.slot').nth(1).getByRole('button', { name: 'Load' }).click();
+  await page.getByRole('tab', { name: 'Sambhaalo / Kholo' }).click();
+  await page.locator('.slot').nth(1).getByRole('button', { name: 'Kholo', exact: true }).click();
   await t.wait(2500);
   s = await st();
   check(s.money === 250 && !!s.lies.stories.jai?.bablu && s.missions.jai.startsWith('active'), 'loading slot 2 restores exactly what was saved');
@@ -1158,25 +1168,25 @@ export async function saves(t) {
   check(s.mode === 'play' && s.missions.jai.startsWith('active') && !!s.lies.stories.jai?.bablu, 'Continue resumes the mission with its progress');
   // load from the title screen
   await key('Escape', 600);
-  await page.getByText('Save and quit to title').click();
+  await page.getByText('Sambhaalo aur shuru ke screen pe jao').click();
   await t.wait(2000);
-  await page.getByText('Load a saved game').click();
+  await page.getByText('Sambhaala hua khel kholo').click();
   await t.wait(500);
-  await page.locator('.slot').nth(1).getByRole('button', { name: 'Load' }).click();
+  await page.locator('.slot').nth(1).getByRole('button', { name: 'Kholo', exact: true }).click();
   await t.wait(2500);
   s = await st();
   check(s.mode === 'play' && s.missions.jai.startsWith('active'), 'loading a slot from the title screen works');
   // restart this mission
   await key('Escape', 600);
-  await page.getByText('Restart this mission').click();
-  await page.getByText('Click again to restart this mission').click();
+  await page.getByText('Ye muhim shuru se karo').click();
+  await page.getByText('Muhim shuru se karne ke liye phir dabao').click();
   await t.wait(2000);
   s = await st();
   check(s.missions.jai === 'active:' && !s.lies.stories.jai?.bablu, 'Restart this mission rolls back to the mission’s start');
   // restart the whole game
   await key('Escape', 600);
-  await page.getByText('Restart from the beginning').click();
-  await page.getByText('Click again to erase progress').click();
+  await page.getByText('Bilkul shuru se khelo').click();
+  await page.getByText('Sab mitaane ke liye phir dabao').click();
   await t.wait(2500);
   s = await st();
   check(s.scene === 'house' && s.missions.rent === 'active:' && s.missions.jai.startsWith('locked'), 'Restart from the beginning starts a new game');
@@ -1217,7 +1227,7 @@ export async function npcTravel(t) {
   await t.advance();
   await api('ambient', false);
 
-  // 2. Tiwari-ji's inspection: he walks into the room himself
+  // 2. Dongre Mama's inspection: he walks into the room himself
   await api('jumpTo', 'chaos');
   await t.until((x) => x.dialogue?.script === 'chaos_intro', 10000, 'intro');
   await t.advance();
@@ -1229,7 +1239,7 @@ export async function npcTravel(t) {
   await t.advance();
   await api('skip', 40);
   for (let i = 0; i < 160 && (await api('agent', 'tiwari'))?.scene !== 'house'; i++) await t.wait(250);
-  check((await api('agent', 'tiwari')).scene === 'house', 'Tiwari-ji walked into the rented room to inspect it');
+  check((await api('agent', 'tiwari')).scene === 'house', 'Dongre Mama walked into the rented room to inspect it');
   for (let i = 0; i < 240 && (await api('agent', 'tiwari'))?.scene !== 'street'; i++) await t.wait(250);
   check((await api('agent', 'tiwari')).scene === 'street', 'and walked back out to his chair');
 

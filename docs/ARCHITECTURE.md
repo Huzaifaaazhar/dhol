@@ -201,3 +201,40 @@ patrolling agent that ends up indoors walks back out to its route.
 - **Ramesh the postman** does a round outside the timed missions: street, shop, the friends' room.
   Friendly walkers stop when you come up to them, and excuse themselves past you if you block them.
 - Scripted browser tests switch the postman off (`api.ambient(false)`); `npcTravel` tests all three.
+
+
+---
+
+# ADR-004: Follow the film's outline; the whole game in Roman Hindi/Urdu
+
+**Status:** Accepted
+**Date:** 2026-11-18
+
+## Context
+
+Playtesting feedback: it did not feel like *Dhol*. The story was invented, the dialogue was polite
+English, and the presentation was quiet. The owner asked for the film's story and characters,
+a Bollywood look and sound, and no English anywhere in the game.
+
+## Decision
+
+1. **Story follows the film's outline** (as far as public summaries describe it), with original
+   writing filling the gaps. Mission ids are unchanged so saves, directors and tests keep working;
+   titles, objectives and content changed. Internal ids that no longer match their role are kept
+   and documented (`tiwari` is Dongre Mama, `daadi` is Elizabeth Daadi, `jai` is now Ritu's
+   investigation, and the `jai` lie-ledger stories are the colony's memories of the dead Jai).
+2. **All visible text is Roman Hindi/Urdu**, including UI chrome. Everyday loanwords that Hindi
+   speakers use for objects (plan, TV, ticket, police, chai) stay; interface terms use Hindi/Urdu
+   words (muhim, sambhaalo, kholo, suchi). Lie-ledger claim values are Hindi and are compared by
+   value, so shared answers live in one place (`data/questions.ts` constants).
+3. **Filmi moments** (`game/filmi.ts`): `filmi('dhishoom' | 'reveal' | 'blast')` plays a synthesized
+   sound, punches the camera zoom (`runtime.zoomPunch`) and shows a word burst (`ui/FilmiFX.tsx`).
+   Story beats fire them through `{ event: 'reveal' | 'blast' }` effects; slapstick thuds and
+   catches fire punches automatically.
+4. **Ending**: the credits song (rhythm + melody + lyric ticker, friends dancing) and a scripted
+   chase (`game/chase.ts`): Ritu's car on a cleared road, the gang running behind, letterbox.
+
+## Consequences
+
+- Browser tests select replies by their Hindi text.
+- Public plot summaries are thin; anything they do not describe is original invention.

@@ -49,7 +49,7 @@ export function SlotList({ canSave }: { canSave: boolean }) {
                   loadSlot(n);
                 }}
               >
-                Load
+                Kholo
               </button>
             )}
             {slot && (

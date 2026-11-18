@@ -1,13 +1,30 @@
 # DHOL
 
-**Four idiots. One big mess.**
+**Chaar yaar. Ek dhol. Bada lafda.** (Four friends. One drum. One big mess.)
 
-A browser game inspired by the spirit of the 2007 Bollywood comedy *Dhol*. You play
-four broke, unemployed friends (Sam, Pakya, Goti and Maru) trying to get rich in
-a small, crowded neighbourhood: Shanti Nagar, Lane 4.
+A browser game that follows the outline of the 2007 Bollywood comedy *Dhol*. You play
+four broke, unemployed friends in a Pune colony: Sameer "Sam" Arya, Pankaj "Pakya" Tiwari,
+Gautam "Goti" Sisodia and Martand "Maru" Dhamdhere.
+
+**The whole game is in Roman Hindi/Urdu**: dialogue, menus, objectives, hints, notifications,
+labels and endings. Only physical key names (Esc, Enter, Shift) appear as printed on keyboards.
 
 All writing, characters, art and sound are original and generated in code. There is no
-film footage, film music or film dialogue in the game.
+film footage, film music, film dialogue or actor likeness in the game.
+
+## The story
+
+1. **Mama ka Karza**: the four owe Maru's miserly police-uncle, ASI Dongre ("Mama"), ₹6,000 plus interest.
+2. **Naye Padosi / Ameer Ladki**: Ritu moves into the yellow bungalow with her grandparents,
+   Dr. Satyadev Tripathi (PhD in Textiles) and Elizabeth Daadi. All four plan to marry her.
+3. **Main Hoon Jai**: Ritu is in Pune to find out who killed her brother Rahul and his friend Jai.
+   Her grandparents never met Jai, so Pakya becomes Jai, built from what the colony remembers.
+4. **Zikomo Aa Gaya**: word that "Jai is alive" brings Zikomo, who knows that is impossible.
+5. **Dhol Kahaan Hai?** and **Sab Gadbad**: the hunt for Rahul's drum; the engagement; Ritu finds out.
+6. **Sach**: Rahul's packet, the cinema locker, the drum's false wall and Rahul's last tape naming Zikomo.
+7. **Char Yaar, Ek Dhamaka**: Zikomo kidnaps Ritu and her grandparents and demands the drum.
+   He confesses in front of the colony and his own dynamite finishes him (cartoon style).
+8. Four endings decided by how you played, an original song over the credits, and the four running after Ritu's car.
 
 ## Play online
 
@@ -84,6 +101,9 @@ searching keeps searching, and a question for Pakya will not wait.
 - **People move between buildings.** Tiwari-ji walks into your room to inspect it; a goon chasing
   you through a door may follow you in and look round (hide behind the door); Ramesh the postman
   delivers to the shop and your room between the missions.
+- **Filmi presentation:** freeze-frame name cards, comic word bursts (DHISHOOM!) with a camera
+  punch-in, dun-dun-DUN reveal stings, an original reedy filmi lead over the dhol, an end-credits song
+  with lyrics, and the closing chase.
 - **Presentation:** faces that blink, talk and react; speaker portraits; afternoon, sunset, morning and
   dusk lighting that follows the story; street lamps; footsteps and a tension rhythm in live missions;
   NPCs with routines; iris transitions between places.
